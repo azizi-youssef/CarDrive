@@ -1,36 +1,76 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CarDrive — Architecture Monorepo
 
-## Getting Started
-
-First, run the development server:
-
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+```
+CarDrive/
+├── frontend/          ← Next.js 16 — UI, pages, composants
+│   ├── src/
+│   │   ├── app/       ← Pages & routes (App Router)
+│   │   ├── components/
+│   │   ├── lib/
+│   │   │   ├── api/   ← Clients HTTP vers le backend
+│   │   │   └── utils.ts
+│   │   └── types/
+│   ├── .env.local     ← NEXT_PUBLIC_API_URL=http://localhost:4000
+│   └── package.json
+│
+├── backend/           ← Express.js — API REST
+│   ├── src/
+│   │   ├── routes/    ← vehicles, agencies, bookings, reviews, stats
+│   │   ├── services/  ← store.ts + mockData.ts
+│   │   ├── middleware/← validate.middleware.ts
+│   │   ├── validations/
+│   │   ├── availability/
+│   │   └── index.ts   ← Point d'entrée (port 4000)
+│   ├── .env           ← PORT=4000, FRONTEND_URL=...
+│   └── package.json
+│
+├── supabase/          ← SQL schemas (commun)
+└── package.json       ← Monorepo root (workspaces)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Démarrage rapide
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+# Démarrer les deux serveurs en parallèle
+npm run dev
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# Frontend uniquement (port 3000)
+npm run dev:frontend
 
-## Learn More
+# Backend uniquement (port 4000)
+npm run dev:backend
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Endpoints API (backend :4000)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Méthode | Route | Description |
+|---------|-------|-------------|
+| GET | `/health` | Vérification santé |
+| GET | `/api/vehicles` | Liste avec filtres |
+| GET | `/api/vehicles/:slug` | Détail véhicule |
+| PATCH | `/api/vehicles/:id` | Mise à jour |
+| DELETE | `/api/vehicles/:id` | Suppression |
+| GET | `/api/agencies` | Liste agences |
+| GET | `/api/agencies/:slug` | Détail agence |
+| GET | `/api/agencies/:slug/vehicles` | Véhicules de l'agence |
+| GET | `/api/bookings` | Liste réservations |
+| POST | `/api/bookings` | Créer réservation |
+| PATCH | `/api/bookings/:id/status` | Changer statut |
+| GET | `/api/reviews?vehicleId=` | Avis véhicule |
+| POST | `/api/reviews` | Ajouter avis |
+| GET | `/api/stats/admin` | Stats admin |
+| GET | `/api/stats/agency/:id` | Stats agence |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Variables d'environnement
 
-## Deploy on Vercel
+**frontend/.env.local**
+```
+NEXT_PUBLIC_API_URL=http://localhost:4000
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**backend/.env**
+```
+PORT=4000
+NODE_ENV=development
+FRONTEND_URL=http://localhost:3000
+```
