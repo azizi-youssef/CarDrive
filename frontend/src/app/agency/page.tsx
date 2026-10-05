@@ -25,8 +25,10 @@ import {
   Users,
   Eye,
   X,
+  Download,
 } from 'lucide-react';
 import { AgencyBookingDetailModal } from '@/components/agency/AgencyBookingDetailModal';
+import { MeetingPointBadge } from '@/components/booking/MeetingPointBadge';
 
 export default function AgencyDashboardPage() {
   // We can let the user pick which agency they want to manage (defaults to agency-1 "Nador Auto Rent")
@@ -275,6 +277,7 @@ export default function AgencyDashboardPage() {
                         <th className="py-2.5">Référence</th>
                         <th className="py-2.5">Client</th>
                         <th className="py-2.5">Véhicule</th>
+                        <th className="py-2.5">Point RDV Choisi</th>
                         <th className="py-2.5">Période</th>
                         <th className="py-2.5">Montant</th>
                         <th className="py-2.5">Statut</th>
@@ -291,6 +294,9 @@ export default function AgencyDashboardPage() {
                           </td>
                           <td className="py-3 font-medium text-slate-700">
                             {b.vehicle?.brand} {b.vehicle?.model}
+                          </td>
+                          <td className="py-3">
+                            <MeetingPointBadge location={b.pickup_location || 'Aéroport Nador Al-Aroui (NDR)'} size="sm" />
                           </td>
                           <td className="py-3 text-slate-600">
                             {b.start_date} → {b.end_date} ({b.total_days}j)
@@ -321,10 +327,11 @@ export default function AgencyDashboardPage() {
                                 href={`/api/bookings/${encodeURIComponent(b.reference || b.booking_ref || '')}/pdf`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="px-2 py-1 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-100 text-[11px] font-semibold"
-                                title="Voir le PDF"
+                                className="px-2.5 py-1 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-100 text-[11px] font-semibold flex items-center gap-1 shadow-sm"
+                                title="Télécharger la fiche PDF"
                               >
-                                PDF
+                                <Download className="w-3 h-3 text-[#FF7300]" />
+                                <span>PDF</span>
                               </a>
                             </div>
                           </td>

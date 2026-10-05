@@ -48,22 +48,30 @@ class NotificationService {
   /**
    * Formatage du message WhatsApp professionnel de demande de réservation
    */
-  formatAgencyWhatsAppMessage(booking: Booking): string {
+  formatAgencyWhatsAppMessage(booking: Booking, appUrl?: string): string {
+    const baseAppUrl = appUrl || process.env.NEXT_PUBLIC_APP_URL || 'https://cardrive.ma';
+    const pdfUrl = `${baseAppUrl}/api/bookings/${encodeURIComponent(booking.reference || booking.booking_ref || '')}/pdf`;
+    const dashboardUrl = `${baseAppUrl}/agency?booking=${encodeURIComponent(booking.reference || booking.booking_ref || '')}`;
     const vehicleName = booking.vehicle
-      ? `${booking.vehicle.brand} ${booking.vehicle.model}`
+      ? `${booking.vehicle.brand} ${booking.vehicle.model} (${booking.vehicle.year})`
       : 'Véhicule';
 
     return (
-      `🚗 *Nouvelle demande CarDrive*\n\n` +
+      `🚗 *NOUVELLE DEMANDE DE RÉSERVATION CARDRIVE*\n\n` +
       `*Référence :* ${booking.reference || booking.booking_ref}\n` +
       `*Véhicule :* ${vehicleName}\n` +
       `*Client :* ${booking.customer_name}\n` +
-      `*Téléphone :* ${booking.customer_phone}\n` +
-      `*Dates :* ${booking.start_date} → ${booking.end_date} (${booking.total_days} jours)\n` +
-      `*Lieu :* ${booking.pickup_location}\n` +
-      `*Total location :* ${booking.total_price} DH\n` +
-      `*Montant agence :* ${booking.agency_amount} DH (Com. CarDrive ${booking.commission_rate}% : ${booking.commission_amount} DH)\n\n` +
-      `Merci de traiter cette demande depuis votre espace partenaire CarDrive.`
+      `*N° CIN / Passeport :* ${booking.cin || 'Présenté sur place'}\n` +
+      `*Téléphone client :* ${booking.customer_phone}\n\n` +
+      `📅 *Période :* du ${booking.start_date} au ${booking.end_date} (${booking.total_days} jours)\n` +
+      `📍 *Point de rendez-vous retenu :* ${booking.pickup_location}\n` +
+      (booking.flight_number ? `✈️ *Vol d'arrivée :* ${booking.flight_number} (${booking.flight_arrival_time || '—'})\n` : '') +
+      `\n💰 *Total facturé :* ${booking.total_price} DH\n` +
+      `💵 *Part revenant à l'agence (85%) :* ${booking.agency_amount} DH\n` +
+      `🏷️ *Commission CarDrive (15%) :* ${booking.commission_amount} DH\n` +
+      `🔒 *Caution à percevoir en agence :* ${booking.deposit_amount || 3000} DH\n\n` +
+      `📄 *Fichier PDF officiel de la demande :*\n${pdfUrl}\n\n` +
+      `💻 *Traiter sur votre Dashboard Agence :*\n${dashboardUrl}`
     );
   }
 

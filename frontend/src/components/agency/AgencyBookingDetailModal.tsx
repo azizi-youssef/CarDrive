@@ -19,7 +19,9 @@ import {
   AlertCircle,
   FileText,
   Repeat,
+  MessageSquare,
 } from 'lucide-react';
+import { MeetingPointBadge } from '@/components/booking/MeetingPointBadge';
 
 interface AgencyBookingDetailModalProps {
   booking: Booking | null;
@@ -135,12 +137,26 @@ export function AgencyBookingDetailModal({
               Demande de réservation reçue
             </h2>
           </div>
-          <button
-            onClick={onClose}
-            className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white"
-          >
-            <X className="w-4 h-4" />
-          </button>
+
+          <div className="flex items-center gap-2">
+            <a
+              href={`/api/bookings/${encodeURIComponent(booking.reference || booking.booking_ref || '')}/pdf`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs flex items-center gap-1.5 transition-colors border border-white/20"
+              title="Télécharger la fiche PDF officielle"
+            >
+              <Download className="w-3.5 h-3.5 text-[#FF7300]" />
+              <span className="hidden sm:inline">Télécharger PDF</span>
+            </a>
+
+            <button
+              onClick={onClose}
+              className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
         {/* Content */}
@@ -195,6 +211,14 @@ export function AgencyBookingDetailModal({
                 <span className="text-[10px] text-slate-400 block">Restitution</span>
                 <span>{booking.end_date} ({booking.dropoff_time}) • {booking.dropoff_location}</span>
               </div>
+            </div>
+
+            {/* Point de rendez-vous choisi avec logo et consignes d'accueil */}
+            <div className="pt-2 border-t border-slate-200/70">
+              <span className="text-[10px] text-slate-400 font-bold uppercase block mb-1">
+                Point de rendez-vous choisi par le client :
+              </span>
+              <MeetingPointBadge location={booking.pickup_location} showInstructions={true} />
             </div>
 
             {booking.flight_number && (

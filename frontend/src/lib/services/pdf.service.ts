@@ -238,7 +238,22 @@ export class PdfService {
       doc.text(`${booking.flight_number} (Atterrissage : ${booking.flight_arrival_time || '—'})`, clientX1 + 30, currentY);
     }
 
-    currentY += 10;
+    // Encadré Spécial : Point de rendez-vous choisi par le client
+    currentY += 8;
+    doc.setFillColor(240, 249, 255); // bg-blue-50
+    doc.setDrawColor(186, 230, 253); // border-blue-200
+    doc.roundedRect(margin, currentY, contentWidth, 13, 2, 2, 'FD');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8.5);
+    doc.setTextColor(2, 48, 107);
+    doc.text('POINT DE RENDEZ-VOUS CHOISI :', margin + 4, currentY + 5);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(15, 23, 42);
+    doc.text(booking.pickup_location || 'Aéroport Nador Al-Aroui (NDR)', margin + 58, currentY + 5);
+    doc.setFontSize(7.5);
+    doc.setTextColor(100, 116, 139);
+    doc.text('Présentez cette demande PDF officielle avec votre CIN/Passeport physique à l’agent d’accueil CarDrive.', margin + 4, currentY + 10);
+    currentY += 17;
 
     // --- SECTION 4 : TARIFICATION & COMMISSION ---
     currentY = drawSectionTitle('4. Tarification & Ventilation Financière', currentY);

@@ -2,10 +2,13 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Vehicle } from '@/types';
 import { calculateBookingPrice, calculateRentalDays } from '@/lib/utils/pricing';
 import { formatPrice } from '@/lib/utils';
 import { LOCATIONS_NADOR } from '@/lib/services/mockData';
+import { MEETING_POINTS, getMeetingPoint } from '@/lib/constants/meetingPoints';
+import { MeetingPointBadge } from './MeetingPointBadge';
 import {
   X,
   User,
@@ -23,6 +26,7 @@ import {
   CarFront,
   MessageSquare,
   Building2,
+  MapPin,
 } from 'lucide-react';
 
 interface BookingRequestModalProps {
@@ -49,7 +53,9 @@ export function BookingRequestModal({
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [submissionError, setSubmissionError] = useState<string | null>(null);
-  const [confirmedBookingRef, setConfirmedBookingRef] = useState<string | null>(null);  // Étape 1 : Coordonnées & Permis
+  const [confirmedBookingRef, setConfirmedBookingRef] = useState<string | null>(null);
+  const [agencyWhatsAppUrl, setAgencyWhatsAppUrl] = useState<string | null>(null);
+  // Étape 1 : Coordonnées & Permis
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [cin, setCin] = useState('');
@@ -157,6 +163,9 @@ export function BookingRequestModal({
       }
 
       setConfirmedBookingRef(data.reference);
+      if (data.agencyWhatsAppUrl) {
+        setAgencyWhatsAppUrl(data.agencyWhatsAppUrl);
+      }
       setCurrentStep(5); // Écran de confirmation
     } catch (err: any) {
       setSubmissionError(err.message || 'Une erreur est survenue lors de l’envoi de votre demande.');
@@ -169,21 +178,32 @@ export function BookingRequestModal({
     <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
       <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col max-h-[92vh]">
         
-        {/* Header de la Modal */}
-        <div className="bg-[#02306B] text-white px-6 py-4 flex items-center justify-between relative shrink-0">
-          <div>
-            <div className="flex items-center gap-2 text-xs font-semibold text-blue-200 uppercase tracking-wider">
-              <span>CarDrive Marketplace</span>
-              <span>•</span>
-              <span className="text-[#FF7300] font-bold">Demande sans engagement</span>
+        {/* Header de la Modal avec Logo CarDrive Officiel */}
+        <div className="bg-[#02306B] text-white px-5 sm:px-6 py-4 flex items-center justify-between relative shrink-0 border-b border-blue-900/30">
+          <div className="flex items-center gap-3">
+            <div className="relative h-9 w-28 bg-white/10 rounded-xl p-1.5 flex items-center justify-center backdrop-blur-sm border border-white/15 shrink-0">
+              <Image
+                src="/logo_CarDrive1.png"
+                alt="CarDrive"
+                fill
+                className="object-contain p-1 brightness-0 invert"
+                priority
+              />
             </div>
-            <h2 className="text-lg font-bold text-white mt-0.5">
-              Demander la {vehicle.brand} {vehicle.model}
-            </h2>
+            <div>
+              <div className="flex items-center gap-2 text-[10px] sm:text-xs font-semibold text-blue-200 uppercase tracking-wider">
+                <span>Marketplace</span>
+                <span>•</span>
+                <span className="text-[#FF7300] font-bold">Demande officielle</span>
+              </div>
+              <h2 className="text-base sm:text-lg font-bold text-white mt-0.5">
+                Demander la {vehicle.brand} {vehicle.model}
+              </h2>
+            </div>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors"
+            className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors shrink-0"
             aria-label="Fermer"
           >
             <X className="w-4 h-4" />
@@ -439,32 +459,52 @@ export function BookingRequestModal({
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Lieu de prise en charge</label>
-                  <select
-                    value={pickupLocation}
-                    onChange={(e) => setPickupLocation(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-medium text-slate-800 outline-none"
-                  >
-                    {LOCATIONS_NADOR.map((l) => (
-                      <option key={l} value={l}>{l}</option>
-                    ))}
-                  </select>
+              {/* Sélection visuelle du point de rendez-vous avec logo & badge */}
+              <div className="space-y-2 text-xs">
+                <label className="block font-semibold text-slate-700">
+                  Point de rendez-vous principal à Nador (Prise en charge) *
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {MEETING_POINTS.map((mp) => (
+                    <button
+                      key={mp.id}
+                      type="button"
+                      onClick={() => {
+                        setPickupLocation(mp.name);
+                        setDropoffLocation(mp.name);
+                      }}
+                      className={`p-2.5 rounded-xl border text-left flex items-center gap-2.5 transition-all cursor-pointer ${
+                        pickupLocation === mp.name
+                          ? 'border-[#02306B] bg-blue-50/80 shadow-sm ring-1 ring-[#02306B]'
+                          : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
+                      }`}
+                    >
+                      <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-white shrink-0 bg-gradient-to-br ${mp.gradientBg}`}>
+                        {mp.type === 'AIRPORT' && <Plane className="w-4 h-4" />}
+                        {mp.type === 'PORT' && <Building2 className="w-4 h-4" />}
+                        {mp.type === 'AGENCY' && <Building2 className="w-4 h-4" />}
+                        {mp.type === 'CITY' && <MapPin className="w-4 h-4" />}
+                        {mp.type === 'RESORT' && <ShieldCheck className="w-4 h-4" />}
+                        {mp.type === 'TRAIN' && <Clock className="w-4 h-4" />}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-bold text-slate-900 truncate text-[11px]">{mp.shortName}</p>
+                        <p className="text-[10px] text-slate-500 truncate">{mp.badgeLabel}</p>
+                      </div>
+                      {pickupLocation === mp.name && (
+                        <CheckCircle2 className="w-4 h-4 text-[#02306B] shrink-0" />
+                      )}
+                    </button>
+                  ))}
                 </div>
+              </div>
 
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Lieu de restitution</label>
-                  <select
-                    value={dropoffLocation}
-                    onChange={(e) => setDropoffLocation(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-medium text-slate-800 outline-none"
-                  >
-                    {LOCATIONS_NADOR.map((l) => (
-                      <option key={l} value={l}>{l}</option>
-                    ))}
-                  </select>
-                </div>
+              {/* Point de rendez-vous choisi avec logo officiel & consignes */}
+              <div className="pt-1">
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                  Point de rendez-vous retenu pour l’accueil :
+                </label>
+                <MeetingPointBadge location={pickupLocation} showInstructions={true} />
               </div>
             </div>
           )}
@@ -584,11 +624,13 @@ export function BookingRequestModal({
                   <span className="font-semibold text-slate-700">Dates de location</span>
                   <span className="font-bold text-slate-900">{startDate} ({pickupTime}) → {endDate} ({dropoffTime})</span>
                 </div>
-                <div className="flex justify-between items-center pb-2 border-b border-slate-200/70">
-                  <span className="font-semibold text-slate-700">Lieu de prise / restitution</span>
-                  <span className="font-medium text-slate-800 text-right">{pickupLocation}</span>
+                <div className="pt-2 border-t border-slate-200/70">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase block mb-1">
+                    Point de rendez-vous officiel choisi
+                  </span>
+                  <MeetingPointBadge location={pickupLocation} showInstructions={true} />
                 </div>
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between items-center pt-1">
                   <span className="font-semibold text-slate-700">Durée calculée</span>
                   <span className="font-bold text-[#02306B]">{pricing.number_of_days} jour(s)</span>
                 </div>
@@ -652,25 +694,56 @@ export function BookingRequestModal({
                   Votre demande a bien été envoyée !
                 </h3>
                 <p className="text-xs text-slate-600 mt-1">
-                  L'agence partenaire examine actuellement votre dossier pour valider la disponibilité.
+                  L'agence partenaire <strong>{vehicle.agency?.name}</strong> examine actuellement votre dossier pour valider la disponibilité.
                 </p>
               </div>
 
-              {/* Dossier Référence Badge */}
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 max-w-sm mx-auto">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
-                  Référence unique de dossier
-                </span>
-                <span className="font-mono text-lg font-black text-[#02306B] tracking-wider block">
-                  {confirmedBookingRef || 'CD-2026-001842'}
-                </span>
-                <span className="inline-block mt-2 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
-                  ● En attente de validation de l'agence
-                </span>
+              {/* Dossier Référence Badge & Point de rendez-vous */}
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 max-w-md mx-auto space-y-3">
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
+                    Référence unique de dossier
+                  </span>
+                  <span className="font-mono text-lg font-black text-[#02306B] tracking-wider block">
+                    {confirmedBookingRef || 'CD-2026-001842'}
+                  </span>
+                  <span className="inline-block mt-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
+                    ● En attente de validation de l'agence
+                  </span>
+                </div>
+
+                <div className="border-t border-slate-200 pt-2 text-left">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
+                    Point de rendez-vous confirmé :
+                  </span>
+                  <MeetingPointBadge location={pickupLocation} size="sm" />
+                </div>
+              </div>
+
+              {/* Automatisation PDF & WhatsApp transmise à l'agence */}
+              <div className="p-3.5 rounded-2xl bg-emerald-50/70 border border-emerald-200 max-w-md mx-auto text-left space-y-2">
+                <div className="flex items-center gap-2 text-emerald-900 font-bold text-xs">
+                  <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>Automatisation CarDrive activée :</span>
+                </div>
+                <ul className="text-[11px] text-emerald-800 space-y-1 pl-1">
+                  <li className="flex items-center gap-1.5">
+                    <span>✓</span>
+                    <span><strong>Fichier PDF officiel</strong> généré et rattaché à votre dossier.</span>
+                  </li>
+                  <li className="flex items-center gap-1.5">
+                    <span>✓</span>
+                    <span><strong>Dossier & PDF transmis automatiquement</strong> au compte WhatsApp de l'agence.</span>
+                  </li>
+                  <li className="flex items-center gap-1.5">
+                    <span>✓</span>
+                    <span><strong>Tableau de bord agence</strong> mis à jour en temps réel sur la plateforme.</span>
+                  </li>
+                </ul>
               </div>
 
               {/* Actions Rapides */}
-              <div className="flex flex-col sm:flex-row gap-2.5 max-w-md mx-auto pt-2">
+              <div className="flex flex-col sm:flex-row gap-2.5 max-w-md mx-auto pt-1">
                 <a
                   href={`/api/bookings/${encodeURIComponent(confirmedBookingRef || '')}/pdf`}
                   target="_blank"
@@ -685,17 +758,26 @@ export function BookingRequestModal({
                   href={`/account/bookings/${encodeURIComponent(confirmedBookingRef || '')}`}
                   className="flex-1 py-3 px-4 rounded-xl bg-[#02306B] hover:bg-[#064181] text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md transition-all"
                 >
-                  <Clock className="w-4 h-4" />
+                  <Clock className="w-4 h-4 text-[#FF7300]" />
                   <span>Suivre ma demande</span>
                 </Link>
               </div>
 
-              <div className="pt-2 text-xs text-slate-500">
-                Vous recevrez une notification par email et WhatsApp dès que l'agence aura validé votre dossier.
-              </div>
+              {agencyWhatsAppUrl && (
+                <div className="pt-1">
+                  <a
+                    href={agencyWhatsAppUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-xs text-emerald-700 hover:text-emerald-800 font-semibold underline"
+                  >
+                    <MessageSquare className="w-3.5 h-3.5" />
+                    <span>Consulter le message WhatsApp officiel préparé pour l’agence</span>
+                  </a>
+                </div>
+              )}
             </div>
           )}
-
         </div>
 
         {/* Footer Navigation Buttons */}

@@ -23,6 +23,7 @@ import {
   HelpCircle,
   ExternalLink,
 } from 'lucide-react';
+import { MeetingPointBadge } from '@/components/booking/MeetingPointBadge';
 
 interface BookingDetailPageProps {
   params: Promise<{ reference: string }>;
@@ -275,6 +276,14 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
                   <p className="font-bold text-slate-900">{booking.end_date} à {booking.dropoff_time || '10:00'}</p>
                   <p className="text-slate-500 text-[11px] mt-1">{booking.dropoff_location}</p>
                 </div>
+              </div>
+
+              {/* Point de rendez-vous avec logo et consignes */}
+              <div className="pt-2 border-t border-slate-100">
+                <span className="text-[10px] font-bold uppercase text-slate-400 block mb-1">
+                  Point de rendez-vous officiel sélectionné :
+                </span>
+                <MeetingPointBadge location={booking.pickup_location} showInstructions={true} />
               </div>
 
               <div className="flex justify-between items-center text-xs pt-1">

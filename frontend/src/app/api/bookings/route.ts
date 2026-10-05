@@ -31,10 +31,29 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const appUrl = req.nextUrl.origin;
+    const { notificationService } = await import('@/lib/services/notification.service');
+    const agencyWhatsAppMessage = notificationService.formatAgencyWhatsAppMessage(result.booking, appUrl);
+    const agencyPhone = result.booking.agency?.whatsapp || result.booking.agency?.phone || '+212661234567';
+    const agencyWhatsAppUrl = notificationService.generateWhatsAppLink(agencyPhone, agencyWhatsAppMessage);
+    const pdfUrl = `${appUrl}/api/bookings/${encodeURIComponent(result.booking.reference || '')}/pdf`;
+
+    // Envoi de la notification au dashboard agence
+    await notificationService.sendDashboardNotification({
+      agencyId: result.booking.agency_id,
+      title: `Nouvelle demande de réservation ${result.booking.reference}`,
+      message: `${result.booking.customer_name} — ${result.booking.vehicle?.brand} ${result.booking.vehicle?.model} (${result.booking.total_days}j à ${result.booking.pickup_location})`,
+      link: `/agency?booking=${encodeURIComponent(result.booking.reference || '')}`,
+      type: 'BOOKING',
+    });
+
     return NextResponse.json({
       success: true,
       booking: result.booking,
       reference: result.booking.reference,
+      pdfUrl,
+      agencyWhatsAppUrl,
+      agencyWhatsAppMessage,
     });
   } catch (error: any) {
     console.error('[API /api/bookings POST] Error:', error);
