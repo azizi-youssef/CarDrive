@@ -172,3 +172,28 @@ DROP POLICY IF EXISTS "Authorized users can insert booking events" ON public.boo
 CREATE POLICY "Authorized users can insert booking events"
     ON public.booking_events FOR INSERT
     WITH CHECK (true);
+
+-- ------------------------------------------------------------------------
+-- 5. Sécurité Renforcée Bookings (Anti-Contournement & Anti-Désintermédiation)
+-- ------------------------------------------------------------------------
+-- Seuls les membres de l'agence affiliée, le client concerné ou le Super Admin
+-- peuvent accéder aux dossiers de réservation.
+DROP POLICY IF EXISTS "Bookings viewable by customer, agency or admin" ON public.bookings;
+CREATE POLICY "Bookings viewable by customer, agency or admin"
+    ON public.bookings FOR SELECT
+    USING (
+        (auth.uid() IS NOT NULL AND customer_id = auth.uid())
+        OR public.is_agency_member(agency_id)
+        OR public.is_admin()
+    );
+
+-- Seuls les gestionnaires de l'agence concernée ou les administrateurs CarDrive
+-- peuvent modifier l'état ou le véhicule d'une réservation.
+DROP POLICY IF EXISTS "Agencies and Admins can update booking status" ON public.bookings;
+CREATE POLICY "Agencies and Admins can update booking status"
+    ON public.bookings FOR UPDATE
+    USING (
+        public.is_agency_member(agency_id)
+        OR public.is_admin()
+    );
+

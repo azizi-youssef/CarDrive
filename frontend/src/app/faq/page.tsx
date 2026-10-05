@@ -30,25 +30,25 @@ const FAQ_ITEMS = [
   {
     question: 'Comment réserver un véhicule ?',
     answer:
-      "Après avoir sélectionné un véhicule, vous pouvez envoyer une demande depuis sa fiche ou contacter directement l'agence, notamment via WhatsApp lorsque cette option est proposée. L'agence confirme ensuite les conditions et la disponibilité de la réservation.",
+      "Après avoir sélectionné un véhicule, cliquez sur « Demander cette voiture ». Vous complétez votre demande avec votre numéro de CIN et vos coordonnées. CarDrive transmet votre dossier à l'agence partenaire qui confirme la disponibilité sous 1h à 2h.",
     icon: CalendarCheck,
   },
   {
     question: 'Comment fonctionne la disponibilité des véhicules ?',
     answer:
-      "La disponibilité dépend des informations communiquées et mises à jour par les agences partenaires ainsi que des réservations enregistrées dans la plateforme. Avant de finaliser votre réservation, nous vous recommandons de confirmer directement avec l'agence que le véhicule est disponible pour vos dates.",
+      "La disponibilité est gérée en direct par les agences partenaires sur la plateforme CarDrive. En envoyant votre demande via CarDrive, vous bloquez le tarif affiché. Si le véhicule venait à être indisponible, CarDrive vous propose immédiatement des alternatives équivalentes.",
     icon: CalendarCheck,
   },
   {
     question: 'Que signifie le badge « Agence vérifiée » ?',
     answer:
-      "Lorsqu'une agence dispose du badge « Agence vérifiée », cela signifie que son profil a fait l'objet d'une vérification selon les procédures mises en place par CarDrive. Les informations et critères exacts de vérification peuvent évoluer. Consultez la fiche de l'agence pour connaître les informations disponibles.",
+      "Lorsqu'une agence dispose du badge « Agence vérifiée », cela signifie que son registre de commerce, ses assurances professionnelles et son parc ont fait l'objet d'une validation rigoureuse par CarDrive.",
     icon: ShieldCheck,
   },
   {
     question: "Puis-je récupérer une voiture à l'aéroport Nador-Al Aroui ?",
     answer:
-      "Certaines agences peuvent proposer une prise en charge ou une livraison à l'aéroport Nador-Al Aroui. Les conditions, horaires et éventuels frais dépendent de chaque agence. Indiquez votre lieu de prise en charge lors de votre demande et confirmez les modalités directement avec le partenaire.",
+      "Oui, la majorité de nos agences partenaires assurent la livraison à l'aéroport Nador-Al Aroui ou au port de Beni Ansar. Précisez simplement votre numéro de vol ou de traversée lors de votre demande sur CarDrive pour que l'agent vous attende à votre arrivée.",
     icon: MapPin,
   },
   {

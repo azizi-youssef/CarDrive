@@ -121,9 +121,13 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
     },
   ];
 
+  const isConfirmed = ['CONFIRMED', 'APPROVED', 'ACTIVE', 'IN_PROGRESS', 'COMPLETED'].includes(booking.status);
+  const conciergeUrl = `https://wa.me/212661987654?text=${encodeURIComponent(
+    `Bonjour CarDrive Conciergerie, je souhaite un suivi sur mon dossier réf. ${booking.reference || booking.booking_ref} (${booking.vehicle?.brand} ${booking.vehicle?.model}).`
+  )}`;
   const whatsappText = `Bonjour, je vous contacte concernant mon dossier CarDrive réf. ${booking.reference || booking.booking_ref} pour la ${booking.vehicle?.brand} ${booking.vehicle?.model}.`;
   const agencyPhone = booking.agency?.whatsapp || booking.agency?.phone || '+212600000000';
-  const whatsappUrl = `https://wa.me/${agencyPhone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(whatsappText)}`;
+  const agencyWhatsappUrl = `https://wa.me/${agencyPhone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(whatsappText)}`;
 
   return (
     <div className="bg-[#F8FAFC] min-h-screen py-10 pb-20">
@@ -188,13 +192,17 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
               </a>
 
               <a
-                href={whatsappUrl}
+                href={isConfirmed ? agencyWhatsappUrl : conciergeUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-2 shadow-sm transition-all"
+                className={`px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 shadow-sm transition-all ${
+                  isConfirmed 
+                    ? 'bg-emerald-600 hover:bg-emerald-700 text-white' 
+                    : 'bg-[#02306B] hover:bg-[#064181] text-white'
+                }`}
               >
                 <MessageSquare className="w-4 h-4" />
-                <span>Agence WhatsApp</span>
+                <span>{isConfirmed ? 'Agence (Retrait clés)' : 'Conciergerie CarDrive'}</span>
               </a>
             </div>
           </div>
@@ -350,7 +358,7 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
               </div>
             </div>
 
-            {/* Coordonnées Agence */}
+            {/* Coordonnées Agence / Prise en Charge */}
             {booking.agency && (
               <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-3 text-xs">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 border-b border-slate-100 pb-2 flex items-center gap-2">
@@ -363,20 +371,43 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
                   <p className="text-slate-500 text-[11px] mt-0.5">{booking.agency.address}, {booking.agency.city}</p>
                 </div>
 
-                <div className="space-y-1 pt-1 text-slate-600">
-                  <p>Téléphone : <strong className="text-slate-900">{booking.agency.phone}</strong></p>
-                  <p>WhatsApp : <strong className="text-slate-900">{booking.agency.whatsapp}</strong></p>
-                </div>
+                {isConfirmed ? (
+                  <>
+                    <div className="space-y-1 pt-1 text-slate-600 bg-emerald-50/60 p-3 rounded-xl border border-emerald-100">
+                      <p className="text-[11px] text-emerald-800 font-semibold mb-1">
+                        Réservation validée par l'agence
+                      </p>
+                      <p>Téléphone : <strong className="text-slate-900">{booking.agency.phone}</strong></p>
+                      <p>WhatsApp : <strong className="text-slate-900">{booking.agency.whatsapp}</strong></p>
+                    </div>
 
-                <a
-                  href={whatsappUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full py-2.5 px-3 rounded-xl bg-emerald-50 text-emerald-700 font-bold flex items-center justify-center gap-2 hover:bg-emerald-100 transition-colors"
-                >
-                  <MessageSquare className="w-4 h-4" />
-                  <span>Envoyer un message</span>
-                </a>
+                    <a
+                      href={agencyWhatsappUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full py-2.5 px-3 rounded-xl bg-emerald-50 text-emerald-700 font-bold flex items-center justify-center gap-2 hover:bg-emerald-100 transition-colors"
+                    >
+                      <MessageSquare className="w-4 h-4" />
+                      <span>Contacter l'agence pour la prise des clés</span>
+                    </a>
+                  </>
+                ) : (
+                  <>
+                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 text-[11px] text-slate-500 leading-relaxed">
+                      Votre demande est en cours de validation par l'agence. Les coordonnées directes de prise en charge vous seront débloquées dès confirmation officielle.
+                    </div>
+
+                    <a
+                      href={conciergeUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full py-2.5 px-3 rounded-xl bg-[#02306B] text-white font-bold flex items-center justify-center gap-2 hover:bg-[#064181] transition-colors"
+                    >
+                      <MessageSquare className="w-4 h-4 text-[#FF7300]" />
+                      <span>Conciergerie CarDrive (Suivi)</span>
+                    </a>
+                  </>
+                )}
               </div>
             )}
 

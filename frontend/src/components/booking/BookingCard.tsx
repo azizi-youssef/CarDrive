@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { Vehicle } from '@/types';
 import { PriceDisplay } from '@/components/ui/PriceDisplay';
 import { Badge } from '@/components/ui/Badge';
@@ -113,14 +114,22 @@ export function BookingCard({ vehicle }: BookingCardProps) {
             </p>
           </div>
 
+          <Link
+            href={`/account/bookings/${bookingSuccessRef}`}
+            className="w-full py-3 px-4 rounded-xl bg-[#02306B] hover:bg-[#064181] text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm transition-colors"
+          >
+            <Clock className="w-4 h-4 text-[#FF7300]" />
+            Suivre ma demande en direct
+          </Link>
+
           <a
-            href={whatsappUrl}
+            href={`https://wa.me/212661987654?text=${encodeURIComponent(`Bonjour CarDrive, je viens d'envoyer la demande ${bookingSuccessRef} pour ${vehicle.brand} ${vehicle.model}. Pouvez-vous m'assister ?`)}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm transition-colors"
+            className="w-full py-2.5 px-4 rounded-xl border border-emerald-500 text-emerald-700 hover:bg-emerald-50 font-semibold text-xs flex items-center justify-center gap-2 transition-colors"
           >
-            <MessageSquare className="w-4 h-4" />
-            Confirmer aussi sur WhatsApp
+            <MessageSquare className="w-3.5 h-3.5 text-emerald-600" />
+            Assistance Conciergerie CarDrive
           </a>
 
           <button
@@ -256,23 +265,18 @@ export function BookingCard({ vehicle }: BookingCardProps) {
             <span>Demander cette voiture</span>
           </button>
 
-          {/* Divider */}
-          <div className="relative flex py-1 items-center">
-            <div className="flex-grow border-t border-slate-200"></div>
-            <span className="flex-shrink mx-3 text-[10px] text-slate-400 font-semibold uppercase">ou question directe</span>
-            <div className="flex-grow border-t border-slate-200"></div>
+          {/* Conciergerie CarDrive (assistance plateforme) */}
+          <div className="pt-1 flex items-center justify-center">
+            <a
+              href={`https://wa.me/212661987654?text=${encodeURIComponent(`Bonjour CarDrive, j'ai une question sur le véhicule ${vehicle.brand} ${vehicle.model} (${vehicle.year}) avant d'envoyer ma demande.`)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[11px] text-slate-500 hover:text-[#02306B] font-medium flex items-center gap-1.5 transition-colors py-1"
+            >
+              <MessageSquare className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Besoin d'aide ? Conciergerie CarDrive</span>
+            </a>
           </div>
-
-          {/* Action 2: WhatsApp direct */}
-          <a
-            href={whatsappUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-full py-2.5 px-4 rounded-xl border border-emerald-500 text-emerald-700 hover:bg-emerald-50 font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 transition-colors"
-          >
-            <MessageSquare className="w-4 h-4 text-emerald-600" />
-            <span>Échanger via WhatsApp</span>
-          </a>
 
           {/* Reassurance */}
           <div className="pt-3 text-[11px] text-slate-500 space-y-1">

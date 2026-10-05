@@ -141,9 +141,9 @@ export default function HomePage() {
       description: 'Aéroport, port, hôtel ou adresse à Nador.',
     },
     {
-      icon: MessageCircle,
-      title: 'Contact direct',
-      description: 'Échangez directement avec votre agence.',
+      icon: ShieldCheck,
+      title: 'Réservation garantie',
+      description: 'Disponibilité et tarif sécurisés par CarDrive.',
     },
   ];
 
@@ -159,14 +159,14 @@ export default function HomePage() {
       number: '02',
       title: 'Comparez',
       description:
-        'Comparez les véhicules, prix, équipements, agences et conditions en un seul endroit.',
+        'Comparez les véhicules, prix, équipements et agences partenaires en toute transparence.',
       icon: Sparkles,
     },
     {
       number: '03',
-      title: 'Réservez',
+      title: 'Demandez',
       description:
-        'Envoyez votre demande et échangez directement avec l’agence pour finaliser.',
+        'Envoyez votre demande sécurisée via CarDrive avec votre CIN. Validation rapide de l’agence.',
       icon: CheckCircle2,
     },
   ];

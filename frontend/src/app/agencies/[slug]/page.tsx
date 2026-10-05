@@ -102,24 +102,24 @@ export default function AgencyDetailPage({ params }: AgencyDetailPageProps) {
               </div>
             </div>
 
-            {/* Direct Contact Buttons */}
-            <div className="flex items-center gap-2.5">
+            {/* CarDrive Intermediation Actions */}
+            <div className="flex flex-wrap items-center gap-2.5">
               <a
-                href={`https://wa.me/${agency.whatsapp.replace(/[^0-9]/g, '')}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center gap-2 shadow-sm transition-colors"
+                href="#agency-fleet"
+                className="px-4 py-2.5 rounded-xl bg-[#02306B] hover:bg-[#064181] text-white text-xs font-semibold flex items-center gap-2 shadow-sm transition-colors"
               >
-                <MessageSquare className="w-4 h-4" />
-                <span>WhatsApp Direct</span>
+                <Car className="w-4 h-4 text-[#FF7300]" />
+                <span>Voir les voitures disponibles</span>
               </a>
 
               <a
-                href={`tel:${agency.phone}`}
-                className="px-4 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-2 transition-colors"
+                href={`https://wa.me/212661987654?text=${encodeURIComponent(`Bonjour CarDrive, j'ai une question concernant l'agence partenaire ${agency.name} à ${agency.city}.`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-2.5 rounded-xl border border-emerald-500 hover:bg-emerald-50 text-emerald-700 text-xs font-semibold flex items-center gap-2 transition-colors"
               >
-                <Phone className="w-4 h-4" />
-                <span>{agency.phone}</span>
+                <MessageSquare className="w-4 h-4 text-emerald-600" />
+                <span>Conciergerie CarDrive</span>
               </a>
             </div>
           </div>
@@ -134,15 +134,15 @@ export default function AgencyDetailPage({ params }: AgencyDetailPageProps) {
               <span>Ouvert 7j/7 de 08:00 à 21:00</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <Mail className="w-4 h-4 text-blue-600" />
-              <span>{agency.email}</span>
+              <ShieldCheck className="w-4 h-4 text-emerald-600" />
+              <span>Agence certifiée CarDrive (Réservation & caution sécurisées)</span>
             </div>
           </div>
 
         </div>
 
         {/* Agency Fleet Section */}
-        <div className="mt-12">
+        <div id="agency-fleet" className="mt-12 scroll-mt-24">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">

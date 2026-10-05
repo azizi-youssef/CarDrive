@@ -83,32 +83,19 @@ export function AgencyCard({ agency, carCount }: AgencyCardProps) {
       </div>
 
       {/* Actions */}
-      <div className="p-4 sm:p-5 pt-0 flex items-center gap-2">
+      <div className="p-4 sm:p-5 pt-0">
         <Link
           href={`/agencies/${agency.slug}`}
-          className="flex-1 py-2 px-3 rounded-xl bg-[#0B1220] hover:bg-[#1E293B] text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
+          className="w-full py-2.5 px-4 rounded-xl bg-[#02306B] hover:bg-[#064181] text-white text-xs font-semibold flex items-center justify-center gap-2 transition-colors shadow-sm"
         >
-          <span>Voir la flotte</span>
-          <ArrowRight className="w-3.5 h-3.5" />
+          <Car className="w-3.5 h-3.5 text-[#FF7300]" />
+          <span>Voir la flotte & Réserver</span>
+          <ArrowRight className="w-3.5 h-3.5 ml-auto text-slate-300" />
         </Link>
-
-        <a
-          href={`https://wa.me/${agency.whatsapp.replace(/[^0-9]/g, '')}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="p-2 rounded-xl border border-emerald-500 text-emerald-600 hover:bg-emerald-50 transition-colors"
-          title="Contacter sur WhatsApp"
-        >
-          <MessageSquare className="w-4 h-4" />
-        </a>
-
-        <a
-          href={`tel:${agency.phone}`}
-          className="p-2 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors"
-          title="Appeler l’agence"
-        >
-          <Phone className="w-4 h-4" />
-        </a>
+        <p className="text-[10px] text-center text-slate-400 mt-2 flex items-center justify-center gap-1">
+          <ShieldCheck className="w-3 h-3 text-emerald-600" />
+          <span>Réservation garantie via CarDrive</span>
+        </p>
       </div>
     </div>
   );

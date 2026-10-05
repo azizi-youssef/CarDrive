@@ -77,15 +77,9 @@ export default function CarDetailsPage({
       reviews.length
       : vehicle.agency?.rating ?? 0;
 
-  const whatsappLink = generateWhatsAppLink({
-    phone: vehicle.agency?.whatsapp || '+212661234567',
-    vehicleName: `${vehicle.brand} ${vehicle.model}`,
-    agencyName: vehicle.agency?.name || "l'agence",
-    startDate: new Date().toLocaleDateString('fr-FR'),
-    endDate: new Date(
-      Date.now() + 3 * 86400000
-    ).toLocaleDateString('fr-FR'),
-  });
+  const whatsappLink = `https://wa.me/212661987654?text=${encodeURIComponent(
+    `Bonjour CarDrive Conciergerie, j'ai une question sur le véhicule ${vehicle.brand} ${vehicle.model} (${vehicle.daily_price} DH/j) avant d'envoyer ma demande.`
+  )}`;
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] pb-24 lg:pb-16">
@@ -662,51 +656,40 @@ export default function CarDetailsPage({
 
               <BookingCard vehicle={vehicle} />
 
-              {/* Direct contact */}
-              {vehicle.agency && (
-                <div className="mt-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-
-                  <div className="flex items-center gap-3">
-
-                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50">
-                      <MessageCircle className="h-4 w-4 text-emerald-600" />
-                    </div>
-
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs font-bold text-slate-900">
-                        Une question ?
-                      </p>
-
-                      <p className="mt-0.5 truncate text-[10px] text-slate-500">
-                        Contactez directement l'agence.
-                      </p>
-                    </div>
-
-                    <a
-                      href={whatsappLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="rounded-lg bg-emerald-600 px-3 py-2 text-[10px] font-bold text-white transition-colors hover:bg-emerald-700"
-                    >
-                      WhatsApp
-                    </a>
-
+              {/* CarDrive Conciergerie & Assistance */}
+              <div className="mt-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50">
+                    <MessageCircle className="h-4 w-4 text-[#02306B]" />
                   </div>
 
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-bold text-slate-900">
+                      Assistance CarDrive
+                    </p>
+                    <p className="mt-0.5 truncate text-[10px] text-slate-500">
+                      Notre conciergerie vous accompagne 7j/7.
+                    </p>
+                  </div>
+
+                  <a
+                    href={whatsappLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="rounded-lg bg-[#02306B] px-3 py-2 text-[10px] font-bold text-white transition-colors hover:bg-[#064181]"
+                  >
+                    Conciergerie
+                  </a>
                 </div>
-              )}
+              </div>
 
               {/* Security note */}
               <div className="mt-3 flex gap-2.5 rounded-xl border border-slate-200 bg-slate-50 p-3.5">
-
                 <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
-
                 <p className="text-[10px] leading-relaxed text-slate-500">
-                  Vérifiez toujours les conditions finales,
-                  la caution et les documents requis directement
-                  avec l'agence avant la prise du véhicule.
+                  Réservation protégée par CarDrive. Disponibilité vérifiée
+                  et tarif garanti auprès de l'agence partenaire.
                 </p>
-
               </div>
 
             </div>
@@ -722,47 +705,39 @@ export default function CarDetailsPage({
       {/* ================================================================ */}
 
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 px-4 py-3 shadow-[0_-8px_30px_rgba(15,23,42,0.10)] backdrop-blur-xl lg:hidden">
-
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3">
-
           <div className="min-w-0">
-
             <p className="truncate text-[10px] font-semibold text-slate-500">
               {vehicle.brand} {vehicle.model}
             </p>
-
             <div className="flex items-baseline gap-1">
-
               <span className="text-base font-extrabold text-slate-950">
                 {formatPrice(vehicle.daily_price)}
               </span>
-
               <span className="text-[10px] text-slate-400">
                 / jour
               </span>
-
             </div>
-
           </div>
 
           <div className="flex shrink-0 items-center gap-2">
-
             <a
               href={whatsappLink}
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="Contacter par WhatsApp"
-              className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-sm transition-colors hover:bg-emerald-700"
+              aria-label="Assistance Conciergerie CarDrive"
+              className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700 shadow-sm transition-colors hover:bg-slate-200"
+              title="Conciergerie CarDrive"
             >
-              <MessageCircle className="h-4 w-4" />
+              <MessageCircle className="h-4 w-4 text-[#02306B]" />
             </a>
 
             <a
               href="#booking-form"
-              className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-[#E63946] px-4 text-xs font-bold text-white shadow-sm shadow-red-900/10 transition-all hover:bg-[#C92F3B]"
+              className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-[#02306B] px-4 text-xs font-bold text-white shadow-sm shadow-blue-900/10 transition-all hover:bg-[#064181]"
             >
-              Réserver
-              <ArrowRight className="h-3 w-3" />
+              Demander cette voiture
+              <ArrowRight className="h-3 w-3 text-[#FF7300]" />
             </a>
 
           </div>
