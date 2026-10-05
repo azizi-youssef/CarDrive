@@ -26,6 +26,7 @@ import {
   Eye,
   X,
 } from 'lucide-react';
+import { AgencyBookingDetailModal } from '@/components/agency/AgencyBookingDetailModal';
 
 export default function AgencyDashboardPage() {
   // We can let the user pick which agency they want to manage (defaults to agency-1 "Nador Auto Rent")
@@ -35,6 +36,7 @@ export default function AgencyDashboardPage() {
 
   // Trigger state rerender when mutations happen
   const [refreshKey, setRefreshKey] = useState(0);
+  const [selectedBookingForDetail, setSelectedBookingForDetail] = useState<Booking | null>(null);
 
   const agency = store.getAgencyById(selectedAgencyId);
   const stats = store.getAgencyStats(selectedAgencyId);
@@ -308,24 +310,23 @@ export default function AgencyDashboardPage() {
                             </Badge>
                           </td>
                           <td className="py-3 text-right">
-                            {b.status === 'PENDING' ? (
-                              <div className="inline-flex gap-1.5">
-                                <button
-                                  onClick={() => handleBookingStatus(b.id, 'CONFIRMED')}
-                                  className="px-2.5 py-1 rounded bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-[11px]"
-                                >
-                                  Accepter
-                                </button>
-                                <button
-                                  onClick={() => handleBookingStatus(b.id, 'REJECTED')}
-                                  className="px-2.5 py-1 rounded border border-slate-200 text-slate-600 hover:bg-slate-100 text-[11px]"
-                                >
-                                  Refuser
-                                </button>
-                              </div>
-                            ) : (
-                              <span className="text-slate-400 text-[11px]">—</span>
-                            )}
+                            <div className="inline-flex items-center gap-1.5">
+                              <button
+                                onClick={() => setSelectedBookingForDetail(b)}
+                                className="px-2.5 py-1 rounded-lg bg-[#02306B] hover:bg-[#064181] text-white font-semibold text-[11px] transition-colors"
+                              >
+                                Traiter
+                              </button>
+                              <a
+                                href={`/api/bookings/${encodeURIComponent(b.reference || b.booking_ref || '')}/pdf`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="px-2 py-1 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-100 text-[11px] font-semibold"
+                                title="Voir le PDF"
+                              >
+                                PDF
+                              </a>
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -671,6 +672,14 @@ export default function AgencyDashboardPage() {
           </div>
         </div>
       )}
+
+      {/* AGENCY BOOKING DETAIL MODAL */}
+      <AgencyBookingDetailModal
+        booking={selectedBookingForDetail}
+        isOpen={Boolean(selectedBookingForDetail)}
+        onClose={() => setSelectedBookingForDetail(null)}
+        onStatusUpdated={() => setRefreshKey((prev) => prev + 1)}
+      />
 
     </div>
   );

@@ -17,6 +17,7 @@ import {
   ShieldCheck,
   Users,
   XCircle,
+  Percent,
   type LucideIcon,
 } from 'lucide-react';
 

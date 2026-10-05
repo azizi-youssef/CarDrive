@@ -8,6 +8,7 @@ import { calculateDaysBetween, generateBookingRef, generateWhatsAppLink, formatP
 import { LOCATIONS_NADOR } from '@/lib/services/mockData';
 import { store } from '@/lib/services/store';
 import { Calendar, MapPin, MessageSquare, Check, ShieldCheck, Phone, CheckCircle2, Clock } from 'lucide-react';
+import { BookingRequestModal } from './BookingRequestModal';
 
 interface BookingCardProps {
   vehicle: Vehicle;
@@ -24,6 +25,7 @@ export function BookingCard({ vehicle }: BookingCardProps) {
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [bookingSuccessRef, setBookingSuccessRef] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -42,6 +44,7 @@ export function BookingCard({ vehicle }: BookingCardProps) {
 
     setTimeout(() => {
       store.createBooking({
+        reference: bookingRef,
         booking_ref: bookingRef,
         vehicle_id: vehicle.id,
         agency_id: vehicle.agency_id,
@@ -230,10 +233,10 @@ export function BookingCard({ vehicle }: BookingCardProps) {
               <span>{formatPrice(totalPrice)}</span>
             </div>
 
-            {/* Modalité de règlement : 15% acompte / 85% agence */}
+            {/* Modalité de règlement : 15% plateforme / 85% agence */}
             <div className="mt-2 pt-2 border-t border-dashed border-slate-200 space-y-1 text-[11px]">
               <div className="flex justify-between text-emerald-700 font-medium">
-                <span>Acompte de confirmation (15%)</span>
+                <span>Commission plateforme (15%)</span>
                 <span className="font-bold">{formatPrice(Math.round(totalPrice * 0.15))}</span>
               </div>
               <div className="flex justify-between text-slate-500">
@@ -243,26 +246,20 @@ export function BookingCard({ vehicle }: BookingCardProps) {
             </div>
           </div>
 
-          {/* Action 1: Envoi de la réservation en ligne */}
+          {/* Action 1: Envoi de la demande de réservation (Modale 5 étapes) */}
           <button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full py-3 px-4 rounded-xl bg-[#02306B] hover:bg-[#064181] text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md shadow-blue-900/10 hover:shadow-lg transition-all cursor-pointer"
+            type="button"
+            onClick={() => setIsModalOpen(true)}
+            className="w-full py-3.5 px-4 rounded-xl bg-[#02306B] hover:bg-[#064181] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-900/15 hover:shadow-xl transition-all cursor-pointer"
           >
-            {isSubmitting ? (
-              <span>Traitement en cours...</span>
-            ) : (
-              <>
-                <Calendar className="w-4 h-4" />
-                <span>Envoyer la demande de réservation</span>
-              </>
-            )}
+            <Calendar className="w-4 h-4 text-[#FF7300]" />
+            <span>Demander cette voiture</span>
           </button>
 
           {/* Divider */}
           <div className="relative flex py-1 items-center">
             <div className="flex-grow border-t border-slate-200"></div>
-            <span className="flex-shrink mx-3 text-[10px] text-slate-400 font-semibold uppercase">ou direct</span>
+            <span className="flex-shrink mx-3 text-[10px] text-slate-400 font-semibold uppercase">ou question directe</span>
             <div className="flex-grow border-t border-slate-200"></div>
           </div>
 
@@ -274,22 +271,47 @@ export function BookingCard({ vehicle }: BookingCardProps) {
             className="w-full py-2.5 px-4 rounded-xl border border-emerald-500 text-emerald-700 hover:bg-emerald-50 font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 transition-colors"
           >
             <MessageSquare className="w-4 h-4 text-emerald-600" />
-            <span>Réserver via WhatsApp</span>
+            <span>Échanger via WhatsApp</span>
           </a>
 
           {/* Reassurance */}
           <div className="pt-3 text-[11px] text-slate-500 space-y-1">
             <div className="flex items-center gap-1.5">
               <ShieldCheck className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-              <span>Contrat direct avec l’agence à Nador</span>
+              <span>Contrat officiel établi directement par l’agence</span>
             </div>
             <div className="flex items-center gap-1.5">
               <Check className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-              <span>Annulation gratuite jusqu’à 48h avant</span>
+              <span>Demande sans paiement immédiat</span>
             </div>
           </div>
         </form>
       )}
+
+      {/* Modal complète 5 étapes */}
+      <BookingRequestModal
+        vehicle={vehicle}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        defaultStartDate={startDate}
+        defaultEndDate={endDate}
+        defaultLocation={location}
+      />
+
+      {/* Sticky Mobile Bar CTA */}
+      <div className="fixed bottom-0 left-0 right-0 p-3 bg-white/95 backdrop-blur-md border-t border-slate-200 shadow-2xl z-40 sm:hidden flex items-center justify-between gap-3">
+        <div>
+          <span className="text-[10px] text-slate-500 block">Total estimé ({totalDays}j)</span>
+          <span className="text-sm font-extrabold text-[#02306B]">{formatPrice(totalPrice)}</span>
+        </div>
+        <button
+          type="button"
+          onClick={() => setIsModalOpen(true)}
+          className="flex-1 py-3 px-4 rounded-xl bg-[#02306B] text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md"
+        >
+          <span>Demander cette voiture</span>
+        </button>
+      </div>
     </div>
   );
 }

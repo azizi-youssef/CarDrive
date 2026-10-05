@@ -217,7 +217,7 @@ export default function AccountPage() {
                               </Badge>
                             </div>
                             <div className="flex items-center gap-2 text-[11px] text-slate-500 mt-0.5">
-                              <span className="font-mono font-semibold text-slate-700">{booking.booking_ref}</span>
+                              <span className="font-mono font-semibold text-slate-700">{booking.reference || booking.booking_ref}</span>
                               <span>·</span>
                               <MapPin className="w-3 h-3" />
                               <span>{booking.agency?.name}</span>
@@ -225,11 +225,31 @@ export default function AccountPage() {
                           </div>
                         </div>
 
-                        <div className="text-right sm:border-l sm:border-slate-200 sm:pl-4">
-                          <span className="text-xs text-slate-400 block">Total estimé</span>
-                          <span className="text-sm font-extrabold text-slate-900">
-                            {formatPrice(booking.total_price)}
-                          </span>
+                        <div className="flex items-center gap-3 justify-between sm:justify-end sm:border-l sm:border-slate-200 sm:pl-4">
+                          <div className="text-left sm:text-right">
+                            <span className="text-[10px] text-slate-400 block">Total estimé</span>
+                            <span className="text-sm font-extrabold text-slate-900">
+                              {formatPrice(booking.total_price)}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <a
+                              href={`/api/bookings/${encodeURIComponent(booking.reference || booking.booking_ref || '')}/pdf`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 text-xs font-semibold hover:bg-slate-50 transition"
+                              title="Télécharger le PDF"
+                            >
+                              PDF
+                            </a>
+                            <Link
+                              href={`/account/bookings/${encodeURIComponent(booking.reference || booking.booking_ref || '')}`}
+                              className="px-3 py-1.5 rounded-lg bg-[#02306B] text-white text-xs font-semibold hover:bg-[#064181] transition shadow-sm"
+                            >
+                              Suivre
+                            </Link>
+                          </div>
                         </div>
                       </div>
                     ))}

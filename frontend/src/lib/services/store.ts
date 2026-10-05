@@ -1,4 +1,4 @@
-import { Agency, Vehicle, Booking, Review, SearchFilters, BookingStatus, AgencyStatus } from '@/types';
+import { Agency, Vehicle, Booking, Review, SearchFilters, BookingStatus, AgencyStatus, BookingEvent } from '@/types';
 import { INITIAL_AGENCIES, INITIAL_VEHICLES, INITIAL_REVIEWS } from './mockData';
 import { isVehicleAvailable } from '../availability/engine';
 
@@ -6,12 +6,19 @@ import { isVehicleAvailable } from '../availability/engine';
 const INITIAL_BOOKINGS: Booking[] = [
   {
     id: 'book-1',
-    booking_ref: '#NRD-8421',
+    reference: 'CD-2026-008421',
+    booking_ref: 'CD-2026-008421',
     vehicle_id: 'car-1',
     agency_id: 'agency-1',
+    first_name: 'Anas',
+    last_name: 'El Khattabi',
     customer_name: 'Anas El Khattabi',
     customer_email: 'anas.elkhattabi@gmail.com',
     customer_phone: '+212 661 98 76 54',
+    customer_country: 'Maroc',
+    birth_date: '1992-05-14',
+    license_number: '04/129481',
+    license_expiry: '2030-08-20',
     start_date: '2026-10-10',
     end_date: '2026-10-15',
     pickup_time: '10:30',
@@ -20,19 +27,34 @@ const INITIAL_BOOKINGS: Booking[] = [
     dropoff_location: 'Aéroport Nador Al-Aroui (NDR)',
     total_days: 5,
     daily_price: 360,
+    subtotal: 1800,
     total_price: 1800,
+    commission_rate: 15.00,
+    commission_amount: 270,
+    agency_amount: 1530,
     deposit_amount: 3000,
-    status: 'CONFIRMED',
+    status: 'APPROVED',
+    agency_status: 'ACCEPTED',
+    commission_status: 'CONFIRMED',
     created_at: '2026-10-01T14:20:00Z',
+    requested_at: '2026-10-01T14:20:00Z',
+    confirmed_at: '2026-10-01T15:00:00Z',
   },
   {
     id: 'book-2',
-    booking_ref: '#NRD-9104',
+    reference: 'CD-2026-009104',
+    booking_ref: 'CD-2026-009104',
     vehicle_id: 'car-2',
     agency_id: 'agency-2',
+    first_name: 'Omar',
+    last_name: 'Benali',
     customer_name: 'Omar Benali',
     customer_email: 'omar.benali@outlook.fr',
     customer_phone: '+33 6 12 34 56 78',
+    customer_country: 'France',
+    birth_date: '1988-11-03',
+    license_number: 'FR-9481028',
+    license_expiry: '2032-11-01',
     start_date: '2026-10-12',
     end_date: '2026-10-18',
     pickup_time: '16:00',
@@ -41,19 +63,33 @@ const INITIAL_BOOKINGS: Booking[] = [
     dropoff_location: 'Aéroport Nador Al-Aroui (NDR)',
     total_days: 6,
     daily_price: 340,
+    subtotal: 2040,
     total_price: 2040,
+    commission_rate: 15.00,
+    commission_amount: 306,
+    agency_amount: 1734,
     deposit_amount: 3000,
-    status: 'PENDING',
+    status: 'REQUESTED',
+    agency_status: 'PENDING',
+    commission_status: 'PENDING',
     created_at: '2026-10-02T08:15:00Z',
+    requested_at: '2026-10-02T08:15:00Z',
   },
   {
     id: 'book-3',
-    booking_ref: '#NRD-5532',
+    reference: 'CD-2026-005532',
+    booking_ref: 'CD-2026-005532',
     vehicle_id: 'car-10',
     agency_id: 'agency-2',
+    first_name: 'Tarik',
+    last_name: 'Amrani',
     customer_name: 'Tarik Amrani',
     customer_email: 'tarik.amrani@gmail.com',
     customer_phone: '+212 662 45 67 89',
+    customer_country: 'Maroc',
+    birth_date: '1995-02-18',
+    license_number: '05/98213',
+    license_expiry: '2029-06-15',
     start_date: '2026-10-05',
     end_date: '2026-10-08',
     pickup_time: '09:00',
@@ -62,10 +98,17 @@ const INITIAL_BOOKINGS: Booking[] = [
     dropoff_location: 'Centre-Ville Nador (Boulevard Mohammed V)',
     total_days: 3,
     daily_price: 680,
+    subtotal: 2040,
     total_price: 2040,
+    commission_rate: 15.00,
+    commission_amount: 306,
+    agency_amount: 1734,
     deposit_amount: 5000,
     status: 'ACTIVE',
+    agency_status: 'ACCEPTED',
+    commission_status: 'CONFIRMED',
     created_at: '2026-10-02T05:00:00Z',
+    requested_at: '2026-10-02T05:00:00Z',
   },
 ];
 
@@ -74,6 +117,7 @@ class CarDriveStore {
   private vehicles: Vehicle[] = [...INITIAL_VEHICLES];
   private bookings: Booking[] = [...INITIAL_BOOKINGS];
   private reviews: Review[] = [...INITIAL_REVIEWS];
+  private events: BookingEvent[] = [];
 
   constructor() {
     this.linkRelations();
@@ -232,12 +276,17 @@ class CarDriveStore {
 
   public createBooking(data: Omit<Booking, 'id' | 'created_at'>): Booking {
     const id = `book-${Date.now()}`;
-    const commission_rate = data.commission_rate ?? 0.15;
-    const commission_amount = data.commission_amount ?? Math.round(data.total_price * commission_rate);
-    const agency_amount = data.agency_amount ?? (data.total_price - commission_amount);
+    const commission_rate = data.commission_rate ?? 15.00;
+    const subtotal = data.subtotal ?? data.total_price;
+    const commission_amount = data.commission_amount ?? Math.round((subtotal * commission_rate) / 100);
+    const agency_amount = data.agency_amount ?? (subtotal - commission_amount);
+    const reference = data.reference || data.booking_ref || `CD-2026-${Math.floor(100000 + Math.random() * 900000)}`;
 
     const newBooking: Booking = {
       ...data,
+      reference,
+      booking_ref: reference,
+      subtotal,
       commission_rate,
       commission_amount,
       agency_amount,
@@ -254,13 +303,21 @@ class CarDriveStore {
     status: BookingStatus,
     rejectionReason?: string
   ): Booking | undefined {
-    const booking = this.bookings.find((b) => b.id === id);
+    const booking = this.bookings.find((b) => b.id === id || b.reference === id || b.booking_ref === id);
     if (booking) {
       booking.status = status;
       if (rejectionReason) booking.rejection_reason = rejectionReason;
       this.linkRelations();
     }
     return booking;
+  }
+
+  public addBookingEvent(event: BookingEvent): void {
+    this.events.push(event);
+  }
+
+  public getBookingEvents(bookingId: string): BookingEvent[] {
+    return this.events.filter((e) => e.booking_id === bookingId);
   }
 
   // --- REVIEWS ---
