@@ -132,8 +132,9 @@ class CarDriveStore {
       result = result.filter((v) => v.category.toLowerCase() === filters.category!.toLowerCase());
     }
 
-    if (filters.brand) {
-      result = result.filter((v) => v.brand.toLowerCase() === filters.brand!.toLowerCase());
+    if (filters.brand && filters.brand !== 'ALL' && filters.brand !== 'Toutes les marques') {
+      const b = filters.brand.toLowerCase().trim();
+      result = result.filter((v) => v.brand.toLowerCase().includes(b));
     }
 
     if (filters.transmission) {

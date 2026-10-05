@@ -122,7 +122,10 @@ class CarDriveStore {
     if (filters.agencyId) result = result.filter((v) => v.agency_id === filters.agencyId);
     if (filters.category && filters.category !== 'Tous les types')
       result = result.filter((v) => v.category.toLowerCase() === filters.category!.toLowerCase());
-    if (filters.brand) result = result.filter((v) => v.brand.toLowerCase() === filters.brand!.toLowerCase());
+    if (filters.brand && filters.brand !== 'ALL' && filters.brand !== 'Toutes les marques') {
+      const b = filters.brand.toLowerCase().trim();
+      result = result.filter((v) => v.brand.toLowerCase().includes(b));
+    }
     if (filters.transmission) result = result.filter((v) => v.transmission === filters.transmission);
     if (filters.fuel) result = result.filter((v) => v.fuel === filters.fuel);
     if (filters.minPrice) result = result.filter((v) => v.daily_price >= filters.minPrice!);

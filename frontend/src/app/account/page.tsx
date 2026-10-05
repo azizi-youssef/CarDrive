@@ -209,8 +209,8 @@ export default function AccountPage() {
                               <Badge
                                 variant={
                                   booking.status === 'CONFIRMED' ? 'available'
-                                  : booking.status === 'PENDING' ? 'pending'
-                                  : 'rented'
+                                    : booking.status === 'PENDING' ? 'pending'
+                                      : 'rented'
                                 }
                               >
                                 {booking.status}

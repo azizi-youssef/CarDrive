@@ -2,18 +2,20 @@
 
 import React, { useId, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { MapPin, Calendar, Car, Search, type LucideIcon } from 'lucide-react';
-import { LOCATIONS_NADOR, CATEGORIES } from '@/lib/services/mockData';
+import { MapPin, Calendar, Car, CarFront, Search, type LucideIcon } from 'lucide-react';
+import { LOCATIONS_NADOR, CATEGORIES, POPULAR_BRANDS } from '@/lib/services/mockData';
 
 interface SearchBarProps {
   initialLocation?: string;
   initialStartDate?: string;
   initialEndDate?: string;
   initialCategory?: string;
+  initialBrand?: string;
   isCompact?: boolean;
 }
 
 const ALL_CATEGORIES_LABEL = 'Tous les types';
+const ALL_BRANDS_LABEL = 'Toutes les marques';
 
 /** Date locale au format YYYY-MM-DD (évite le décalage UTC de toISOString). */
 function toLocalISODate(date: Date): string {
@@ -61,6 +63,7 @@ export function SearchBar({
   initialStartDate = '',
   initialEndDate = '',
   initialCategory = ALL_CATEGORIES_LABEL,
+  initialBrand = ALL_BRANDS_LABEL,
   isCompact = false,
 }: SearchBarProps) {
   const router = useRouter();
@@ -77,6 +80,9 @@ export function SearchBar({
   const [endDate, setEndDate] = useState(initialEndDate || inThreeDays);
   const [category, setCategory] = useState(
     CATEGORIES.includes(initialCategory) ? initialCategory : ALL_CATEGORIES_LABEL
+  );
+  const [brand, setBrand] = useState(
+    initialBrand && initialBrand !== 'ALL' ? initialBrand : ALL_BRANDS_LABEL
   );
 
   const handleStartChange = (value: string) => {
@@ -96,6 +102,7 @@ export function SearchBar({
     if (startDate) params.set('startDate', startDate);
     if (endDate) params.set('endDate', endDate);
     if (category && category !== ALL_CATEGORIES_LABEL) params.set('category', category);
+    if (brand && brand !== ALL_BRANDS_LABEL && brand !== 'ALL') params.set('brand', brand);
     router.push(`/search?${params.toString()}`);
   };
 
@@ -106,7 +113,7 @@ export function SearchBar({
       aria-label="Rechercher une voiture de location"
       className={`w-full ${isCompact ? '' : 'mx-auto max-w-5xl'}`}
     >
-      <div className="grid gap-1 rounded-2xl border border-slate-200/80 bg-white p-1.5 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr_auto]">
+      <div className="grid gap-1 rounded-2xl border border-slate-200/80 bg-white p-1.5 sm:grid-cols-2 lg:grid-cols-[1.3fr_1fr_1fr_1.1fr_1.1fr_auto]">
         <Field id={`${uid}-location`} label="Lieu de départ" icon={MapPin}>
           <select
             id={`${uid}-location`}
@@ -142,6 +149,21 @@ export function SearchBar({
             onChange={(e) => handleEndChange(e.target.value)}
             className={controlClass}
           />
+        </Field>
+
+        <Field id={`${uid}-brand`} label="Marque" icon={CarFront}>
+          <select
+            id={`${uid}-brand`}
+            value={brand}
+            onChange={(e) => setBrand(e.target.value)}
+            className={controlClass}
+          >
+            {POPULAR_BRANDS.map((b) => (
+              <option key={b} value={b}>
+                {b}
+              </option>
+            ))}
+          </select>
         </Field>
 
         <Field id={`${uid}-category`} label="Catégorie" icon={Car}>

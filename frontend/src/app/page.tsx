@@ -227,6 +227,20 @@ export default function HomePage() {
               <div className="rounded-3xl border border-white/15 bg-white/95 p-2 shadow-[0_25px_80px_rgba(0,0,0,0.35)] backdrop-blur-xl sm:p-3">
                 <SearchBar />
               </div>
+
+              {/* Quick Brand Search Tags */}
+              <div className="mt-4 flex flex-wrap items-center gap-2 text-xs">
+                <span className="text-white/60 font-medium">Rechercher par marque :</span>
+                {['Dacia', 'Renault', 'Volkswagen', 'Hyundai', 'Mercedes-Benz', 'Peugeot'].map((brand) => (
+                  <Link
+                    key={brand}
+                    href={`/search?brand=${encodeURIComponent(brand)}`}
+                    className="inline-flex items-center px-3 py-1 rounded-full bg-white/10 hover:bg-white/20 text-white/90 border border-white/15 transition-all text-xs font-semibold backdrop-blur-sm hover:scale-105"
+                  >
+                    {brand}
+                  </Link>
+                ))}
+              </div>
             </div>
 
             {/* Stats */}

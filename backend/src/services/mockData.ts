@@ -795,3 +795,16 @@ export const CATEGORIES = [
   '7 places',
   'Automatique',
 ];
+
+export const POPULAR_BRANDS = [
+  'Toutes les marques',
+  'Dacia',
+  'Renault',
+  'Volkswagen',
+  'Hyundai',
+  'Kia',
+  'Land Rover',
+  'Mercedes-Benz',
+  'Peugeot',
+  'Fiat',
+];

@@ -5,13 +5,14 @@ import { useSearchParams } from 'next/navigation';
 import { VehicleCard } from '@/components/cars/VehicleCard';
 import { SearchBar } from '@/components/search/SearchBar';
 import { store } from '@/lib/services/store';
-import { CATEGORIES } from '@/lib/services/mockData';
-import { Filter, SlidersHorizontal, ArrowUpDown, X, Car, RefreshCw, Check } from 'lucide-react';
+import { CATEGORIES, POPULAR_BRANDS } from '@/lib/services/mockData';
+import { Filter, SlidersHorizontal, ArrowUpDown, X, Car, CarFront, RefreshCw, Check, Search } from 'lucide-react';
 
 function SearchPageContent() {
   const searchParams = useSearchParams();
 
   const initialCategory = searchParams.get('category') || 'Tous les types';
+  const initialBrand = searchParams.get('brand') || 'ALL';
   const initialStartDate = searchParams.get('startDate') || '';
   const initialEndDate = searchParams.get('endDate') || '';
   const initialLocation = searchParams.get('location') || '';
@@ -20,7 +21,8 @@ function SearchPageContent() {
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [selectedTransmission, setSelectedTransmission] = useState<string>('ALL');
   const [selectedFuel, setSelectedFuel] = useState<string>('ALL');
-  const [selectedBrand, setSelectedBrand] = useState<string>('ALL');
+  const [selectedBrand, setSelectedBrand] = useState<string>(initialBrand);
+  const [brandSearchInput, setBrandSearchInput] = useState<string>('');
   const [selectedAgency, setSelectedAgency] = useState<string>('ALL');
   const [maxPrice, setMaxPrice] = useState<number>(1500);
   const [sortBy, setSortBy] = useState<'price_asc' | 'price_desc' | 'rating' | 'featured'>('featured');
@@ -54,6 +56,15 @@ function SearchPageContent() {
       result = result.filter((v) => v.brand.toLowerCase() === selectedBrand.toLowerCase());
     }
 
+    if (brandSearchInput.trim()) {
+      const q = brandSearchInput.trim().toLowerCase();
+      result = result.filter(
+        (v) =>
+          v.brand.toLowerCase().includes(q) ||
+          v.model.toLowerCase().includes(q)
+      );
+    }
+
     if (selectedAgency !== 'ALL') {
       result = result.filter((v) => v.agency_id === selectedAgency);
     }
@@ -75,6 +86,7 @@ function SearchPageContent() {
     selectedTransmission,
     selectedFuel,
     selectedBrand,
+    brandSearchInput,
     selectedAgency,
     maxPrice,
     sortBy,
@@ -87,6 +99,7 @@ function SearchPageContent() {
     setSelectedTransmission('ALL');
     setSelectedFuel('ALL');
     setSelectedBrand('ALL');
+    setBrandSearchInput('');
     setSelectedAgency('ALL');
     setMaxPrice(1500);
     setSortBy('featured');
@@ -103,6 +116,7 @@ function SearchPageContent() {
             initialStartDate={initialStartDate}
             initialEndDate={initialEndDate}
             initialCategory={selectedCategory}
+            initialBrand={selectedBrand !== 'ALL' ? selectedBrand : undefined}
             isCompact
           />
         </div>
@@ -280,13 +294,49 @@ function SearchPageContent() {
 
             {/* Marque */}
             <div>
-              <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-2">
-                Marque
-              </h4>
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                  Marque
+                </h4>
+                {(selectedBrand !== 'ALL' || brandSearchInput) && (
+                  <button
+                    onClick={() => {
+                      setSelectedBrand('ALL');
+                      setBrandSearchInput('');
+                    }}
+                    className="text-[10px] text-red-600 hover:underline"
+                  >
+                    Effacer
+                  </button>
+                )}
+              </div>
+
+              {/* Saisie rapide de nom de marque / modèle */}
+              <div className="relative mb-2">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
+                <input
+                  type="text"
+                  value={brandSearchInput}
+                  onChange={(e) => setBrandSearchInput(e.target.value)}
+                  placeholder="Rechercher marque..."
+                  className="w-full text-xs pl-8 pr-7 py-2 rounded-lg border border-slate-200 font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#E63946] focus:ring-1 focus:ring-[#E63946]/20 transition"
+                />
+                {brandSearchInput && (
+                  <button
+                    onClick={() => setBrandSearchInput('')}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5"
+                    aria-label="Effacer la recherche"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+
               <select
+                aria-label="Sélectionner une marque"
                 value={selectedBrand}
                 onChange={(e) => setSelectedBrand(e.target.value)}
-                className="w-full text-xs p-2 rounded-lg border border-slate-200 font-medium text-slate-800 bg-white"
+                className="w-full text-xs p-2 rounded-lg border border-slate-200 font-medium text-slate-800 bg-white cursor-pointer"
               >
                 {brands.map((b) => (
                   <option key={b} value={b}>
@@ -319,6 +369,32 @@ function SearchPageContent() {
 
           {/* RESULTS GRID */}
           <section className="lg:col-span-3" aria-label="Résultats de recherche">
+            {/* Quick Brand Pills */}
+            <div className="mb-5 flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-none">
+              <span className="text-xs font-semibold text-slate-500 shrink-0 mr-1 flex items-center gap-1">
+                <CarFront className="w-3.5 h-3.5 text-slate-400" />
+                Marques :
+              </span>
+              {['ALL', 'Dacia', 'Renault', 'Volkswagen', 'Hyundai', 'Kia', 'Mercedes-Benz', 'Land Rover'].map((b) => {
+                const isActive = (b === 'ALL' && selectedBrand === 'ALL') || selectedBrand.toLowerCase() === b.toLowerCase();
+                return (
+                  <button
+                    key={b}
+                    onClick={() => {
+                      setSelectedBrand(b);
+                      setBrandSearchInput('');
+                    }}
+                    className={`px-3 py-1.5 rounded-full text-xs font-semibold shrink-0 transition-all ${
+                      isActive
+                        ? 'bg-[#0B1220] text-white shadow-sm'
+                        : 'bg-white border border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+                    }`}
+                  >
+                    {b === 'ALL' ? 'Toutes' : b}
+                  </button>
+                );
+              })}
+            </div>
             {filteredVehicles.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {filteredVehicles.map((car, index) => (
@@ -413,6 +489,58 @@ function SearchPageContent() {
                     </button>
                   ))}
                 </div>
+              </div>
+
+              {/* Marque */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                    Marque
+                  </h4>
+                  {(selectedBrand !== 'ALL' || brandSearchInput) && (
+                    <button
+                      onClick={() => {
+                        setSelectedBrand('ALL');
+                        setBrandSearchInput('');
+                      }}
+                      className="text-[10px] text-red-600 hover:underline"
+                    >
+                      Effacer
+                    </button>
+                  )}
+                </div>
+
+                <div className="relative mb-2">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
+                  <input
+                    type="text"
+                    value={brandSearchInput}
+                    onChange={(e) => setBrandSearchInput(e.target.value)}
+                    placeholder="Nom de marque ou modèle..."
+                    className="w-full text-xs pl-8 pr-7 py-2 rounded-lg border border-slate-200 font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#E63946]"
+                  />
+                  {brandSearchInput && (
+                    <button
+                      onClick={() => setBrandSearchInput('')}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+
+                <select
+                  aria-label="Sélectionner une marque"
+                  value={selectedBrand}
+                  onChange={(e) => setSelectedBrand(e.target.value)}
+                  className="w-full text-xs p-2 rounded-lg border border-slate-200 font-medium text-slate-800 bg-white"
+                >
+                  {brands.map((b) => (
+                    <option key={b} value={b}>
+                      {b === 'ALL' ? 'Toutes les marques' : b}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               {/* Transmission */}
