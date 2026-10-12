@@ -352,17 +352,13 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
               </div>
 
               <div className="pt-2 border-t border-dashed border-slate-200 space-y-1.5 text-[11px]">
-                <div className="flex justify-between text-emerald-700 font-medium">
-                  <span>Commission CarDrive ({booking.commission_rate}%)</span>
-                  <span className="font-bold">{formatPrice(booking.commission_amount)}</span>
-                </div>
-                <div className="flex justify-between text-slate-500">
-                  <span>Solde agence à la remise</span>
-                  <span className="font-semibold">{formatPrice(booking.agency_amount)}</span>
+                <div className="flex justify-between text-slate-600 font-medium">
+                  <span>Caution remboursable</span>
+                  <span className="font-bold text-slate-800">{formatPrice(booking.deposit_amount)}</span>
                 </div>
                 <div className="flex justify-between text-slate-400 text-[10px]">
-                  <span>Caution remboursable</span>
-                  <span>{formatPrice(booking.deposit_amount)}</span>
+                  <span>Modalité de paiement</span>
+                  <span>Règlement à la remise des clés en agence</span>
                 </div>
               </div>
             </div>

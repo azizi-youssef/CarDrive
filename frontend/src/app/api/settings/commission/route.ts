@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerAuth } from '@/lib/auth/server';
 import { commissionService } from '@/lib/services/commission.service';
 
 export async function GET() {
@@ -13,6 +14,11 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
+    const auth = await getServerAuth();
+    if (!auth || auth.role !== 'SUPER_ADMIN') {
+      return NextResponse.json({ success: false, error: 'Accès refusé' }, { status: 403 });
+    }
+
     const body = await req.json();
     const rate = Number(body.commission_rate ?? body.rate);
 
@@ -24,7 +30,7 @@ export async function POST(req: NextRequest) {
     }
 
     const result = await commissionService.updateCommissionRate(rate);
-    return NextResponse.json(result);
+    return NextResponse.json(result, { status: result.success ? 200 : 503 });
   } catch (error: any) {
     console.error('[API /api/settings/commission POST] Error:', error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });

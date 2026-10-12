@@ -3,7 +3,8 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import { SEO_LANDING_PAGES, ALL_SEO_SLUGS } from '@/lib/seo/landingPages';
-import { store } from '@/lib/services/store';
+import { vehiclesService } from '@/lib/services/vehicles.service';
+import { agenciesService } from '@/lib/services/agencies.service';
 import { VehicleCard } from '@/components/cars/VehicleCard';
 import { AgencyCard } from '@/components/agencies/AgencyCard';
 import {
@@ -63,7 +64,10 @@ export default async function SeoLandingPage({ params }: PageProps) {
   }
 
   // Filter vehicles according to the landing page intent
-  const allVehicles = store.getVehicles();
+  const [allVehicles, agencies] = await Promise.all([
+    vehiclesService.getVehicles(),
+    agenciesService.getAgencies(true),
+  ]);
   let vehicles = allVehicles;
 
   if (pageData.filterCategory) {
@@ -75,8 +79,6 @@ export default async function SeoLandingPage({ params }: PageProps) {
   if (pageData.filterTransmission) {
     vehicles = vehicles.filter((v) => v.transmission === pageData.filterTransmission);
   }
-
-  const agencies = store.getAgencies(true);
 
   // Generate JSON-LD Schema
   const jsonLd = {

@@ -1,12 +1,12 @@
 'use client';
 
-import React, { use } from 'react';
+import React, { use, useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { store } from '@/lib/services/store';
 import { VehicleCard } from '@/components/cars/VehicleCard';
 import { Badge } from '@/components/ui/Badge';
+import type { Agency, Vehicle } from '@/types';
 import {
   MapPin,
   Phone,
@@ -25,13 +25,55 @@ interface AgencyDetailPageProps {
 
 export default function AgencyDetailPage({ params }: AgencyDetailPageProps) {
   const resolvedParams = use(params);
-  const agency = store.getAgencyBySlug(resolvedParams.slug);
+  const [agency, setAgency] = useState<Agency | null>(null);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [notFoundState, setNotFoundState] = useState(false);
 
-  if (!agency) {
-    notFound();
+  useEffect(() => {
+    let active = true;
+    async function load() {
+      try {
+        const aRes = await fetch('/api/agencies').then((r) => r.json());
+        if (!active) return;
+        const found = aRes.success && Array.isArray(aRes.data)
+          ? aRes.data.find((a: Agency) => a.slug === resolvedParams.slug)
+          : null;
+        if (!found) {
+          setNotFoundState(true);
+          return;
+        }
+        setAgency(found);
+        const vRes = await fetch(`/api/vehicles?agencyId=${encodeURIComponent(found.id)}`).then((r) => r.json());
+        if (!active) return;
+        if (vRes.success && Array.isArray(vRes.data)) {
+          setVehicles(vRes.data);
+        }
+      } catch (err) {
+        console.warn('Error loading agency detail:', err);
+        if (active) setNotFoundState(true);
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+    load();
+    return () => {
+      active = false;
+    };
+  }, [resolvedParams.slug]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center gap-3 text-slate-600">
+        <div className="w-8 h-8 border-4 border-[#02306B] border-t-transparent rounded-full animate-spin" />
+        <p className="text-sm font-medium">Chargement des données de l’agence…</p>
+      </div>
+    );
   }
 
-  const vehicles = store.getVehicles({ agencyId: agency.id });
+  if (notFoundState || !agency) {
+    notFound();
+  }
 
   return (
     <div className="bg-[#F8FAFC] min-h-screen pb-16">

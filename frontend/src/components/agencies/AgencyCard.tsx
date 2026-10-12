@@ -11,6 +11,8 @@ interface AgencyCardProps {
 }
 
 export function AgencyCard({ agency, carCount }: AgencyCardProps) {
+  const logoUrl = agency.logo_url.trim();
+
   return (
     <div className="bg-white rounded-2xl border border-slate-200/90 overflow-hidden card-hover flex flex-col justify-between shadow-sm">
       <div>
@@ -27,13 +29,22 @@ export function AgencyCard({ agency, carCount }: AgencyCardProps) {
 
           {/* Logo */}
           <div className="absolute -bottom-4 left-4 w-14 h-14 rounded-xl border-2 border-white bg-white overflow-hidden shadow-md">
-            <Image
-              src={agency.logo_url}
-              alt={`Logo ${agency.name}`}
-              fill
-              sizes="80px"
-              className="object-cover"
-            />
+            {logoUrl ? (
+              <Image
+                src={logoUrl}
+                alt={`Logo ${agency.name}`}
+                fill
+                sizes="80px"
+                className="object-cover"
+              />
+            ) : (
+              <span
+                aria-label={`Logo indisponible pour ${agency.name}`}
+                className="flex h-full w-full items-center justify-center bg-[#02306B] text-lg font-bold text-white"
+              >
+                {agency.name.trim().charAt(0).toLocaleUpperCase('fr-FR') || '?'}
+              </span>
+            )}
           </div>
 
           {/* Verification Badge */}

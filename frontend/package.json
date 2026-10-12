@@ -7,9 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "npx tsx src/tests/booking-engine.test.ts"
+    "test": "npx tsx src/tests/booking-engine.test.ts && npx tsx src/tests/agency-access-validation.test.ts && npx tsx src/tests/date-only.test.ts && npx tsx src/tests/agency-credentials.test.ts && npx tsx src/tests/agency-management.test.ts"
   },
   "dependencies": {
+    "@cardrive/shared": "1.0.0",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.117.2",
     "clsx": "^2.1.1",

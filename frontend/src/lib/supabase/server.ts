@@ -1,6 +1,12 @@
 import { createServerClient } from '@supabase/ssr';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 
+/**
+ * Vérifie que les variables d'environnement Supabase sont correctement configurées.
+ * @deprecated Utilisez `requireSupabaseEnv()` dans les services pour un fail-fast explicite.
+ * Conservé pour la compatibilité avec les route handlers existants et le middleware.
+ */
 export function isSupabaseServerConfigured(): boolean {
   return Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL &&
@@ -9,62 +15,66 @@ export function isSupabaseServerConfigured(): boolean {
   );
 }
 
+/**
+ * Crée un client Supabase avec les cookies de session SSR.
+ * Lance une erreur en production si Supabase n'est pas configuré.
+ */
 export async function createClient() {
-  if (!isSupabaseServerConfigured()) {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!url || !key || !url.startsWith('http')) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error(
+        '[Supabase] Variables d\'environnement manquantes en production : NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY sont requis.'
+      );
+    }
     return null;
   }
 
   const cookieStore = await cookies();
 
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            );
-          } catch {
-            // Ignoré si appelé depuis un RSC pur
-          }
-        },
+  return createServerClient(url, key, {
+    cookies: {
+      getAll() {
+        return cookieStore.getAll();
       },
-    }
-  );
+      setAll(cookiesToSet) {
+        try {
+          cookiesToSet.forEach(({ name, value, options }) =>
+            cookieStore.set(name, value, options)
+          );
+        } catch {
+          // Ignoré si appelé depuis un RSC pur
+        }
+      },
+    },
+  });
 }
 
-// Client avec droits élevés pour les opérations d'administration serveur sécurisées
+/**
+ * Client avec droits élevés pour les opérations d'administration serveur sécurisées.
+ * Nécessite SUPABASE_SERVICE_ROLE_KEY — ne jamais exposer côté client.
+ * Lance une erreur en production si la clé est absente.
+ */
 export async function createAdminClient() {
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!serviceKey || !process.env.NEXT_PUBLIC_SUPABASE_URL) {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+
+  if (!serviceKey || !supabaseUrl || !supabaseUrl.startsWith('http')) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error(
+        '[Supabase] SUPABASE_SERVICE_ROLE_KEY manquant en production. Opérations d\'administration impossibles.'
+      );
+    }
     return null;
   }
 
-  const cookieStore = await cookies();
-
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    serviceKey,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            );
-          } catch {
-            // Ignoré
-          }
-        },
-      },
-    }
-  );
+  return createSupabaseClient(supabaseUrl, serviceKey, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+    },
+  });
 }

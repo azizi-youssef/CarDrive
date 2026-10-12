@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Vehicle } from '@/types';
+import { formatNumber, formatPrice } from '@/lib/utils';
 import {
   Heart,
   Users,
@@ -82,6 +83,9 @@ function VehicleGallery({ images, brand, model, agencyCity, priority }: {
 }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
+  const [failedImageIndexes, setFailedImageIndexes] = useState<Set<number>>(
+    () => new Set()
+  );
 
   const goTo = useCallback((dir: 1 | -1, e: React.MouseEvent) => {
     e.preventDefault();
@@ -101,12 +105,19 @@ function VehicleGallery({ images, brand, model, agencyCity, priority }: {
         transition={{ duration: 0.4, ease: [0.33, 1, 0.68, 1] }}
       >
         <Image
-          src={images[currentIndex]}
+          src={
+            failedImageIndexes.has(currentIndex)
+              ? '/vehicle-placeholder.svg'
+              : images[currentIndex]!
+          }
           alt={`${brand} ${model}${agencyCity ? ` à ${agencyCity}` : ''}`}
           fill
           priority={priority}
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           className="object-cover"
+          onError={() => {
+            setFailedImageIndexes((previous) => new Set(previous).add(currentIndex));
+          }}
         />
       </motion.div>
 
@@ -290,7 +301,8 @@ export function VehicleCard({ vehicle, priority = false, onFavorite, isFavorite:
               <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wide mb-0.5">À partir de</p>
               <div className="flex items-baseline gap-1">
                 <span className="text-[22px] font-extrabold text-[#0B1220] leading-none">
-                  {Math.round(vehicle.daily_price)} <span className="text-[14px]">DH</span>
+                  {formatNumber(vehicle.daily_price)}{' '}
+                  <span className="text-[14px]">DH</span>
                 </span>
                 <span className="text-[12px] text-slate-400 font-medium">/jour</span>
               </div>
@@ -298,7 +310,7 @@ export function VehicleCard({ vehicle, priority = false, onFavorite, isFavorite:
             {vehicle.deposit > 0 && (
               <div className="text-right">
                 <p className="text-[10px] text-slate-400">Caution</p>
-                <p className="text-[12px] font-bold text-slate-600">{vehicle.deposit.toLocaleString()} DH</p>
+                <p className="text-[12px] font-bold text-slate-600">{formatPrice(vehicle.deposit)}</p>
               </div>
             )}
           </div>

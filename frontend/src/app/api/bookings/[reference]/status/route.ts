@@ -1,4 +1,6 @@
+import { agencyBookingActionSchema } from '@cardrive/shared';
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerAuth, hasAccessPermission } from '@/lib/auth/server';
 import { bookingsService } from '@/lib/services/bookings.service';
 
 export async function POST(
@@ -8,33 +10,61 @@ export async function POST(
   try {
     const { reference } = await context.params;
     const body = await req.json();
-    const { action, notes, reason, alternativeVehicleId } = body;
+    const parsed = agencyBookingActionSchema.safeParse(body);
 
-    if (!action) {
-      return NextResponse.json({ success: false, error: 'Action requise (approve, reject, propose_alternative)' }, { status: 400 });
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, error: parsed.error.issues.map((i) => i.message).join(', ') },
+        { status: 400 }
+      );
     }
 
+    const auth = await getServerAuth();
+    if (!auth) {
+      return NextResponse.json({ success: false, error: 'Authentification requise' }, { status: 401 });
+    }
+
+    const booking = await bookingsService.getBookingByReference(reference);
+    if (!booking) {
+      return NextResponse.json({ success: false, error: 'Réservation introuvable' }, { status: 404 });
+    }
+
+    if (!(await hasAccessPermission('bookings.manage', booking.agency_id))) {
+      return NextResponse.json({ success: false, error: 'Accès refusé' }, { status: 403 });
+    }
+
+    const { action, notes, reason, alternativeVehicleId } = parsed.data;
+
     if (action === 'approve') {
-      const result = await bookingsService.approveBooking(reference, notes);
-      return NextResponse.json(result);
+      const result = await bookingsService.approveBooking(reference, notes, auth.userId);
+      return NextResponse.json(result, { status: result.success ? 200 : 400 });
     }
 
     if (action === 'reject') {
-      const result = await bookingsService.rejectBooking(reference, reason);
-      return NextResponse.json(result);
+      const result = await bookingsService.rejectBooking(reference, reason, auth.userId);
+      return NextResponse.json(result, { status: result.success ? 200 : 400 });
     }
 
     if (action === 'propose_alternative') {
       if (!alternativeVehicleId) {
-        return NextResponse.json({ success: false, error: 'Identifiant du véhicule alternatif requis' }, { status: 400 });
+        return NextResponse.json(
+          { success: false, error: 'Identifiant du véhicule alternatif requis' },
+          { status: 400 }
+        );
       }
-      const result = await bookingsService.proposeAlternative(reference, alternativeVehicleId, notes);
-      return NextResponse.json(result);
+      const result = await bookingsService.proposeAlternative(
+        reference,
+        alternativeVehicleId,
+        notes,
+        auth.userId
+      );
+      return NextResponse.json(result, { status: result.success ? 200 : 400 });
     }
 
     return NextResponse.json({ success: false, error: `Action ${action} non reconnue` }, { status: 400 });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Erreur serveur';
     console.error('[API /api/bookings/[reference]/status] Error:', error);
-    return NextResponse.json({ success: false, error: error.message || 'Erreur serveur' }, { status: 500 });
+    return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }

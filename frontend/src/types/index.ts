@@ -1,13 +1,6 @@
-export type UserRole =
-  | 'SUPER_ADMIN'
-  | 'ADMIN'
-  | 'SUPPORT'
-  | 'AGENCY_OWNER'
-  | 'AGENCY_MANAGER'
-  | 'AGENCY_STAFF'
-  | 'CUSTOMER';
+import type { UserRole, AgencyStatus, BookingStatus } from '@cardrive/shared';
 
-export type AgencyStatus = 'PENDING' | 'ACTIVE' | 'SUSPENDED' | 'REJECTED';
+export type { UserRole, AgencyStatus, BookingStatus };
 
 export type VehicleCategory =
   | 'Économique'
@@ -22,22 +15,6 @@ export type VehicleCategory =
 export type TransmissionType = 'MANUAL' | 'AUTOMATIC';
 export type FuelType = 'DIESEL' | 'GASOLINE' | 'HYBRID' | 'ELECTRIC';
 export type VehicleStatus = 'AVAILABLE' | 'RENTED' | 'MAINTENANCE' | 'BLOCKED';
-
-export type BookingStatus =
-  | 'REQUESTED'
-  | 'UNDER_REVIEW'
-  | 'SENT_TO_AGENCY'
-  | 'AGENCY_REVIEW'
-  | 'APPROVED'
-  | 'REJECTED'
-  | 'ALTERNATIVE_PROPOSED'
-  | 'READY_FOR_PICKUP'
-  | 'ACTIVE'
-  | 'COMPLETED'
-  | 'CANCELLED'
-  | 'EXPIRED'
-  | 'PENDING' // Rétrocompatibilité
-  | 'CONFIRMED'; // Rétrocompatibilité
 
 export type CommissionStatus =
   | 'PENDING'
@@ -108,6 +85,8 @@ export interface Agency {
   rating: number;
   review_count: number;
   created_at: string;
+  /** Nombre de véhicules (agrégation API admin) */
+  vehicle_count?: number | null;
 }
 
 export interface Vehicle {

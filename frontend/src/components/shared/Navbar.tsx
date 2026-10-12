@@ -1,10 +1,10 @@
 
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   Search,
   Menu,
@@ -24,8 +24,77 @@ import {
   Clock3,
   Star,
   LogIn,
+  LogOut,
+  Loader2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { LOGIN_PATH } from '@/lib/auth/login-portals';
+import { createClient } from '@/lib/supabase/client';
+import {
+  fetchClientAuthProfile,
+  signOutEverywhere,
+  type ClientAuthProfile,
+} from '@/lib/auth/client';
+
+function accountHref(profile: ClientAuthProfile): string {
+  if (profile.canAccessAdmin) return '/admin';
+  if (profile.canAccessAgency) return '/agency';
+  if (profile.role !== 'CUSTOMER') return '/';
+  return '/account';
+}
+
+function accountMenuItems(profile: ClientAuthProfile): { label: string; href: string }[] {
+  if (profile.canAccessAdmin) {
+    return [
+      { label: 'Tableau de bord', href: '/admin' },
+      { label: 'Agences', href: '/admin/agencies' },
+      { label: 'Réservations', href: '/admin/bookings' },
+      { label: 'Paramètres', href: '/admin/settings' },
+    ];
+  }
+  if (profile.canAccessAgency) {
+    return [
+      { label: 'Tableau de bord', href: '/agency' },
+      { label: 'Mes véhicules', href: '/agency?tab=fleet' },
+      { label: 'Réservations', href: '/agency?tab=bookings' },
+    ];
+  }
+  if (profile.role !== 'CUSTOMER') return [{ label: 'Accueil', href: '/' }];
+  return [
+    { label: 'Mon espace', href: '/account' },
+    { label: 'Mes réservations', href: '/account?tab=bookings' },
+    { label: 'Mon profil', href: '/account?tab=profile' },
+  ];
+}
+
+function accountIdentity(profile: ClientAuthProfile): { name: string; badge: string } {
+  if (profile.canAccessAdmin) return { name: profile.displayName, badge: 'Administrateur' };
+  if (profile.canAccessAgency) {
+    return { name: profile.agencyName || profile.displayName, badge: 'Agence' };
+  }
+  if (profile.role !== 'CUSTOMER') return { name: profile.displayName, badge: profile.roleLabel };
+  return { name: profile.displayName, badge: 'Client' };
+}
+
+function AccountAvatar({
+  profile,
+  className = 'h-8 w-8',
+}: {
+  profile: ClientAuthProfile;
+  className?: string;
+}) {
+  const identity = accountIdentity(profile);
+  const avatarUrl = profile.canAccessAgency
+    ? profile.agencyLogoUrl?.trim() || profile.avatarUrl?.trim()
+    : profile.avatarUrl?.trim();
+  return avatarUrl ? (
+    <img src={avatarUrl} alt="" className={cn('shrink-0 rounded-full object-cover', className)} />
+  ) : (
+    <span className={cn('flex shrink-0 items-center justify-center rounded-full bg-[#02306B] font-bold text-white', className)}>
+      {identity.name.slice(0, 1).toLocaleUpperCase('fr-FR')}
+    </span>
+  );
+}
 
 /* ====================================================================== */
 /* DESTINATIONS                                                           */
@@ -104,14 +173,55 @@ const navLinks = [
 
 export function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [destinationsOpen, setDestinationsOpen] = useState(false);
-  const [loginOpen, setLoginOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [authProfile, setAuthProfile] = useState<ClientAuthProfile | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const loginDropdownRef = useRef<HTMLDivElement>(null);
+  const accountMenuRef = useRef<HTMLDivElement>(null);
+  const authRequest = useRef(0);
+
+  const refreshAuthProfile = useCallback(async () => {
+    const requestId = ++authRequest.current;
+    try {
+      const profile = await fetchClientAuthProfile();
+      if (requestId !== authRequest.current) return;
+      setAuthProfile(profile);
+      setAuthError(null);
+    } catch (error: unknown) {
+      if (requestId !== authRequest.current) return;
+      setAuthProfile(null);
+      setAuthError(error instanceof Error ? error.message : 'Session indisponible.');
+    } finally {
+      if (requestId === authRequest.current) setAuthLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void refreshAuthProfile();
+    const supabase = createClient();
+    const authSubscription = supabase?.auth.onAuthStateChange(() => {
+      void refreshAuthProfile();
+    });
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') void refreshAuthProfile();
+    };
+    window.addEventListener('focus', refreshAuthProfile);
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => {
+      authRequest.current += 1;
+      authSubscription?.data.subscription.unsubscribe();
+      window.removeEventListener('focus', refreshAuthProfile);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
+  }, [refreshAuthProfile]);
 
   /* ------------------------------------------------------------------ */
   /* Scroll state                                                       */
@@ -147,12 +257,8 @@ export function Navbar() {
       ) {
         setDestinationsOpen(false);
       }
-
-      if (
-        loginDropdownRef.current &&
-        !loginDropdownRef.current.contains(target)
-      ) {
-        setLoginOpen(false);
+      if (accountMenuRef.current && !accountMenuRef.current.contains(target)) {
+        setAccountMenuOpen(false);
       }
     };
 
@@ -170,8 +276,26 @@ export function Navbar() {
   useEffect(() => {
     setMobileMenuOpen(false);
     setDestinationsOpen(false);
-    setLoginOpen(false);
+    setAccountMenuOpen(false);
   }, [pathname]);
+
+  const handleSignOut = async () => {
+    if (signingOut) return;
+    setSigningOut(true);
+    setAuthError(null);
+    try {
+      await signOutEverywhere(createClient());
+      setAuthProfile(null);
+      setAccountMenuOpen(false);
+      setMobileMenuOpen(false);
+      router.replace('/');
+      router.refresh();
+    } catch (error: unknown) {
+      setAuthError(error instanceof Error ? error.message : 'La déconnexion a échoué.');
+    } finally {
+      setSigningOut(false);
+    }
+  };
 
   /* ------------------------------------------------------------------ */
   /* Lock body scroll on mobile                                        */
@@ -270,21 +394,34 @@ export function Navbar() {
               Devenir partenaire
             </Link>
 
-            <Link
-              href="/agency/login"
-              className="hidden items-center gap-1.5 text-slate-400 transition-colors hover:text-white md:flex"
-            >
-              <Building2 className="h-3 w-3 text-amber-400" />
-              Espace Agence
-            </Link>
-
-            <Link
-              href="/account"
-              className="flex items-center gap-1.5 font-medium text-slate-300 transition-colors hover:text-white"
-            >
-              <LogIn className="h-3 w-3 text-[#E63946]" />
-              Connexion
-            </Link>
+            {authLoading ? (
+              <span className="inline-flex items-center gap-1.5 text-slate-500" role="status" aria-label="Vérification de la session">
+                <Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" />
+                Compte
+              </span>
+            ) : authProfile ? (
+              <Link
+                href={accountHref(authProfile)}
+                aria-label={`${accountIdentity(authProfile).badge} : ${accountIdentity(authProfile).name}`}
+                title={accountIdentity(authProfile).name}
+                className="flex min-w-0 max-w-56 items-center gap-1.5 font-medium text-slate-300 transition-colors hover:text-white"
+              >
+                <AccountAvatar profile={authProfile} className="h-5 w-5 text-[10px]" />
+                <span className="truncate">{accountIdentity(authProfile).name}</span>
+              </Link>
+            ) : authError ? (
+              <button type="button" onClick={() => void refreshAuthProfile()} className="font-medium text-amber-300 hover:text-white">
+                Session à vérifier
+              </button>
+            ) : (
+              <Link
+                href={LOGIN_PATH}
+                className="flex items-center gap-1.5 font-medium text-slate-300 transition-colors hover:text-white"
+              >
+                <LogIn className="h-3 w-3 text-[#E63946]" />
+                Connexion
+              </Link>
+            )}
 
             <span className="h-3 w-px bg-slate-800" />
 
@@ -337,7 +474,7 @@ export function Navbar() {
               {/* Mobile icon */}
               <div className="relative h-9 w-9 sm:hidden">
                 <Image
-                  src="/icon_CarDrive1.png"
+                  src="/icon_logo.png"
                   alt="CarDrive"
                   fill
                   sizes="36px"
@@ -356,7 +493,7 @@ export function Navbar() {
                 )}
               >
                 <Image
-                  src="/logo_CarDrive1.png"
+                  src="/Logo-CarDrive2.png"
                   alt="CarDrive — Location de voitures à Nador"
                   fill
                   sizes="165px"
@@ -564,203 +701,88 @@ export function Navbar() {
             {/* ========================================================== */}
 
             <div className="hidden items-center gap-2.5 sm:flex">
-
-              {/* -------------------------------------------------------- */}
-              {/* LOGIN DROPDOWN                                           */}
-              {/* -------------------------------------------------------- */}
-
-              <div
-                ref={loginDropdownRef}
-                className="relative"
-              >
-
+              {authLoading ? (
+                <span className="h-10 w-28 animate-pulse rounded-xl bg-slate-100" role="status" aria-label="Chargement du compte" />
+              ) : authProfile ? (
+                <div ref={accountMenuRef} className="relative">
+                  <button
+                    type="button"
+                    aria-expanded={accountMenuOpen}
+                    aria-haspopup="menu"
+                    onClick={() => setAccountMenuOpen((open) => !open)}
+                    className="inline-flex max-w-64 items-center gap-2 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-left shadow-sm transition hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#02306B]"
+                  >
+                    <AccountAvatar profile={authProfile} />
+                    <span className="min-w-0">
+                      <span className="block max-w-40 truncate text-xs font-semibold text-slate-800">
+                        {accountIdentity(authProfile).name}
+                      </span>
+                      <span className="block text-[10px] font-medium text-slate-500">
+                        {accountIdentity(authProfile).badge}
+                      </span>
+                    </span>
+                    <ChevronDown className={cn('h-3.5 w-3.5 shrink-0 text-slate-400 transition-transform', accountMenuOpen && 'rotate-180')} aria-hidden="true" />
+                  </button>
+                  {accountMenuOpen && (
+                    <div role="menu" className="absolute right-0 top-full z-50 mt-2 w-56 rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl">
+                      <div className="border-b border-slate-100 px-3 py-2">
+                        <p className="truncate text-xs font-semibold text-slate-900">{accountIdentity(authProfile).name}</p>
+                        <p className="truncate text-[10px] text-slate-500">{authProfile.email}</p>
+                        {authProfile.canAccessAgency && authProfile.agencyName && (
+                          <p className="mt-1 text-[10px] font-medium text-[#02306B]">Agence · {authProfile.agencyName}</p>
+                        )}
+                      </div>
+                      {accountMenuItems(authProfile).map((item) => (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          role="menuitem"
+                          onClick={() => setAccountMenuOpen(false)}
+                          className="block rounded-lg px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                        >
+                          {item.label}
+                        </Link>
+                      ))}
+                      <button
+                        type="button"
+                        role="menuitem"
+                        disabled={signingOut}
+                        onClick={() => void handleSignOut()}
+                        className="mt-1 flex w-full items-center gap-2 border-t border-slate-100 px-3 py-2 text-left text-xs font-medium text-red-700 hover:bg-red-50 disabled:opacity-50"
+                      >
+                        {signingOut ? <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" /> : <LogOut className="h-3.5 w-3.5" aria-hidden="true" />}
+                        {signingOut ? 'Déconnexion…' : 'Déconnexion'}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : authError ? (
                 <button
                   type="button"
-                  aria-expanded={loginOpen}
-                  aria-haspopup="menu"
-                  onClick={() =>
-                    setLoginOpen((prev) => !prev)
-                  }
-                  onMouseEnter={() =>
-                    setLoginOpen(true)
-                  }
-                  className={cn(
-                    'group inline-flex items-center gap-2 rounded-xl border border-slate-200/90 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-sm transition-all duration-200 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950 active:scale-[0.98]',
-                    loginOpen &&
-                    'border-slate-300 bg-slate-50 text-slate-950 ring-2 ring-slate-100'
-                  )}
+                  onClick={() => void refreshAuthProfile()}
+                  className="rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2 text-xs font-semibold text-amber-900"
                 >
-
-                  <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-slate-100 text-slate-600 transition-colors group-hover:bg-[#E63946]/10 group-hover:text-[#E63946]">
-                    <User className="h-3.5 w-3.5" />
-                  </span>
-
-                  <span>
-                    Connexion
-                  </span>
-
-                  <ChevronDown
-                    className={cn(
-                      'h-3 w-3 text-slate-400 transition-transform duration-200',
-                      loginOpen &&
-                      'rotate-180 text-slate-600'
-                    )}
-                  />
-
+                  Vérifier le compte
                 </button>
-
-                {loginOpen && (
-                  <div
-                    role="menu"
-                    onMouseLeave={() =>
-                      setLoginOpen(false)
-                    }
-                    className="absolute right-0 top-full z-50 mt-2 w-[310px] overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-[0_20px_50px_rgba(15,23,42,0.14)]"
-                    style={{
-                      animation:
-                        'carDriveLoginDropdown 160ms ease-out',
-                    }}
+              ) : (
+                <>
+                  <Link
+                    href={LOGIN_PATH}
+                    className="group inline-flex items-center gap-2 rounded-xl border border-slate-200/90 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-sm transition-all duration-200 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950 active:scale-[0.98]"
                   >
-
-                    {/* Header */}
-                    <div className="px-3 pb-2 pt-2">
-
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                        Espaces d'accès
-                      </p>
-
-                      <p className="mt-0.5 text-xs font-bold text-slate-900">
-                        Connectez-vous à votre espace
-                      </p>
-
-                    </div>
-
-                    <div className="my-1 border-t border-slate-100" />
-
-                    {/* Client */}
-                    <Link
-                      href="/account"
-                      role="menuitem"
-                      onClick={() =>
-                        setLoginOpen(false)
-                      }
-                      className="group flex items-start gap-3 rounded-xl p-2.5 transition-colors hover:bg-slate-50"
-                    >
-
-                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600 transition-colors group-hover:bg-blue-600 group-hover:text-white">
-                        <User className="h-4 w-4" />
-                      </span>
-
-                      <span className="min-w-0 flex-1">
-
-                        <span className="flex items-center justify-between">
-
-                          <span className="text-xs font-bold text-slate-900 group-hover:text-blue-600">
-                            Espace Client
-                          </span>
-
-                          <span className="rounded-full bg-blue-50 px-1.5 py-0.5 text-[8px] font-bold text-blue-600">
-                            Réservations
-                          </span>
-
-                        </span>
-
-                        <span className="mt-0.5 block text-[10px] text-slate-500">
-                          Vos réservations, devis & favoris
-                        </span>
-
-                      </span>
-                    </Link>
-
-                    {/* Agency */}
-                    <Link
-                      href="/agency/login"
-                      role="menuitem"
-                      onClick={() =>
-                        setLoginOpen(false)
-                      }
-                      className="group flex items-start gap-3 rounded-xl p-2.5 transition-colors hover:bg-slate-50"
-                    >
-
-                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 transition-colors group-hover:bg-emerald-600 group-hover:text-white">
-                        <Building2 className="h-4 w-4" />
-                      </span>
-
-                      <span className="min-w-0 flex-1">
-
-                        <span className="flex items-center justify-between">
-
-                          <span className="text-xs font-bold text-slate-900 group-hover:text-emerald-600">
-                            Espace Agence
-                          </span>
-
-                          <span className="rounded-full bg-emerald-50 px-1.5 py-0.5 text-[8px] font-bold uppercase text-emerald-600">
-                            Pro
-                          </span>
-
-                        </span>
-
-                        <span className="mt-0.5 block text-[10px] text-slate-500">
-                          Gérer la flotte, tarifs & planning
-                        </span>
-
-                      </span>
-                    </Link>
-
-                    {/* Admin */}
-                    <Link
-                      href="/admin/login"
-                      role="menuitem"
-                      onClick={() =>
-                        setLoginOpen(false)
-                      }
-                      className="group flex items-start gap-3 rounded-xl p-2.5 transition-colors hover:bg-slate-50"
-                    >
-
-                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-600 transition-colors group-hover:bg-slate-900 group-hover:text-white">
-                        <ShieldCheck className="h-4 w-4" />
-                      </span>
-
-                      <span className="min-w-0 flex-1">
-
-                        <span className="text-xs font-bold text-slate-900 group-hover:text-slate-950">
-                          Administration
-                        </span>
-
-                        <span className="mt-0.5 block text-[10px] text-slate-500">
-                          Gestion globale de la plateforme
-                        </span>
-
-                      </span>
-                    </Link>
-
-                    {/* Footer */}
-                    <div className="mt-1 border-t border-slate-100 px-3 pb-1 pt-2.5">
-
-                      <Link
-                        href="/agency/join"
-                        onClick={() =>
-                          setLoginOpen(false)
-                        }
-                        className="group flex items-center justify-between text-[11px]"
-                      >
-
-                        <span className="text-slate-500">
-                          Vous êtes loueur ?
-                        </span>
-
-                        <span className="flex items-center gap-1 font-bold text-[#E63946] group-hover:underline">
-                          Inscrire mon agence
-
-                          <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
-                        </span>
-
-                      </Link>
-
-                    </div>
-                  </div>
-                )}
-              </div>
+                    <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-slate-100 text-slate-600 transition-colors group-hover:bg-[#E63946]/10 group-hover:text-[#E63946]">
+                      <User className="h-3.5 w-3.5" />
+                    </span>
+                    <span>Se connecter</span>
+                  </Link>
+                  <Link
+                    href={`${LOGIN_PATH}?portal=client&mode=signup`}
+                    className="inline-flex items-center rounded-xl border border-[#E63946]/20 bg-[#E63946]/5 px-3 py-2 text-xs font-semibold text-[#C92F3B] transition hover:bg-[#E63946]/10"
+                  >
+                    Créer un compte
+                  </Link>
+                </>
+              )}
 
               {/* Search CTA */}
               <Link
@@ -788,14 +810,40 @@ export function Navbar() {
             {/* ========================================================== */}
 
             <div className="flex items-center gap-2 sm:hidden">
-
-              <Link
-                href="/account"
-                aria-label="Connexion / Mon compte"
-                className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 transition-colors hover:bg-slate-50"
-              >
-                <User className="h-4 w-4" />
-              </Link>
+              {authLoading ? (
+                <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100" role="status" aria-label="Vérification de la session">
+                  <Loader2 className="h-4 w-4 animate-spin text-slate-500" aria-hidden="true" />
+                </span>
+              ) : authProfile ? (
+                <Link
+                  href={accountHref(authProfile)}
+                  aria-label={`${accountIdentity(authProfile).badge} : ${accountIdentity(authProfile).name}`}
+                  title={`${accountIdentity(authProfile).badge} · ${accountIdentity(authProfile).name}`}
+                  className="flex h-9 max-w-32 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-1.5 text-slate-700 transition-colors hover:bg-slate-50"
+                >
+                  <AccountAvatar profile={authProfile} className="h-7 w-7 text-xs" />
+                  <span className="min-w-0 max-w-16 truncate text-[10px] font-semibold">
+                    {accountIdentity(authProfile).name}
+                  </span>
+                </Link>
+              ) : authError ? (
+                <button
+                  type="button"
+                  aria-label="Réessayer de vérifier la session"
+                  onClick={() => void refreshAuthProfile()}
+                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-amber-200 bg-amber-50 text-amber-800"
+                >
+                  <ShieldCheck className="h-4 w-4" aria-hidden="true" />
+                </button>
+              ) : (
+                <Link
+                  href={LOGIN_PATH}
+                  aria-label="Se connecter"
+                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 transition-colors hover:bg-slate-50"
+                >
+                  <User className="h-4 w-4" />
+                </Link>
+              )}
 
               <Link
                 href="/search"
@@ -988,132 +1036,79 @@ export function Navbar() {
               </nav>
             </div>
 
-            {/* Connexion / Espaces */}
             <div className="mt-6 border-t border-slate-100 pt-5">
-
-              <div className="mb-3 flex items-center justify-between px-2">
-
-                <div>
-                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
-                    Connexion & Espaces
-                  </p>
-
-                  <p className="mt-0.5 text-[10px] text-slate-500">
-                    Accédez à votre compte
-                  </p>
+              {authLoading ? (
+                <p className="flex items-center gap-2 rounded-xl bg-slate-50 p-3 text-xs text-slate-500" role="status">
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                  Vérification du compte…
+                </p>
+              ) : authProfile ? (
+                <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3">
+                  <div className="mb-2 flex min-w-0 items-center gap-3">
+                    <AccountAvatar profile={authProfile} className="h-10 w-10" />
+                    <div className="min-w-0">
+                      <p className="truncate text-xs font-bold text-slate-900">{accountIdentity(authProfile).name}</p>
+                      <p className="text-[10px] font-semibold text-[#02306B]">{accountIdentity(authProfile).badge}</p>
+                      <p className="truncate text-[10px] text-slate-500">{authProfile.email}</p>
+                    </div>
+                  </div>
+                  <nav aria-label="Menu du compte" className="space-y-1">
+                    {accountMenuItems(authProfile).map((item) => (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center justify-between rounded-lg px-3 py-2 text-xs font-medium text-slate-700 hover:bg-white"
+                      >
+                        {item.label}
+                        <ChevronRight className="h-3.5 w-3.5 text-slate-400" aria-hidden="true" />
+                      </Link>
+                    ))}
+                  </nav>
+                  <button
+                    type="button"
+                    disabled={signingOut}
+                    onClick={() => void handleSignOut()}
+                    className="mt-2 flex w-full items-center gap-2 border-t border-slate-200 px-3 pt-3 text-left text-xs font-semibold text-red-700 disabled:opacity-50"
+                  >
+                    {signingOut ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <LogOut className="h-4 w-4" aria-hidden="true" />}
+                    {signingOut ? 'Déconnexion…' : 'Déconnexion'}
+                  </button>
                 </div>
-
-                <LogIn className="h-4 w-4 text-slate-400" />
-
-              </div>
-
-              <div className="space-y-2">
-
-                {/* Client */}
-                <Link
-                  href="/account"
-                  onClick={() =>
-                    setMobileMenuOpen(false)
-                  }
-                  className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50/70 p-3 transition-colors hover:bg-white"
-                >
-
-                  <div className="flex items-center gap-3">
-
-                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-100/70 text-blue-700">
-                      <User className="h-4 w-4" />
+              ) : authError ? (
+                <div className="rounded-xl border border-amber-200 bg-amber-50 p-3">
+                  <p role="alert" className="text-xs text-amber-900">{authError}</p>
+                  <button type="button" onClick={() => void refreshAuthProfile()} className="mt-2 text-xs font-semibold text-amber-900 underline">
+                    Réessayer la vérification
+                  </button>
+                </div>
+              ) : (
+                <div className="grid gap-2">
+                  <Link
+                    href={LOGIN_PATH}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50/70 p-3 transition-colors hover:bg-white"
+                  >
+                    <span className="flex items-center gap-3">
+                      <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#E63946]/10 text-[#E63946]">
+                        <LogIn className="h-4 w-4" aria-hidden="true" />
+                      </span>
+                      <span>
+                        <span className="block text-xs font-bold text-slate-900">Se connecter</span>
+                        <span className="block text-[10px] text-slate-500">Client, agence ou administration</span>
+                      </span>
                     </span>
-
-                    <div>
-                      <p className="text-xs font-bold text-slate-900">
-                        Espace Client
-                      </p>
-
-                      <p className="text-[10px] text-slate-500">
-                        Mes réservations & profil
-                      </p>
-                    </div>
-
-                  </div>
-
-                  <ChevronRight className="h-4 w-4 text-slate-400" />
-
-                </Link>
-
-                {/* Agency */}
-                <Link
-                  href="/agency/login"
-                  onClick={() =>
-                    setMobileMenuOpen(false)
-                  }
-                  className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50/70 p-3 transition-colors hover:bg-white"
-                >
-
-                  <div className="flex items-center gap-3">
-
-                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-100/70 text-emerald-700">
-                      <Building2 className="h-4 w-4" />
-                    </span>
-
-                    <div>
-
-                      <div className="flex items-center gap-1.5">
-
-                        <p className="text-xs font-bold text-slate-900">
-                          Espace Agence
-                        </p>
-
-                        <span className="rounded-full bg-emerald-100 px-1.5 py-0.5 text-[8px] font-bold text-emerald-700">
-                          PRO
-                        </span>
-
-                      </div>
-
-                      <p className="text-[10px] text-slate-500">
-                        Gestion de la flotte automobile
-                      </p>
-
-                    </div>
-                  </div>
-
-                  <ChevronRight className="h-4 w-4 text-slate-400" />
-
-                </Link>
-
-                {/* Admin */}
-                <Link
-                  href="/admin/login"
-                  onClick={() =>
-                    setMobileMenuOpen(false)
-                  }
-                  className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50/70 p-3 transition-colors hover:bg-white"
-                >
-
-                  <div className="flex items-center gap-3">
-
-                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-200/70 text-slate-700">
-                      <ShieldCheck className="h-4 w-4" />
-                    </span>
-
-                    <div>
-
-                      <p className="text-xs font-bold text-slate-900">
-                        Administration
-                      </p>
-
-                      <p className="text-[10px] text-slate-500">
-                        Accès administrateur CarDrive
-                      </p>
-
-                    </div>
-
-                  </div>
-
-                  <ChevronRight className="h-4 w-4 text-slate-400" />
-
-                </Link>
-
-              </div>
+                    <ChevronRight className="h-4 w-4 text-slate-400" aria-hidden="true" />
+                  </Link>
+                  <Link
+                    href={`${LOGIN_PATH}?portal=client&mode=signup`}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="rounded-xl bg-[#E63946] px-4 py-3 text-center text-xs font-bold text-white"
+                  >
+                    Créer un compte
+                  </Link>
+                </div>
+              )}
             </div>
 
             {/* WhatsApp */}
@@ -1193,18 +1188,6 @@ export function Navbar() {
           to {
             opacity: 1;
             transform: translate(-50%, 0) scale(1);
-          }
-        }
-
-        @keyframes carDriveLoginDropdown {
-          from {
-            opacity: 0;
-            transform: translateY(-6px) scale(0.98);
-          }
-
-          to {
-            opacity: 1;
-            transform: translateY(0) scale(1);
           }
         }
 

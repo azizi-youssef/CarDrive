@@ -1,99 +1,121 @@
 import { Agency, AgencyStatus } from '@/types';
-import { store } from './store';
-import { createClient, isSupabaseServerConfigured } from '@/lib/supabase/server';
+import { createClient, createAdminClient } from '@/lib/supabase/server';
+
+function requireSupabase() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key || !url.startsWith('http')) {
+    throw new Error(
+      'Supabase non configuré. Définissez NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY.'
+    );
+  }
+}
 
 export class AgenciesService {
   async getAgencies(onlyActive = true): Promise<Agency[]> {
-    if (isSupabaseServerConfigured()) {
-      try {
-        const supabase = await createClient();
-        if (supabase) {
-          let query = supabase.from('agencies').select('*');
-          if (onlyActive) {
-            query = query.eq('status', 'ACTIVE');
-          }
-          const { data, error } = await query.order('rating', { ascending: false });
-          if (!error && data) {
-            return data as Agency[];
-          }
-        }
-      } catch (err) {
-        console.warn('Fallback to local store for agencies:', err);
-      }
+    requireSupabase();
+    const supabase = await createClient();
+    if (!supabase) throw new Error('Client Supabase indisponible.');
+
+    let query = supabase.from('agencies').select('*');
+    if (onlyActive) {
+      query = query.eq('status', 'ACTIVE');
     }
-    return store.getAgencies(onlyActive);
+    const { data, error } = await query.order('rating', { ascending: false });
+    if (error) {
+      console.error('[AgenciesService] getAgencies error:', error.message);
+      throw new Error('Impossible de charger les agences.');
+    }
+    return (data ?? []) as Agency[];
   }
 
   async getAgencyBySlug(slug: string): Promise<Agency | null> {
-    if (isSupabaseServerConfigured()) {
-      try {
-        const supabase = await createClient();
-        if (supabase) {
-          const { data, error } = await supabase
-            .from('agencies')
-            .select('*')
-            .eq('slug', slug)
-            .single();
-          if (!error && data) {
-            return data as Agency;
-          }
-        }
-      } catch (err) {
-        console.warn('Fallback to local store for agency slug:', err);
-      }
+    requireSupabase();
+    const supabase = await createClient();
+    if (!supabase) throw new Error('Client Supabase indisponible.');
+
+    const { data, error } = await supabase
+      .from('agencies')
+      .select('*')
+      .eq('slug', slug)
+      .maybeSingle();
+
+    if (error) {
+      console.error('[AgenciesService] getAgencyBySlug error:', error.message);
+      throw new Error('Impossible de charger l\'agence.');
     }
-    return store.getAgencyBySlug(slug) || null;
+    return (data as Agency) ?? null;
   }
 
   async getAgencyById(id: string): Promise<Agency | null> {
-    if (isSupabaseServerConfigured()) {
-      try {
-        const supabase = await createClient();
-        if (supabase) {
-          const { data, error } = await supabase
-            .from('agencies')
-            .select('*')
-            .eq('id', id)
-            .single();
-          if (!error && data) {
-            return data as Agency;
-          }
-        }
-      } catch (err) {
-        console.warn('Fallback to local store for agency id:', err);
-      }
+    requireSupabase();
+    const supabase = await createClient();
+    if (!supabase) throw new Error('Client Supabase indisponible.');
+
+    const { data, error } = await supabase
+      .from('agencies')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle();
+
+    if (error) {
+      console.error('[AgenciesService] getAgencyById error:', error.message);
+      throw new Error('Impossible de charger l\'agence.');
     }
-    return store.getAgencyById(id) || null;
+    return (data as Agency) ?? null;
   }
 
-  async updateAgencyStatus(id: string, status: AgencyStatus, verified: boolean): Promise<Agency | null> {
-    if (isSupabaseServerConfigured()) {
-      try {
-        const supabase = await createClient();
-        if (supabase) {
-          const { data, error } = await supabase
-            .from('agencies')
-            .update({ status, verified, updated_at: new Date().toISOString() })
-            .eq('id', id)
-            .select()
-            .single();
-          if (!error && data) {
-            return data as Agency;
-          }
-        }
-      } catch (err) {
-        console.warn('Fallback to local store for updateAgencyStatus:', err);
-      }
+  async updateAgencyStatus(
+    id: string,
+    status: AgencyStatus,
+    verified: boolean
+  ): Promise<Agency | null> {
+    requireSupabase();
+    const supabase = await createClient();
+    if (!supabase) throw new Error('Client Supabase indisponible.');
+
+    const { data, error } = await supabase
+      .from('agencies')
+      .update({ status, verified, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('[AgenciesService] updateAgencyStatus error:', error.message);
+      throw new Error('Impossible de mettre à jour le statut de l\'agence.');
     }
-    return store.updateAgencyStatus(id, status, verified) || null;
+    return data as Agency;
+  }
+
+  async createAgency(
+    payload: Omit<Agency, 'id' | 'created_at' | 'rating' | 'review_count'>
+  ): Promise<Agency> {
+    requireSupabase();
+    const supabase = (await createAdminClient()) ?? (await createClient());
+    if (!supabase) throw new Error('Client Supabase indisponible.');
+
+    const { data, error } = await supabase
+      .from('agencies')
+      .insert(payload)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('[AgenciesService] createAgency error:', error.message);
+      throw new Error('Impossible de créer l\'agence.');
+    }
+    return data as Agency;
   }
 
   async getAgencyStats(agencyId: string) {
-    return store.getAgencyStats(agencyId);
+    const { statsService } = await import('./stats.service');
+    return statsService.getAgencyStats(agencyId);
   }
 
   async getAdminStats() {
-    return store.getAdminStats();
+    const { statsService } = await import('./stats.service');
+    return statsService.getAdminStats();
   }
 }
 

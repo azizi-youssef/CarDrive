@@ -1,14 +1,15 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Vehicle } from '@/types';
 import { calculateBookingPrice, calculateRentalDays } from '@/lib/utils/pricing';
 import { formatPrice } from '@/lib/utils';
-import { LOCATIONS_NADOR } from '@/lib/services/mockData';
+import { LOCATIONS_NADOR } from '@/lib/constants/catalog';
 import { MEETING_POINTS, getMeetingPoint } from '@/lib/constants/meetingPoints';
 import { MeetingPointBadge } from './MeetingPointBadge';
+import { addDateDays, formatLocalDate, isValidDateOnly } from '@/lib/utils/date-only';
 import {
   X,
   User,
@@ -46,8 +47,15 @@ export function BookingRequestModal({
   defaultEndDate,
   defaultLocation,
 }: BookingRequestModalProps) {
-  const today = new Date().toISOString().split('T')[0];
-  const inThreeDays = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+  const today = formatLocalDate(new Date());
+  const requestedStartDate =
+    defaultStartDate && isValidDateOnly(defaultStartDate) && defaultStartDate >= today
+      ? defaultStartDate
+      : today;
+  const requestedEndDate =
+    defaultEndDate && isValidDateOnly(defaultEndDate) && defaultEndDate > requestedStartDate
+      ? defaultEndDate
+      : addDateDays(requestedStartDate, 3);
 
   // Current Step: 1 (Infos), 2 (Location), 3 (Options), 4 (Récapitulatif), 5 (Confirmé)
   const [currentStep, setCurrentStep] = useState<number>(1);
@@ -55,6 +63,7 @@ export function BookingRequestModal({
   const [submissionError, setSubmissionError] = useState<string | null>(null);
   const [confirmedBookingRef, setConfirmedBookingRef] = useState<string | null>(null);
   const [agencyWhatsAppUrl, setAgencyWhatsAppUrl] = useState<string | null>(null);
+  const idempotencyRequestRef = useRef<{ body: string; key: string } | null>(null);
   // Étape 1 : Coordonnées & Permis
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -67,8 +76,8 @@ export function BookingRequestModal({
   const [licenseExpiry, setLicenseExpiry] = useState('2032-01-01');
 
   // Étape 2 : Location
-  const [startDate, setStartDate] = useState(defaultStartDate || today);
-  const [endDate, setEndDate] = useState(defaultEndDate || inThreeDays);
+  const [startDate, setStartDate] = useState(requestedStartDate);
+  const [endDate, setEndDate] = useState(requestedEndDate);
   const [pickupTime, setPickupTime] = useState('10:00');
   const [dropoffTime, setDropoffTime] = useState('10:00');
   const [deliveryType, setDeliveryType] = useState<'AGENCY_PICKUP' | 'AIRPORT' | 'HOTEL' | 'ADDRESS'>('AIRPORT');
@@ -111,8 +120,8 @@ export function BookingRequestModal({
 
   // Validation Étape 2
   const validateStep2 = () => {
-    if (new Date(endDate) < new Date(startDate)) {
-      alert('La date de retour doit être postérieure ou égale à la date de début');
+    if (startDate < today || endDate <= startDate) {
+      alert('La date de départ ne peut pas être passée et le retour doit être ultérieur.');
       return false;
     }
     return true;
@@ -149,11 +158,18 @@ export function BookingRequestModal({
         additionalDriver,
         customerNotes: customerNotes.trim() || undefined,
       };
+      const body = JSON.stringify(payload);
+      if (!idempotencyRequestRef.current || idempotencyRequestRef.current.body !== body) {
+        idempotencyRequestRef.current = { body, key: crypto.randomUUID() };
+      }
 
       const response = await fetch('/api/bookings', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        headers: {
+          'Content-Type': 'application/json',
+          'Idempotency-Key': idempotencyRequestRef.current.key,
+        },
+        body,
       });
 
       const data = await response.json();
@@ -183,9 +199,10 @@ export function BookingRequestModal({
           <div className="flex items-center gap-3">
             <div className="relative h-9 w-28 bg-white/10 rounded-xl p-1.5 flex items-center justify-center backdrop-blur-sm border border-white/15 shrink-0">
               <Image
-                src="/logo_CarDrive1.png"
+                src="/Logo-CarDrive1.png"
                 alt="CarDrive"
                 fill
+                sizes="112px"
                 className="object-contain p-1 brightness-0 invert"
                 priority
               />
@@ -402,7 +419,11 @@ export function BookingRequestModal({
                     type="date"
                     min={today}
                     value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
+                    onChange={(e) => {
+                      const nextStart = e.target.value < today ? today : e.target.value;
+                      setStartDate(nextStart);
+                      if (endDate <= nextStart) setEndDate(addDateDays(nextStart, 1));
+                    }}
                     className="w-full bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 font-semibold text-slate-900 outline-none"
                   />
                   <input
@@ -419,9 +440,17 @@ export function BookingRequestModal({
                   </label>
                   <input
                     type="date"
-                    min={startDate}
+                    min={addDateDays(startDate, 1)}
                     value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        setEndDate(
+                          e.target.value <= startDate
+                            ? addDateDays(startDate, 1)
+                            : e.target.value
+                        );
+                      }
+                    }}
                     className="w-full bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 font-semibold text-slate-900 outline-none"
                   />
                   <input
@@ -652,19 +681,15 @@ export function BookingRequestModal({
                   <span>{formatPrice(pricing.total)}</span>
                 </div>
 
-                {/* Décomposition transparence 15% CarDrive / 85% Agence */}
+                {/* Détails de règlement & caution */}
                 <div className="pt-2 border-t border-dashed border-blue-200 text-[11px] space-y-1">
-                  <div className="flex justify-between text-emerald-700 font-medium">
-                    <span>Frais de mise en relation & plateforme ({pricing.commission_rate}%)</span>
-                    <span className="font-bold">{formatPrice(pricing.commission_amount)}</span>
-                  </div>
-                  <div className="flex justify-between text-slate-500">
-                    <span>Solde agence partenaire à la remise</span>
-                    <span className="font-semibold">{formatPrice(pricing.agency_amount)}</span>
-                  </div>
-                  <div className="flex justify-between text-slate-400 text-[10px]">
+                  <div className="flex justify-between text-slate-600 font-medium">
                     <span>Caution remboursable exigée en agence</span>
-                    <span>{formatPrice(vehicle.deposit || 3000)}</span>
+                    <span className="font-bold text-slate-800">{formatPrice(vehicle.deposit || 3000)}</span>
+                  </div>
+                  <div className="flex justify-between text-slate-500 text-[10px]">
+                    <span>Modalité de paiement</span>
+                    <span>Règlement à la remise des clés auprès de l'agence</span>
                   </div>
                 </div>
               </div>

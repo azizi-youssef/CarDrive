@@ -1,12 +1,47 @@
 import { jsPDF } from 'jspdf';
 import { Booking } from '@/types';
+import { formatDateFr } from '@/lib/utils';
+
+/**
+ * Charge le logo officiel CarDrive depuis le système de fichiers (côté serveur).
+ */
+function loadLogoDataUrl(): string | null {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const fs = require('fs');
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const path = require('path');
+    const candidatePaths = [
+      path.join(process.cwd(), 'frontend', 'public', 'Logo-CarDrive2.png'),
+      path.join(process.cwd(), 'public', 'Logo-CarDrive2.png'),
+      path.join(process.cwd(), 'frontend', 'public', 'Logo_CarDrive1.png'),
+      path.join(process.cwd(), 'public', 'Logo_CarDrive1.png'),
+      path.join(process.cwd(), 'frontend', 'public', 'logo_CarDrive.jpeg'),
+      path.join(process.cwd(), 'public', 'logo_CarDrive.jpeg'),
+      path.join(process.cwd(), 'frontend', 'public', 'icon_CarDrive1.png'),
+      path.join(process.cwd(), 'public', 'icon_CarDrive1.png'),
+    ];
+
+    for (const p of candidatePaths) {
+      if (fs.existsSync(p)) {
+        const ext = path.extname(p).toLowerCase().replace('.', '');
+        const mime = ext === 'jpg' ? 'jpeg' : ext;
+        const base64 = fs.readFileSync(p).toString('base64');
+        return `data:image/${mime};base64,${base64}`;
+      }
+    }
+  } catch {
+    // Environnement sans fs direct
+  }
+  return null;
+}
 
 export class PdfService {
   /**
    * Génère un document PDF officiel "CarDrive — Demande de réservation" (Format A4)
    * Retourne un ArrayBuffer / Buffer exploitable côté serveur pour téléchargement ou stockage.
    */
-  generateBookingRequestPdf(booking: Booking): Uint8Array {
+  generateBookingRequestPdf(booking: Booking, customLogoDataUrl?: string): Uint8Array {
     const doc = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
@@ -29,33 +64,68 @@ export class PdfService {
     let currentY = 16;
 
     // --- HEADER / EN-TÊTE ---
-    // Bandeau supérieur coloré
+    const headerHeight = 26;
     doc.setFillColor(primaryNavy[0], primaryNavy[1], primaryNavy[2]);
-    doc.roundedRect(margin, currentY, contentWidth, 24, 3, 3, 'F');
+    doc.roundedRect(margin, currentY, contentWidth, headerHeight, 3, 3, 'F');
 
-    // Logo / Titre
-    doc.setTextColor(255, 255, 255);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(18);
-    doc.text('CarDrive', margin + 8, currentY + 11);
+    // Logo CarDrive
+    const logoData = customLogoDataUrl || loadLogoDataUrl();
+    let textStartX = margin + 8;
 
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'normal');
-    doc.text('Smart Car Rental Marketplace • Nador & Oriental', margin + 8, currentY + 18);
+    if (logoData) {
+      try {
+        // Tuile blanche avec bordure discrète pour faire ressortir le logo officiel
+        doc.setFillColor(255, 255, 255);
+        doc.roundedRect(margin + 4, currentY + 4, 52, 18, 2, 2, 'F');
+
+        const format = logoData.includes('image/jpeg') || logoData.includes('image/jpg') ? 'JPEG' : 'PNG';
+        doc.addImage(logoData, format, margin + 6, currentY + 5.5, 48, 15);
+
+        textStartX = margin + 60;
+      } catch (err) {
+        console.warn('[PdfService] Error drawing logo, using text fallback:', err);
+      }
+    }
+
+    if (!logoData || textStartX === margin + 8) {
+      // Fallback textuel stylisé
+      doc.setTextColor(255, 255, 255);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(18);
+      doc.text('CarDrive', margin + 8, currentY + 11);
+
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+      doc.text('Smart Car Rental Marketplace • Nador & Oriental', margin + 8, currentY + 18);
+    } else {
+      // Titre / Slogan textuel à côté du logo officiel
+      doc.setTextColor(255, 255, 255);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10.5);
+      doc.text('CarDrive Marketplace', textStartX, currentY + 11);
+
+      doc.setFontSize(7.5);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(203, 213, 225);
+      doc.text('Nador & Région de l’Oriental', textStartX, currentY + 17);
+    }
 
     // Bloc Référence & Date à droite
+    doc.setTextColor(255, 255, 255);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(11);
-    doc.text(booking.reference || booking.booking_ref || 'CD-2026-DEMANDE', pageWidth - margin - 8, currentY + 11, { align: 'right' });
+    doc.text(booking.reference || booking.booking_ref || 'CD-2026-DEMANDE', pageWidth - margin - 6, currentY + 10, { align: 'right' });
 
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
+    doc.setFontSize(7.5);
+    doc.setTextColor(203, 213, 225);
     const dateStr = booking.requested_at
-      ? new Date(booking.requested_at).toLocaleDateString('fr-FR')
-      : new Date().toLocaleDateString('fr-FR');
-    doc.text(`Demande émise le : ${dateStr}`, pageWidth - margin - 8, currentY + 18, { align: 'right' });
+      ? formatDateFr(booking.requested_at)
+      : formatDateFr(new Date());
+    doc.text(`Demande émise le : ${dateStr}`, pageWidth - margin - 6, currentY + 16, { align: 'right' });
+    doc.text('Fiche officielle de remise', pageWidth - margin - 6, currentY + 21, { align: 'right' });
 
-    currentY += 30;
+    currentY += headerHeight + 6;
 
     // --- BANNIÈRE DU TITRE DE DOCUMENT ---
     doc.setFillColor(bgLight[0], bgLight[1], bgLight[2]);
@@ -255,83 +325,93 @@ export class PdfService {
     doc.text('Présentez cette demande PDF officielle avec votre CIN/Passeport physique à l’agent d’accueil CarDrive.', margin + 4, currentY + 10);
     currentY += 17;
 
-    // --- SECTION 4 : TARIFICATION & COMMISSION ---
-    currentY = drawSectionTitle('4. Tarification & Ventilation Financière', currentY);
+    // --- SECTION 4 : TARIFICATION DE LA LOCATION ---
+    currentY = drawSectionTitle('4. Tarification de la Location', currentY);
 
-    // Tableau de tarification
+    // Tableau de tarification (Aucune mention de commission ou marge plateforme)
     doc.setFillColor(bgLight[0], bgLight[1], bgLight[2]);
-    doc.roundedRect(margin, currentY, contentWidth, 26, 2, 2, 'FD');
-
-    const subtotal = booking.subtotal || booking.total_price;
-    const rate = booking.commission_rate || 15.00;
-    const comm = booking.commission_amount || Math.round((subtotal * rate) / 100);
-    const agencyAmount = booking.agency_amount || (subtotal - comm);
+    doc.setDrawColor(borderGray[0], borderGray[1], borderGray[2]);
+    doc.roundedRect(margin, currentY, contentWidth, 24, 2, 2, 'FD');
 
     doc.setFont('helvetica', 'normal');
-    doc.text(`Tarif journalier : ${booking.daily_price} DH/jour`, margin + 6, currentY + 6);
-    doc.text(`Durée de location : ${booking.total_days} jour(s)`, margin + 6, currentY + 12);
-    doc.setFont('helvetica', 'bold');
-    doc.text(`Sous-total brut : ${subtotal} DH`, margin + 6, currentY + 19);
-
-    doc.setFont('helvetica', 'normal');
-    doc.text(`Commission CarDrive (${rate}%) : ${comm} DH`, margin + colW, currentY + 6);
-    doc.text(`Montant agence (hors caution) : ${agencyAmount} DH`, margin + colW, currentY + 12);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(primaryNavy[0], primaryNavy[1], primaryNavy[2]);
-    doc.text(`TOTAL LOCATION : ${booking.total_price} DH`, margin + colW, currentY + 19);
+    doc.setFontSize(8.5);
     doc.setTextColor(darkSlate[0], darkSlate[1], darkSlate[2]);
 
-    currentY += 32;
+    doc.text(`Tarif journalier : ${booking.daily_price} DH / jour`, margin + 6, currentY + 7);
+    doc.text(`Durée de location : ${booking.total_days} jour(s)`, margin + 6, currentY + 14);
 
-    // --- SECTION 5 : NOTES DU CLIENT ---
+    const depositAmount = booking.deposit_amount || booking.vehicle?.deposit || 3000;
+    doc.text(`Caution remboursable : ${depositAmount} DH (à l'agence)`, margin + colW, currentY + 7);
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.setTextColor(primaryNavy[0], primaryNavy[1], primaryNavy[2]);
+    doc.text(`MONTANT TOTAL LOCATION : ${booking.total_price} DH`, margin + 6, currentY + 20);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(mutedSlate[0], mutedSlate[1], mutedSlate[2]);
+    doc.text('Paiement : à la remise du véhicule auprès de l’agence partenaire', margin + colW, currentY + 20);
+
+    currentY += 30;
+
+    // --- SECTION 5 : NOTES DU CLIENT (si existantes) ---
     if (booking.customer_notes || booking.notes) {
-      currentY = drawSectionTitle('5. Notes et demandes spéciales du client', currentY);
+      currentY = drawSectionTitle('5. Notes et demandes particulières du client', currentY);
       doc.setFont('helvetica', 'italic');
+      doc.setFontSize(8);
+      doc.setTextColor(darkSlate[0], darkSlate[1], darkSlate[2]);
       doc.text(`"${booking.customer_notes || booking.notes}"`, margin + 4, currentY);
-      currentY += 8;
+      currentY += 10;
     }
 
-    // --- SECTION 6 : CADRE DE VALIDATION DE L'AGENCE PARTENAIRE ---
-    currentY = drawSectionTitle("6. Cadre réservé à l'agence de location partenaire", currentY);
+    // --- SECTION 6 : CADRE DE CONTRÔLE ET REMISE DU VÉHICULE ---
+    currentY = drawSectionTitle('Fiche de Contrôle & Remise du Véhicule (À compléter à la prise en charge)', currentY);
 
     doc.setDrawColor(borderGray[0], borderGray[1], borderGray[2]);
     doc.setFillColor(255, 255, 255);
-    doc.roundedRect(margin, currentY, contentWidth, 38, 2, 2, 'D');
+    doc.roundedRect(margin, currentY, contentWidth, 42, 2, 2, 'D');
 
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
-    doc.text('[  ] Demande acceptée         [  ] Demande refusée         [  ] Alternative proposée', margin + 6, currentY + 7);
+    doc.setTextColor(darkSlate[0], darkSlate[1], darkSlate[2]);
 
+    doc.text('Contrôle des documents :  [  ] CIN / Passeport vérifié       [  ] Permis de conduire vérifié & valide', margin + 6, currentY + 7);
     doc.line(margin + 6, currentY + 11, pageWidth - margin - 6, currentY + 11);
 
-    doc.text('Commentaires / Véhicule alternatif :', margin + 6, currentY + 17);
-    doc.text('Nom du responsable agence : _______________________', margin + 6, currentY + 25);
-    doc.text('Date : _____ / _____ / 2026', margin + 6, currentY + 32);
+    doc.text('Kilométrage au départ : _________________ km', margin + 6, currentY + 18);
+    doc.text('Niveau carburant : [ ] 1/4  [ ] 1/2  [ ] 3/4  [ ] Plein', margin + 6, currentY + 25);
+    doc.text('Date & heure réelles : _____ / _____ / 2026 à _____ : _____', margin + 6, currentY + 32);
 
-    doc.text('Signature & Cachet agence :', pageWidth - margin - 55, currentY + 17);
-    doc.rect(pageWidth - margin - 55, currentY + 20, 48, 14, 'D');
+    // Cadre signatures
+    doc.setFont('helvetica', 'bold');
+    doc.text('Signature du Conducteur :', pageWidth - margin - 65, currentY + 17);
+    doc.rect(pageWidth - margin - 65, currentY + 20, 28, 18, 'D');
 
-    currentY += 44;
+    doc.text('Cachet & Agence :', pageWidth - margin - 32, currentY + 17);
+    doc.rect(pageWidth - margin - 32, currentY + 20, 26, 18, 'D');
+
+    currentY += 46;
 
     // --- MENTION LÉGALE & FOOTER ---
     doc.setFontSize(7);
     doc.setTextColor(mutedSlate[0], mutedSlate[1], mutedSlate[2]);
     doc.setFont('helvetica', 'bold');
     doc.text(
-      "IMPORTANT : CarDrive est l'intermédiaire technologique de mise en relation. Ce document constitue une demande de",
+      "IMPORTANT : CarDrive est l'intermédiaire technologique de mise en relation. Ce document constitue le bon officiel de",
       pageWidth / 2,
       pageHeight - 14,
       { align: 'center' }
     );
     doc.setFont('helvetica', 'normal');
     doc.text(
-      "réservation et ne remplace pas le contrat officiel de location signé directement avec l'agence partenaire lors de la prise en charge.",
+      "réservation et de remise, facilitant la préparation et la signature du contrat de location officiel auprès de l'agence partenaire.",
       pageWidth / 2,
       pageHeight - 10,
       { align: 'center' }
     );
     doc.text(
-      `Document généré le ${new Date().toISOString()} • CarDrive Marketplace • www.cardrive.ma`,
+      `Document généré le ${formatDateFr(new Date())} • CarDrive Marketplace • www.cardrive.ma`,
       pageWidth / 2,
       pageHeight - 6,
       { align: 'center' }

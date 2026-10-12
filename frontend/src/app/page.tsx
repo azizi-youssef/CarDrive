@@ -1,12 +1,13 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { SearchBar } from '@/components/search/SearchBar';
 import { VehicleCard } from '@/components/cars/VehicleCard';
 import { AgencyCard } from '@/components/agencies/AgencyCard';
-import { store } from '@/lib/services/store';
+import { loginUrl } from '@/lib/auth/login-portals';
+import type { Vehicle, Agency } from '@/types';
 
 import {
   ArrowRight,
@@ -29,8 +30,27 @@ import {
 } from 'lucide-react';
 
 export default function HomePage() {
-  const vehicles = store.getVehicles();
-  const agencies = store.getAgencies();
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [agencies, setAgencies] = useState<Agency[]>([]);
+
+  useEffect(() => {
+    let active = true;
+    async function load() {
+      try {
+        const [vRes, aRes] = await Promise.all([
+          fetch('/api/vehicles').then((r) => r.json()),
+          fetch('/api/agencies').then((r) => r.json()),
+        ]);
+        if (!active) return;
+        if (vRes.success && Array.isArray(vRes.data)) setVehicles(vRes.data);
+        if (aRes.success && Array.isArray(aRes.data)) setAgencies(aRes.data);
+      } catch (err) {
+        console.warn('Error loading home data:', err);
+      }
+    }
+    load();
+    return () => { active = false; };
+  }, []);
 
   const featuredVehicles = vehicles.slice(0, 6);
   const featuredAgencies = agencies.slice(0, 4);
@@ -46,52 +66,57 @@ export default function HomePage() {
           0
         ) / agencies.length
       ).toFixed(1)
-      : '4.9';
+      : null;
+
+  // Category counts computed from real vehicle data (no hardcoded numbers)
+  const getCategoryCount = (cat: string) => vehicles.filter(v => v.category === cat).length;
+  const getAutoCount = () => vehicles.filter(v => v.transmission === 'AUTOMATIC').length;
 
   const categories = [
     {
       name: 'Économique',
-      count: 18,
+      count: getCategoryCount('Économique'),
       image:
         'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=900&q=85&auto=format&fit=crop',
       description: 'Pratique & économique',
     },
     {
       name: 'SUV',
-      count: 14,
+      count: getCategoryCount('SUV'),
       image:
         'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=900&q=85&auto=format&fit=crop',
       description: 'Confort & aventure',
     },
     {
       name: 'Berline',
-      count: 8,
+      count: getCategoryCount('Berline'),
       image:
         'https://images.unsplash.com/photo-1555215695-3004980ad54e?w=900&q=85&auto=format&fit=crop',
       description: 'Élégance au quotidien',
     },
     {
       name: 'Luxe',
-      count: 6,
+      count: getCategoryCount('Luxe'),
       image:
         'https://images.unsplash.com/photo-1563720223185-11003d516935?w=900&q=85&auto=format&fit=crop',
       description: 'Premium & prestige',
     },
     {
       name: 'Automatique',
-      count: 16,
+      count: getAutoCount(),
       image:
         'https://images.unsplash.com/photo-1493238792000-8113da705763?w=900&q=85&auto=format&fit=crop',
       description: 'Conduite sans effort',
     },
     {
       name: '7 places',
-      count: 5,
+      count: getCategoryCount('7 places'),
       image:
         'https://images.unsplash.com/photo-1544829099-b9a0c07fad1a?w=900&q=85&auto=format&fit=crop',
       description: 'Famille & groupes',
     },
   ];
+
 
   const destinations = [
     {
@@ -105,7 +130,7 @@ export default function HomePage() {
       name: 'Nador Centre',
       shortName: 'Nador',
       image:
-        'https://images.unsplash.com/photo-1470214304380-aadaedcfff1b?w=1000&q=85&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1000&q=85&auto=format&fit=crop',
       icon: MapPin,
     },
     {
@@ -180,7 +205,7 @@ export default function HomePage() {
         {/* Background */}
         <div className="absolute inset-0">
           <Image
-            src="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=2200&q=90&auto=format&fit=crop"
+            src="/background.png"
             alt="Voiture premium CarDrive"
             fill
             priority
@@ -188,11 +213,11 @@ export default function HomePage() {
             className="object-cover object-center"
           />
 
-          <div className="absolute inset-0 bg-[#05080D]/65" />
+          <div className="absolute inset-0 bg-[#05080D]/35" />
 
-          <div className="absolute inset-0 bg-gradient-to-r from-[#05080D]/95 via-[#05080D]/65 to-[#05080D]/35" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#05080D]/75 via-[#05080D]/40 to-[#05080D]/15" />
 
-          <div className="absolute inset-0 bg-gradient-to-t from-[#05080D] via-transparent to-[#05080D]/40" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#05080D]/80 via-transparent to-[#05080D]/20" />
 
           {/* Decorative glow */}
           <div className="absolute -right-40 top-20 h-[500px] w-[500px] rounded-full bg-[#E63946]/10 blur-[120px]" />
@@ -262,7 +287,7 @@ export default function HomePage() {
               <div className="flex items-center gap-2">
                 <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
                 <span className="font-bold text-white">
-                  {averageRating}
+                  {averageRating ?? '—'}
                 </span>
                 <span className="text-slate-400">note moyenne</span>
               </div>
@@ -763,7 +788,7 @@ export default function HomePage() {
             >
               <AgencyCard
                 agency={agency}
-                carCount={store.getVehicles({ agencyId: agency.id }).length}
+                carCount={agency.vehicle_count ?? vehicles.filter((v) => v.agency_id === agency.id).length}
               />
             </div>
           ))}
@@ -812,7 +837,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="flex w-full shrink-0 flex-col gap-3 sm:w-auto sm:flex-row">
+            <div className="flex w-full shrink-0 flex-col gap-3 sm:w-auto">
               <Link
                 href="/agency/join"
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#E63946] px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-red-950/30 transition hover:bg-[#C92F3B] hover:shadow-xl"
@@ -820,13 +845,15 @@ export default function HomePage() {
                 Rejoindre CarDrive
                 <ArrowRight className="h-4 w-4" />
               </Link>
-
-              <Link
-                href="/agency/login"
-                className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-white/10"
-              >
-                Dashboard
-              </Link>
+              <p className="text-center text-xs text-slate-400 sm:text-left">
+                Déjà partenaire ?{' '}
+                <Link
+                  href={loginUrl('agency')}
+                  className="font-semibold text-white underline-offset-2 hover:underline"
+                >
+                  Connexion agence
+                </Link>
+              </p>
             </div>
           </div>
         </div>
@@ -847,4 +874,3 @@ export default function HomePage() {
     </div>
   );
 }
-

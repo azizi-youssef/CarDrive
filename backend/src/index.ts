@@ -8,10 +8,19 @@ import { agenciesRouter } from './routes/agencies.routes';
 import { bookingsRouter } from './routes/bookings.routes';
 import { reviewsRouter } from './routes/reviews.routes';
 import { statsRouter } from './routes/stats.routes';
+import { assertLegacyExpressApiEnabled } from './config/legacy-api';
+
+assertLegacyExpressApiEnabled({
+  NODE_ENV: process.env.NODE_ENV,
+  ENABLE_LEGACY_EXPRESS_API: process.env.ENABLE_LEGACY_EXPRESS_API,
+});
 
 const app = express();
-const PORT = process.env.PORT ?? 4000;
+const PORT = Number(process.env.PORT ?? 4000);
 const FRONTEND_URL = process.env.FRONTEND_URL ?? 'http://localhost:3000';
+if (!Number.isInteger(PORT) || PORT < 1 || PORT > 65535) {
+  throw new Error('PORT must be an integer between 1 and 65535.');
+}
 
 // ── Security & Parsing ─────────────────────────────────────────────────────
 app.use(helmet());
@@ -60,7 +69,7 @@ app.use((err: Error, _req: express.Request, res: express.Response, _next: expres
 });
 
 // ── Start ──────────────────────────────────────────────────────────────────
-app.listen(PORT, () => {
+app.listen(PORT, '127.0.0.1', () => {
   console.log(`
   ╔══════════════════════════════════════╗
   ║   🚗  CarDrive API  — v1.0.0        ║

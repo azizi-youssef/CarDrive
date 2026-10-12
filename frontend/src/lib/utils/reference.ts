@@ -4,12 +4,12 @@
  * Easily readable, memorable, clean for WhatsApp and PDF invoices.
  */
 
+let sequenceCounter = Math.floor(Date.now() % 800000) + 100000;
+
 export function generateBookingReference(year?: number): string {
   const currentYear = year || new Date().getFullYear();
-  // Génère un numéro séquentiel/aléatoire sur 6 chiffres (000001 - 999999)
-  const randomNum = Math.floor(1000 + Math.random() * 998999);
-  const padded = String(randomNum).padStart(6, '0');
-  return `CD-${currentYear}-${padded}`;
+  sequenceCounter = ((sequenceCounter + 1) % 900000) + 100000;
+  return `CD-${currentYear}-${sequenceCounter}`;
 }
 
 export function isValidBookingReference(ref: string): boolean {

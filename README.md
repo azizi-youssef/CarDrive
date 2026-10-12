@@ -24,9 +24,12 @@ CarDrive/
 │   ├── .env           ← PORT=4000, FRONTEND_URL=...
 │   └── package.json
 │
-├── supabase/          ← SQL schemas (commun)
+├── packages/shared/   ← @cardrive/shared (types, Zod, statuts booking)
+├── backend/supabase/  ← SQL schemas & migrations
 └── package.json       ← Monorepo root (workspaces)
 ```
+
+Voir [ARCHITECTURE.md](./ARCHITECTURE.md) pour les chemins lecture/écriture et l’auth production.
 
 ## Démarrage rapide
 
@@ -72,5 +75,8 @@ NEXT_PUBLIC_API_URL=http://localhost:4000
 ```
 PORT=4000
 NODE_ENV=development
+ENABLE_LEGACY_EXPRESS_API=false
 FRONTEND_URL=http://localhost:3000
 ```
+
+L’API Express legacy est désactivée par défaut et ne doit pas être déployée. Pour un test local explicite uniquement, définissez `ENABLE_LEGACY_EXPRESS_API=true` avec `NODE_ENV=development`; le serveur écoute alors uniquement sur `127.0.0.1`. En production, utilisez les Route Handlers Next.js.

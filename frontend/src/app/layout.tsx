@@ -2,9 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Plus_Jakarta_Sans } from 'next/font/google';
 
 import './globals.css';
-
-import { Navbar } from '@/components/shared/Navbar';
-import { Footer } from '@/components/shared/Footer';
+import { AppShell } from '@/components/layout/AppShell';
 
 const SITE_URL = 'https://cardrive.ma';
 const SITE_NAME = 'CarDrive';
@@ -68,11 +66,9 @@ export const metadata: Metadata = {
   },
 
   icons: {
-    icon: [
-      { url: '/favicon.ico', sizes: 'any' },
-      { url: '/icon_CarDrive1.png', type: 'image/png', sizes: '512x512' },
-    ],
-    apple: [{ url: '/icon_CarDrive1.png', type: 'image/png', sizes: '180x180' }],
+    icon: [{ url: '/icon.png', type: 'image/png' }],
+    shortcut: '/icon.png',
+    apple: [{ url: '/icon.png', type: 'image/png' }],
   },
 
   manifest: '/manifest.webmanifest',
@@ -123,7 +119,7 @@ const jsonLd = {
       '@id': `${SITE_URL}/#organization`,
       name: SITE_NAME,
       url: SITE_URL,
-      logo: `${SITE_URL}/icon_CarDrive1.png`,
+      logo: `${SITE_URL}/icon_logo.png`,
       areaServed: {
         '@type': 'City',
         name: 'Nador',
@@ -154,24 +150,11 @@ export default function RootLayout({
   return (
     <html
       lang="fr"
+      data-scroll-behavior="smooth"
       className={`h-full scroll-smooth ${plusJakartaSans.variable}`}
     >
       <body className="flex min-h-full flex-col bg-[#F8FAFC] font-sans text-[#0F172A] antialiased selection:bg-[#E63946] selection:text-white">
-        <a
-          href="#contenu"
-          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-xl focus:bg-[#0B1220] focus:px-4 focus:py-3 focus:text-sm focus:font-semibold focus:text-white"
-        >
-          Aller au contenu principal
-        </a>
-
-        <Navbar />
-
-        {/* Unique balise <main> du site : les pages utilisent des <div>/<section>. */}
-        <main id="contenu" className="flex-1">
-          {children}
-        </main>
-
-        <Footer />
+        <AppShell>{children}</AppShell>
 
         <script
           type="application/ld+json"

@@ -1,17 +1,17 @@
 
 'use client';
 
-import React, { use, useState } from 'react';
+import React, { use, useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { store } from '@/lib/services/store';
 import { findSameModelAlternatives } from '@/lib/availability/engine';
 import { BookingCard } from '@/components/booking/BookingCard';
 import { generateWhatsAppLink, formatPrice } from '@/lib/utils';
 import { SameModelAlternatives } from '@/components/cars/SameModelAlternatives';
 import { Badge } from '@/components/ui/Badge';
 import { PriceDisplay } from '@/components/ui/PriceDisplay';
+import type { Vehicle, Review } from '@/types';
 import {
   Users,
   Fuel,
@@ -45,22 +45,71 @@ export default function CarDetailsPage({
 }: CarDetailsPageProps) {
   const resolvedParams = use(params);
 
-  const vehicle = store.getVehicleBySlug(resolvedParams.slug);
-
-  if (!vehicle) {
-    notFound();
-  }
-
+  const [vehicle, setVehicle] = useState<Vehicle | null>(null);
+  const [allVehicles, setAllVehicles] = useState<Vehicle[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [notFoundState, setNotFoundState] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [favorite, setFavorite] = useState(false);
 
+  useEffect(() => {
+    let active = true;
+    async function load() {
+      try {
+        const [vRes, listRes] = await Promise.all([
+          fetch(`/api/vehicles/${encodeURIComponent(resolvedParams.slug)}`).then((r) => r.json()),
+          fetch('/api/vehicles').then((r) => r.json()),
+        ]);
+        if (!active) return;
+        if (vRes.success && vRes.data) {
+          setVehicle(vRes.data);
+          // Fetch reviews for this vehicle from database
+          try {
+            const revRes = await fetch(`/api/reviews?vehicle_id=${encodeURIComponent(vRes.data.id)}`).then((r) => r.json());
+            if (active && revRes.success && Array.isArray(revRes.data)) {
+              setReviews(revRes.data);
+            }
+          } catch (rErr) {
+            console.warn('Could not fetch reviews:', rErr);
+          }
+        } else {
+          setNotFoundState(true);
+        }
+        if (listRes.success && Array.isArray(listRes.data)) {
+          setAllVehicles(listRes.data);
+        }
+      } catch (err) {
+        console.warn('Error loading vehicle from database:', err);
+        if (active) setNotFoundState(true);
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+    load();
+    return () => {
+      active = false;
+    };
+  }, [resolvedParams.slug]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center gap-3 text-slate-600">
+        <div className="w-8 h-8 border-4 border-[#02306B] border-t-transparent rounded-full animate-spin" />
+        <p className="text-sm font-medium">Chargement des données du véhicule en direct…</p>
+      </div>
+    );
+  }
+
+  if (notFoundState || !vehicle) {
+    notFound();
+  }
+
   const alternatives = findSameModelAlternatives({
     currentVehicle: vehicle,
-    allVehicles: store.getVehicles(),
-    allBookings: store.getBookings(),
+    allVehicles: allVehicles.length > 0 ? allVehicles : [vehicle],
+    allBookings: [],
   });
-
-  const reviews = store.getReviewsForVehicle(vehicle.id);
 
   const images =
     vehicle.images && vehicle.images.length > 0
@@ -77,8 +126,9 @@ export default function CarDetailsPage({
       reviews.length
       : vehicle.agency?.rating ?? 0;
 
-  const whatsappLink = `https://wa.me/212661987654?text=${encodeURIComponent(
-    `Bonjour CarDrive Conciergerie, j'ai une question sur le véhicule ${vehicle.brand} ${vehicle.model} (${vehicle.daily_price} DH/j) avant d'envoyer ma demande.`
+  const agencyPhone = vehicle.agency?.phone?.replace(/[^0-9]/g, '') || '212661987654';
+  const whatsappLink = `https://wa.me/${agencyPhone}?text=${encodeURIComponent(
+    `Bonjour ${vehicle.agency?.name || 'CarDrive'}, j'ai une question sur le véhicule ${vehicle.brand} ${vehicle.model} (${vehicle.daily_price} DH/j) avant d'envoyer ma demande.`
   )}`;
 
   return (

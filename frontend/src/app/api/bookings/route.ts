@@ -1,12 +1,46 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { isPlatformAdminRole } from '@cardrive/shared';
+import { getServerAuth, hasAccessPermission } from '@/lib/auth/server';
 import { bookingsService } from '@/lib/services/bookings.service';
 import { bookingRequestSchema } from '@/lib/validations/booking';
+import {
+  checkDistributedRateLimit,
+  checkRateLimit,
+  clientIpFromRequest,
+  RateLimitUnavailableError,
+} from '@/lib/rate-limit';
+import { redactBookingCustomerData } from '@/lib/auth/booking-access';
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
+    const body: unknown = await req.json();
 
-    // 1. Validation Zod stricte
+    if (
+      typeof body === 'object' &&
+      body !== null &&
+      'website' in body &&
+      typeof body.website === 'string' &&
+      body.website.trim().length > 0
+    ) {
+      return NextResponse.json({ success: false, error: 'Requête refusée' }, { status: 400 });
+    }
+
+    const ip = clientIpFromRequest(req);
+    const distributedLimit = await checkDistributedRateLimit(`booking-post:${ip}`, 8, 60_000);
+    if (!distributedLimit && process.env.NODE_ENV === 'production') {
+      return NextResponse.json(
+        { success: false, error: 'Service de protection anti-abus indisponible.' },
+        { status: 503 }
+      );
+    }
+    const limited = distributedLimit ?? checkRateLimit(`booking-post:${ip}`, 8, 60_000);
+    if (!limited.ok) {
+      return NextResponse.json(
+        { success: false, error: 'Trop de demandes. Réessayez dans quelques instants.' },
+        { status: 429, headers: { 'Retry-After': String(limited.retryAfterSec) } }
+      );
+    }
+
     const validation = bookingRequestSchema.safeParse(body);
     if (!validation.success) {
       return NextResponse.json(
@@ -18,8 +52,25 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 2. Création de la demande via le service métier certifié
-    const result = await bookingsService.createBookingRequest(validation.data);
+    const idempotencyKey = req.headers.get('idempotency-key');
+    if (
+      !idempotencyKey ||
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+        idempotencyKey
+      )
+    ) {
+      return NextResponse.json(
+        { success: false, error: 'Une clé Idempotency-Key UUID valide est requise.' },
+        { status: 400 }
+      );
+    }
+
+    const auth = await getServerAuth();
+    const result = await bookingsService.createBookingRequest(
+      validation.data,
+      auth?.userId,
+      idempotencyKey
+    );
 
     if (!result.success || !result.booking) {
       return NextResponse.json(
@@ -27,7 +78,13 @@ export async function POST(req: NextRequest) {
           success: false,
           error: result.error || 'Erreur lors de la création de la demande',
         },
-        { status: 400 }
+        {
+          status: result.idempotencyConflict
+            ? 409
+            : result.serviceUnavailable
+              ? 503
+              : 400,
+        }
       );
     }
 
@@ -38,14 +95,15 @@ export async function POST(req: NextRequest) {
     const agencyWhatsAppUrl = notificationService.generateWhatsAppLink(agencyPhone, agencyWhatsAppMessage);
     const pdfUrl = `${appUrl}/api/bookings/${encodeURIComponent(result.booking.reference || '')}/pdf`;
 
-    // Envoi de la notification au dashboard agence
-    await notificationService.sendDashboardNotification({
-      agencyId: result.booking.agency_id,
-      title: `Nouvelle demande de réservation ${result.booking.reference}`,
-      message: `${result.booking.customer_name} — ${result.booking.vehicle?.brand} ${result.booking.vehicle?.model} (${result.booking.total_days}j à ${result.booking.pickup_location})`,
-      link: `/agency?booking=${encodeURIComponent(result.booking.reference || '')}`,
-      type: 'BOOKING',
-    });
+    if (!result.idempotentReplay) {
+      await notificationService.sendDashboardNotification({
+        agencyId: result.booking.agency_id,
+        title: `Nouvelle demande de réservation ${result.booking.reference}`,
+        message: `${result.booking.customer_name} — ${result.booking.vehicle?.brand} ${result.booking.vehicle?.model} (${result.booking.total_days}j à ${result.booking.pickup_location})`,
+        link: `/agency?booking=${encodeURIComponent(result.booking.reference || '')}`,
+        type: 'BOOKING',
+      });
+    }
 
     return NextResponse.json({
       success: true,
@@ -55,14 +113,12 @@ export async function POST(req: NextRequest) {
       agencyWhatsAppUrl,
       agencyWhatsAppMessage,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Erreur interne du serveur';
     console.error('[API /api/bookings POST] Error:', error);
     return NextResponse.json(
-      {
-        success: false,
-        error: error.message || 'Erreur interne du serveur',
-      },
-      { status: 500 }
+      { success: false, error: message },
+      { status: error instanceof RateLimitUnavailableError ? 503 : 500 }
     );
   }
 }
@@ -70,16 +126,52 @@ export async function POST(req: NextRequest) {
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const agencyId = searchParams.get('agencyId') || undefined;
-    const customerId = searchParams.get('customerId') || undefined;
+    let agencyId = searchParams.get('agencyId') || undefined;
+    let customerId = searchParams.get('customerId') || undefined;
 
-    const bookings = await bookingsService.getBookings({ agencyId, customerId });
-    return NextResponse.json({ success: true, bookings });
-  } catch (error: any) {
-    console.error('[API /api/bookings GET] Error:', error);
-    return NextResponse.json(
-      { success: false, error: error.message || 'Erreur serveur' },
-      { status: 500 }
+    const auth = await getServerAuth();
+    if (!auth) {
+      return NextResponse.json({ success: false, error: 'Authentification requise' }, { status: 401 });
+    }
+
+    let canReadCustomerData = false;
+    const isAdmin = isPlatformAdminRole(auth.role);
+
+    if (!isAdmin) {
+      if (agencyId && !(await hasAccessPermission('bookings.read', agencyId))) {
+        return NextResponse.json({ success: false, error: 'Accès refusé' }, { status: 403 });
+      }
+      if (!agencyId && auth.agencyIds.length === 1) {
+        agencyId = auth.agencyIds[0];
+      } else if (!agencyId && auth.agencyIds.length > 1) {
+        return NextResponse.json(
+          { success: false, error: 'Paramètre agencyId requis' },
+          { status: 400 }
+        );
+      }
+      if (!agencyId && auth.role === 'CUSTOMER') {
+        customerId = auth.userId;
+      } else if (!agencyId && auth.agencyIds.length === 0) {
+        return NextResponse.json({ success: false, error: 'Accès refusé' }, { status: 403 });
+      }
+      canReadCustomerData = agencyId
+        ? await hasAccessPermission('customers.read', agencyId)
+        : customerId === auth.userId;
+    } else {
+      canReadCustomerData = true;
+    }
+
+    const bookings = await bookingsService.getBookings(
+      { agencyId, customerId },
+      canReadCustomerData
     );
+    const visibleBookings = canReadCustomerData
+      ? bookings
+      : bookings.map(redactBookingCustomerData);
+    return NextResponse.json({ success: true, bookings: visibleBookings });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Erreur serveur';
+    console.error('[API /api/bookings GET] Error:', error);
+    return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }

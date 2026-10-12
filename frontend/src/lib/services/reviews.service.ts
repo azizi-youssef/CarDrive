@@ -1,50 +1,56 @@
 import { Review } from '@/types';
-import { store } from './store';
-import { createClient, isSupabaseServerConfigured } from '@/lib/supabase/server';
+import { createClient, createAdminClient } from '@/lib/supabase/server';
+
+function requireSupabase() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key || !url.startsWith('http')) {
+    throw new Error(
+      'Supabase non configuré. Définissez NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY.'
+    );
+  }
+}
 
 export class ReviewsService {
   async getReviewsForVehicle(vehicleId: string): Promise<Review[]> {
-    if (isSupabaseServerConfigured()) {
-      try {
-        const supabase = await createClient();
-        if (supabase) {
-          const { data, error } = await supabase
-            .from('reviews')
-            .select('*')
-            .eq('vehicle_id', vehicleId)
-            .order('created_at', { ascending: false });
+    requireSupabase();
+    const supabase = (await createAdminClient()) ?? (await createClient());
+    if (!supabase) throw new Error('Client Supabase indisponible.');
 
-          if (!error && data) {
-            return data as Review[];
-          }
-        }
-      } catch (err) {
-        console.warn('Fallback to store for reviews:', err);
-      }
+    const { data, error } = await supabase
+      .from('reviews')
+      .select('*')
+      .eq('vehicle_id', vehicleId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('[ReviewsService] getReviewsForVehicle error:', error.message);
+      throw new Error('Impossible de charger les avis.');
     }
-    return store.getReviewsForVehicle(vehicleId);
+    return (data ?? []) as Review[];
   }
 
-  async addReview(review: Omit<Review, 'id' | 'created_at'>): Promise<Review> {
-    if (isSupabaseServerConfigured()) {
-      try {
-        const supabase = await createClient();
-        if (supabase) {
-          const { data, error } = await supabase
-            .from('reviews')
-            .insert(review)
-            .select()
-            .single();
-
-          if (!error && data) {
-            return data as Review;
-          }
-        }
-      } catch (err) {
-        console.warn('Fallback to store for addReview:', err);
-      }
+  async addReview(
+    review: Omit<Review, 'id' | 'created_at'> & {
+      booking_id: string;
+      customer_id: string;
     }
-    return store.addReview(review);
+  ): Promise<Review> {
+    requireSupabase();
+    const supabase = await createClient();
+    if (!supabase) throw new Error('Client Supabase indisponible.');
+
+    const { data, error } = await supabase
+      .from('reviews')
+      .insert(review)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('[ReviewsService] addReview error:', error.message);
+      throw new Error('Impossible d\'ajouter l\'avis.');
+    }
+    return data as Review;
   }
 }
 

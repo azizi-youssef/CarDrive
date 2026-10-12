@@ -57,8 +57,8 @@ function FooterLink({
     <>
       <ChevronRight
         className={`h-3 w-3 shrink-0 transition-transform duration-200 ${highlight
-            ? 'text-[#E63946]'
-            : 'text-slate-600 group-hover:text-[#E63946] group-hover:translate-x-0.5'
+          ? 'text-[#E63946]'
+          : 'text-slate-600 group-hover:text-[#E63946] group-hover:translate-x-0.5'
           }`}
       />
       <span>{children}</span>
@@ -234,10 +234,10 @@ export function Footer() {
             >
               <div className="relative h-10 w-[150px]">
                 <Image
-                  src="/logo_CarDrive1.png"
+                  src="/Logo-CarDrive2.png"
                   alt="CarDrive"
                   fill
-                  sizes="150px"
+                  sizes="170px"
                   className="object-contain object-left brightness-110"
                 />
               </div>

@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState, useMemo, Suspense } from 'react';
+import React, { useState, useMemo, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { VehicleCard } from '@/components/cars/VehicleCard';
 import { SearchBar } from '@/components/search/SearchBar';
-import { store } from '@/lib/services/store';
-import { CATEGORIES, POPULAR_BRANDS } from '@/lib/services/mockData';
+import { CATEGORIES, POPULAR_BRANDS } from '@/lib/constants/catalog';
+import { apiFetch } from '@/lib/api/client';
+import type { Vehicle, Agency } from '@/types';
 import { Filter, SlidersHorizontal, ArrowUpDown, X, Car, CarFront, RefreshCw, Check, Search } from 'lucide-react';
 
 function SearchPageContent() {
@@ -28,21 +29,44 @@ function SearchPageContent() {
   const [sortBy, setSortBy] = useState<'price_asc' | 'price_desc' | 'rating' | 'featured'>('featured');
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
-  const agencies = useMemo(() => store.getAgencies(), []);
+  const [allVehicles, setAllVehicles] = useState<Vehicle[]>([]);
+  const [agencies, setAgencies] = useState<Agency[]>([]);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function loadData() {
+      try {
+        const [vehiclesRes, agenciesRes] = await Promise.all([
+          apiFetch<Vehicle[]>('/api/vehicles'),
+          apiFetch<Agency[]>('/api/agencies'),
+        ]);
+        if (isMounted) {
+          if (vehiclesRes.success && vehiclesRes.data) setAllVehicles(vehiclesRes.data);
+          if (agenciesRes.success && agenciesRes.data) setAgencies(agenciesRes.data);
+        }
+      } catch (e) {
+        console.warn('[SearchPage] Backend fetch error:', e);
+      }
+    }
+    loadData();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Compute available brands
   const brands = useMemo(() => {
-    const list = store.getVehicles().map((v) => v.brand);
+    const list = allVehicles.map((v) => v.brand);
     return ['ALL', ...Array.from(new Set(list))];
-  }, []);
+  }, [allVehicles]);
 
   // Filtered vehicles
   const filteredVehicles = useMemo(() => {
-    let result = store.getVehicles({
-      category: selectedCategory,
-      startDate: initialStartDate,
-      endDate: initialEndDate,
-    });
+    let result = [...allVehicles];
+
+    if (selectedCategory && selectedCategory !== 'Tous les types') {
+      result = result.filter((v) => v.category === selectedCategory);
+    }
 
     if (selectedTransmission !== 'ALL') {
       result = result.filter((v) => v.transmission === selectedTransmission);
@@ -82,6 +106,7 @@ function SearchPageContent() {
 
     return result;
   }, [
+    allVehicles,
     selectedCategory,
     selectedTransmission,
     selectedFuel,

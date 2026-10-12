@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useId, useState } from 'react';
+import React, { useId, useState, useSyncExternalStore } from 'react';
 import { useRouter } from 'next/navigation';
 import { MapPin, Calendar, Car, CarFront, Search, type LucideIcon } from 'lucide-react';
-import { LOCATIONS_NADOR, CATEGORIES, POPULAR_BRANDS } from '@/lib/services/mockData';
+import { LOCATIONS_NADOR, CATEGORIES, POPULAR_BRANDS } from '@/lib/constants/catalog';
+import { addDateDays, formatLocalDate, isValidDateOnly } from '@/lib/utils/date-only';
 
 interface SearchBarProps {
   initialLocation?: string;
@@ -17,18 +18,17 @@ interface SearchBarProps {
 const ALL_CATEGORIES_LABEL = 'Tous les types';
 const ALL_BRANDS_LABEL = 'Toutes les marques';
 
-/** Date locale au format YYYY-MM-DD (évite le décalage UTC de toISOString). */
-function toLocalISODate(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+function subscribeToLocalDateChange(onChange: () => void): () => void {
+  const interval = window.setInterval(onChange, 60_000);
+  return () => window.clearInterval(interval);
 }
 
-function addDays(date: Date, days: number): Date {
-  const next = new Date(date);
-  next.setDate(next.getDate() + days);
-  return next;
+function getLocalToday(): string {
+  return formatLocalDate(new Date());
+}
+
+function getServerToday(): string {
+  return '';
 }
 
 function Field({
@@ -69,15 +69,17 @@ export function SearchBar({
   const router = useRouter();
   const uid = useId();
 
-  const now = new Date();
-  const today = toLocalISODate(now);
-  const inThreeDays = toLocalISODate(addDays(now, 3));
-
+  const today = useSyncExternalStore(
+    subscribeToLocalDateChange,
+    getLocalToday,
+    getServerToday
+  );
   const [location, setLocation] = useState(
     LOCATIONS_NADOR.includes(initialLocation) ? initialLocation : LOCATIONS_NADOR[0] ?? ''
   );
-  const [startDate, setStartDate] = useState(initialStartDate || today);
-  const [endDate, setEndDate] = useState(initialEndDate || inThreeDays);
+  const [startDate, setStartDate] = useState(initialStartDate);
+  const [endDate, setEndDate] = useState(initialEndDate);
+  const [dateError, setDateError] = useState('');
   const [category, setCategory] = useState(
     CATEGORIES.includes(initialCategory) ? initialCategory : ALL_CATEGORIES_LABEL
   );
@@ -85,22 +87,59 @@ export function SearchBar({
     initialBrand && initialBrand !== 'ALL' ? initialBrand : ALL_BRANDS_LABEL
   );
 
+  const effectiveStartDate = today
+    ? isValidDateOnly(startDate) && startDate >= today
+      ? startDate
+      : today
+    : startDate;
+  const effectiveEndDate = today
+    ? isValidDateOnly(endDate) && endDate > effectiveStartDate
+      ? endDate
+      : addDateDays(effectiveStartDate, 3)
+    : endDate;
+
   const handleStartChange = (value: string) => {
-    setStartDate(value);
-    if (value && endDate && value > endDate) setEndDate(value);
+    const localToday = today || formatLocalDate(new Date());
+    const nextStart = isValidDateOnly(value) && value >= localToday ? value : localToday;
+    setStartDate(nextStart);
+    if (
+      !isValidDateOnly(effectiveEndDate) ||
+      effectiveEndDate <= nextStart
+    ) {
+      setEndDate(addDateDays(nextStart, 1));
+    }
+    setDateError('');
   };
 
   const handleEndChange = (value: string) => {
-    setEndDate(value);
-    if (value && startDate && value < startDate) setStartDate(value);
+    if (!value) {
+      setEndDate('');
+      return;
+    }
+    if (!isValidDateOnly(value)) return;
+    setEndDate(
+      value <= effectiveStartDate ? addDateDays(effectiveStartDate, 1) : value
+    );
+    setDateError('');
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const localToday = today || formatLocalDate(new Date());
+    if (
+      !isValidDateOnly(effectiveStartDate) ||
+      effectiveStartDate < localToday ||
+      !isValidDateOnly(effectiveEndDate) ||
+      effectiveEndDate <= effectiveStartDate
+    ) {
+      setDateError('Choisissez un départ à partir d’aujourd’hui et une date de retour ultérieure.');
+      return;
+    }
+
     const params = new URLSearchParams();
     if (location) params.set('location', location);
-    if (startDate) params.set('startDate', startDate);
-    if (endDate) params.set('endDate', endDate);
+    if (effectiveStartDate) params.set('startDate', effectiveStartDate);
+    if (effectiveEndDate) params.set('endDate', effectiveEndDate);
     if (category && category !== ALL_CATEGORIES_LABEL) params.set('category', category);
     if (brand && brand !== ALL_BRANDS_LABEL && brand !== 'ALL') params.set('brand', brand);
     router.push(`/search?${params.toString()}`);
@@ -133,8 +172,10 @@ export function SearchBar({
           <input
             id={`${uid}-start`}
             type="date"
-            value={startDate}
+            value={effectiveStartDate}
             min={today}
+            disabled={!today}
+            required
             onChange={(e) => handleStartChange(e.target.value)}
             className={controlClass}
           />
@@ -144,8 +185,10 @@ export function SearchBar({
           <input
             id={`${uid}-end`}
             type="date"
-            value={endDate}
-            min={startDate || today}
+            value={effectiveEndDate}
+            min={isValidDateOnly(effectiveStartDate) ? addDateDays(effectiveStartDate, 1) : today}
+            disabled={!today}
+            required
             onChange={(e) => handleEndChange(e.target.value)}
             className={controlClass}
           />
@@ -183,12 +226,18 @@ export function SearchBar({
 
         <button
           type="submit"
-          className="flex items-center justify-center gap-2 rounded-xl bg-[#E63946] px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-[#C92F3B] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0B1220] active:scale-[0.98] sm:col-span-2 lg:col-span-1"
+          disabled={!today}
+          className="flex items-center justify-center gap-2 rounded-xl bg-[#E63946] px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-[#C92F3B] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0B1220] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 sm:col-span-2 lg:col-span-1"
         >
           <Search className="h-4 w-4" aria-hidden="true" />
           Rechercher
         </button>
       </div>
+      {dateError && (
+        <p className="mt-2 text-sm text-red-700" role="alert">
+          {dateError}
+        </p>
+      )}
     </form>
   );
 }

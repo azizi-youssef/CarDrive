@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" fill="none">
+  <rect width="800" height="600" fill="#F1F5F9"/>
+  <path d="M182 360h436l-36-103a48 48 0 0 0-45-32H270a48 48 0 0 0-45 32l-43 103Z" fill="#CBD5E1"/>
+  <path d="m250 257-29 78h119v-97h-63a30 30 0 0 0-27 19Zm113-19v97h188l-27-78a30 30 0 0 0-28-19H363Z" fill="#E2E8F0"/>
+  <path d="M146 354a24 24 0 0 1 24-24h460a24 24 0 0 1 24 24v65a34 34 0 0 1-34 34H180a34 34 0 0 1-34-34v-65Z" fill="#0B1220"/>
+  <circle cx="238" cy="438" r="47" fill="#475569"/>
+  <circle cx="238" cy="438" r="23" fill="#E2E8F0"/>
+  <circle cx="562" cy="438" r="47" fill="#475569"/>
+  <circle cx="562" cy="438" r="23" fill="#E2E8F0"/>
+  <path d="M166 381h55m358 0h55" stroke="#E63946" stroke-linecap="round" stroke-width="12"/>
+  <text x="400" y="535" fill="#64748B" font-family="Arial,sans-serif" font-size="24" text-anchor="middle">CarDrive</text>
+</svg>

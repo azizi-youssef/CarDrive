@@ -32,6 +32,10 @@ export type BookingStatus =
   | 'COMPLETED'
   | 'NO_SHOW';
 
+export function isBlockingBookingStatus(status: BookingStatus | string): boolean {
+  return status === 'CONFIRMED' || status === 'ACTIVE' || status === 'PENDING';
+}
+
 export interface Agency {
   id: string;
   name: string;

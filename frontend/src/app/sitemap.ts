@@ -1,12 +1,15 @@
 import { MetadataRoute } from 'next';
-import { store } from '@/lib/services/store';
+import { vehiclesService } from '@/lib/services/vehicles.service';
+import { agenciesService } from '@/lib/services/agencies.service';
 import { ALL_SEO_SLUGS } from '@/lib/seo/landingPages';
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://cardrive.ma';
 
-  const vehicles = store.getVehicles();
-  const agencies = store.getAgencies();
+  const [vehicles, agencies] = await Promise.all([
+    vehiclesService.getVehicles(),
+    agenciesService.getAgencies(false),
+  ]);
 
   const vehicleUrls = vehicles.map((v) => ({
     url: `${baseUrl}/cars/${v.slug}`,

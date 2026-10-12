@@ -1,10 +1,12 @@
 /**
- * Base client pour communiquer avec le backend CarDrive (Express.js)
- * URL de base : NEXT_PUBLIC_API_URL (défaut : http://localhost:4000)
+ * Client HTTP CarDrive — par défaut le BFF Next.js (/app/api/*).
+ * Express legacy : définir NEXT_PUBLIC_API_URL=http://localhost:4000
  */
 
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
+const LEGACY_EXPRESS = process.env.NEXT_PUBLIC_API_URL?.trim();
+
+/** Base URL : vide = same-origin BFF (architecture cible). */
+export const API_BASE = LEGACY_EXPRESS && LEGACY_EXPRESS.length > 0 ? LEGACY_EXPRESS : '';
 
 type ApiResponse<T> = {
   success: boolean;
@@ -12,28 +14,40 @@ type ApiResponse<T> = {
   error?: string;
   details?: { field: string; message: string }[];
   meta?: { total: number; limit?: number; offset?: number };
+  bookings?: T;
 };
 
 async function apiFetch<T>(
   path: string,
   options?: RequestInit
 ): Promise<ApiResponse<T>> {
-  const res = await fetch(`${API_BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    ...options,
-  });
+  const url = path.startsWith('http') ? path : `${API_BASE}${path}`;
 
-  const json = await res.json();
+  try {
+    const res = await fetch(url, {
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      ...options,
+    });
 
-  if (!res.ok) {
+    const json = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      return {
+        success: false,
+        error: json.error ?? `Erreur ${res.status}`,
+        details: json.details,
+      };
+    }
+
+    return json as ApiResponse<T>;
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Erreur de connexion';
+    console.warn(`[API Client] Échec ${url}:`, message);
     return {
       success: false,
-      error: json.error ?? `Erreur ${res.status}`,
-      details: json.details,
+      error: message,
     };
   }
-
-  return json as ApiResponse<T>;
 }
 
-export { apiFetch, API_BASE };
+export { apiFetch };

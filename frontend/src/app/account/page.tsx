@@ -2,9 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { store } from '@/lib/services/store';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { formatPrice } from '@/lib/utils';
 import { Badge } from '@/components/ui/Badge';
+import { Booking } from '@/types';
 import {
   User,
   Calendar,
@@ -15,17 +16,28 @@ import {
   CheckCircle2,
   LogOut,
   Sparkles,
+  Loader2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { createClient, isSupabaseConfigured } from '@/lib/supabase/client';
+import { signOutEverywhere } from '@/lib/auth/client';
 import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton';
-
-const DEMO_BOOKINGS = store.getBookings().slice(0, 5);
+import { loginUrl } from '@/lib/auth/login-portals';
 
 export default function AccountPage() {
-  const [activeTab, setActiveTab] = useState<'bookings' | 'favorites' | 'profile'>('bookings');
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const requestedTab = searchParams.get('tab');
+  const activeTab =
+    requestedTab === 'bookings' || requestedTab === 'favorites' || requestedTab === 'profile'
+      ? requestedTab
+      : 'bookings';
   const [user, setUser] = useState<any>(null);
   const [loadingUser, setLoadingUser] = useState(true);
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [loadingBookings, setLoadingBookings] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
+  const [signOutError, setSignOutError] = useState<string | null>(null);
 
   useEffect(() => {
     const supabase = createClient();
@@ -48,25 +60,49 @@ export default function AccountPage() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!user) {
+      setBookings([]);
+      return;
+    }
+    setLoadingBookings(true);
+    fetch('/api/bookings')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.bookings)) {
+          setBookings(data.bookings);
+        }
+      })
+      .catch((err) => console.error('[AccountPage] Error loading bookings:', err))
+      .finally(() => setLoadingBookings(false));
+  }, [user]);
+
   const handleSignOut = async () => {
-    const supabase = createClient();
-    if (supabase) {
-      await supabase.auth.signOut();
+    if (signingOut) return;
+    setSigningOut(true);
+    setSignOutError(null);
+    try {
+      await signOutEverywhere(createClient());
       setUser(null);
+      setBookings([]);
+    } catch (error: unknown) {
+      setSignOutError(error instanceof Error ? error.message : 'La déconnexion a échoué. Réessayez.');
+    } finally {
+      setSigningOut(false);
     }
   };
 
   const displayName =
     user?.user_metadata?.full_name ||
     user?.user_metadata?.name ||
-    (user?.email ? user.email.split('@')[0] : 'Mohamed El Amrani');
+    (user?.email ? user.email.split('@')[0] : 'Invité');
 
-  const displayEmail = user?.email || 'm.elamrani@gmail.com';
+  const displayEmail = user?.email || 'Non connecté';
   const avatarUrl = user?.user_metadata?.avatar_url || user?.user_metadata?.picture;
 
   const tabs = [
-    { id: 'bookings', label: 'Mes Réservations', icon: Calendar, count: DEMO_BOOKINGS.length },
-    { id: 'favorites', label: 'Favoris', icon: Heart, count: 4 },
+    { id: 'bookings', label: 'Mes Réservations', icon: Calendar, count: bookings.length },
+    { id: 'favorites', label: 'Favoris', icon: Heart, count: 0 },
     { id: 'profile', label: 'Mon Profil', icon: Settings },
   ] as const;
 
@@ -108,10 +144,10 @@ export default function AccountPage() {
                 <div className="flex items-center gap-3 mt-1.5 text-[11px] text-slate-300">
                   <span className="flex items-center gap-1 text-emerald-400">
                     <CheckCircle2 className="w-3.5 h-3.5" />
-                    Compte vérifié
+                    {user ? 'Compte vérifié' : 'Compte invité'}
                   </span>
                   <span>·</span>
-                  <span>{DEMO_BOOKINGS.length} réservations</span>
+                  <span>{bookings.length} réservation{bookings.length > 1 ? 's' : ''}</span>
                 </div>
               </div>
             </div>
@@ -121,14 +157,16 @@ export default function AccountPage() {
                 <button
                   type="button"
                   onClick={handleSignOut}
-                  className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 text-xs font-semibold text-slate-200 transition-colors"
+                  disabled={signingOut}
+                  className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 text-xs font-semibold text-slate-200 transition-colors disabled:opacity-50"
                 >
-                  <LogOut className="w-3.5 h-3.5 text-rose-400" />
-                  Se déconnecter
+                  {signingOut ? <Loader2 className="w-3.5 h-3.5 animate-spin text-rose-400" /> : <LogOut className="w-3.5 h-3.5 text-rose-400" />}
+                  {signingOut ? 'Déconnexion…' : 'Se déconnecter'}
                 </button>
               </div>
             ) : null}
           </div>
+          {signOutError && <p role="alert" className="mt-4 text-sm text-red-300">{signOutError}</p>}
         </div>
       </div>
 
@@ -150,7 +188,13 @@ export default function AccountPage() {
                 </p>
               </div>
             </div>
-            <div className="w-full sm:w-auto">
+            <div className="w-full sm:w-auto flex flex-col sm:flex-row gap-2">
+              <Link
+                href={loginUrl('client', { redirect: '/account' })}
+                className="inline-flex items-center justify-center px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+              >
+                Connexion e-mail
+              </Link>
               <GoogleSignInButton variant="light" next="/account" label="Connexion Google" />
             </div>
           </div>
@@ -164,7 +208,7 @@ export default function AccountPage() {
               return (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => router.replace(`/account?tab=${tab.id}`, { scroll: false })}
                   className={cn(
                     'flex items-center gap-2 px-5 py-3.5 text-xs font-semibold border-b-2 whitespace-nowrap transition-colors',
                     activeTab === tab.id
@@ -190,9 +234,14 @@ export default function AccountPage() {
               <div className="space-y-4">
                 <h2 className="text-sm font-bold text-slate-900">Historique des dossiers de location</h2>
 
-                {DEMO_BOOKINGS.length > 0 ? (
+                {loadingBookings ? (
+                  <div className="flex items-center justify-center py-12 text-slate-400 gap-2">
+                    <Loader2 className="w-5 h-5 animate-spin text-[#02306B]" />
+                    <span className="text-xs">Chargement de vos réservations...</span>
+                  </div>
+                ) : bookings.length > 0 ? (
                   <div className="space-y-3">
-                    {DEMO_BOOKINGS.map((booking) => (
+                    {bookings.map((booking) => (
                       <div
                         key={booking.id}
                         className="p-4 rounded-xl border border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center gap-3 justify-between"
@@ -255,7 +304,21 @@ export default function AccountPage() {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-xs text-slate-400 italic">Aucune réservation trouvée.</p>
+                  <div className="text-center py-10 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
+                    <Car className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                    <p className="text-xs font-semibold text-slate-700">Aucune réservation trouvée</p>
+                    <p className="text-[11px] text-slate-400 mt-1 max-w-xs mx-auto">
+                      Vos dossiers de location validés apparaîtront ici dès que vous effectuerez une réservation.
+                    </p>
+                    <div className="mt-4">
+                      <Link
+                        href="/search"
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#02306B] hover:bg-[#064181] text-white text-xs font-semibold transition shadow-sm"
+                      >
+                        Explorer les voitures disponibles
+                      </Link>
+                    </div>
+                  </div>
                 )}
               </div>
             )}

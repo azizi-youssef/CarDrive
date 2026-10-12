@@ -5,3 +5,5 @@
 export * from './vehicles.api';
 export * from './agencies.api';
 export * from './bookings.api';
+export * from './stats.api';
+

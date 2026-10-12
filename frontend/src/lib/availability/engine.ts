@@ -1,4 +1,5 @@
-﻿import { Vehicle, Booking } from '@/types';
+import { isBlockingBookingStatus } from '@cardrive/shared';
+import { Vehicle, Booking } from '@/types';
 
 /**
  * Checks if two date ranges overlap
@@ -38,7 +39,7 @@ export function isVehicleAvailable(
   // Check against active/confirmed bookings
   const hasConflict = bookings.some((b) => {
     if (b.vehicle_id !== vehicle.id) return false;
-    if (b.status === 'CANCELLED' || b.status === 'REJECTED') return false;
+    if (!isBlockingBookingStatus(b.status)) return false;
     return doDatesOverlap(startDate, endDate, b.start_date, b.end_date);
   });
 

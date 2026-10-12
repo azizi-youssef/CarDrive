@@ -1,13 +1,30 @@
-﻿'use client';
+'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AgencyCard } from '@/components/agencies/AgencyCard';
-import { store } from '@/lib/services/store';
 import { Building2, Search, ShieldCheck, MapPin } from 'lucide-react';
+import type { Agency } from '@/types';
 
 export default function AgenciesPage() {
   const [searchQuery, setSearchQuery] = useState('');
-  const allAgencies = store.getAgencies();
+  const [allAgencies, setAllAgencies] = useState<Agency[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    fetch('/api/agencies')
+      .then((r) => r.json())
+      .then((res) => {
+        if (active && res.success && Array.isArray(res.data)) {
+          setAllAgencies(res.data);
+        }
+      })
+      .catch((e) => console.warn('Agencies load error:', e))
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => { active = false; };
+  }, []);
 
   const filteredAgencies = allAgencies.filter(
     (a) =>
@@ -63,7 +80,7 @@ export default function AgenciesPage() {
             <AgencyCard
               key={agency.id}
               agency={agency}
-              carCount={store.getVehicles({ agencyId: agency.id }).length}
+              carCount={agency.vehicle_count ?? 0}
             />
           ))}
         </div>

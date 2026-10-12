@@ -6,8 +6,7 @@ import { Vehicle } from '@/types';
 import { PriceDisplay } from '@/components/ui/PriceDisplay';
 import { Badge } from '@/components/ui/Badge';
 import { calculateDaysBetween, generateBookingRef, generateWhatsAppLink, formatPrice } from '@/lib/utils';
-import { LOCATIONS_NADOR } from '@/lib/services/mockData';
-import { store } from '@/lib/services/store';
+import { LOCATIONS_NADOR } from '@/lib/constants/catalog';
 import { Calendar, MapPin, MessageSquare, Check, ShieldCheck, Phone, CheckCircle2, Clock } from 'lucide-react';
 import { BookingRequestModal } from './BookingRequestModal';
 
@@ -35,42 +34,7 @@ export function BookingCard({ vehicle }: BookingCardProps) {
 
   const handleOnlineBooking = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !phone) {
-      alert('Veuillez renseigner votre nom et numéro de téléphone');
-      return;
-    }
-
-    setIsSubmitting(true);
-    const bookingRef = generateBookingRef();
-
-    setTimeout(() => {
-      store.createBooking({
-        reference: bookingRef,
-        booking_ref: bookingRef,
-        vehicle_id: vehicle.id,
-        agency_id: vehicle.agency_id,
-        customer_name: name,
-        customer_email: email || `${phone.replace(/\s+/g, '')}@cardrive.ma`,
-        customer_phone: phone,
-        start_date: startDate,
-        end_date: endDate,
-        pickup_time: '10:00',
-        dropoff_time: '10:00',
-        pickup_location: location,
-        dropoff_location: location,
-        total_days: totalDays,
-        daily_price: vehicle.daily_price,
-        total_price: totalPrice,
-        commission_rate: 0.15,
-        commission_amount: Math.round(totalPrice * 0.15),
-        agency_amount: totalPrice - Math.round(totalPrice * 0.15),
-        deposit_amount: vehicle.deposit,
-        status: 'PENDING',
-      });
-
-      setIsSubmitting(false);
-      setBookingSuccessRef(bookingRef);
-    }, 400);
+    setIsModalOpen(true);
   };
 
   const whatsappUrl = generateWhatsAppLink({
@@ -242,15 +206,15 @@ export function BookingCard({ vehicle }: BookingCardProps) {
               <span>{formatPrice(totalPrice)}</span>
             </div>
 
-            {/* Modalité de règlement : 15% plateforme / 85% agence */}
+            {/* Modalité de règlement & caution */}
             <div className="mt-2 pt-2 border-t border-dashed border-slate-200 space-y-1 text-[11px]">
-              <div className="flex justify-between text-emerald-700 font-medium">
-                <span>Commission plateforme (15%)</span>
-                <span className="font-bold">{formatPrice(Math.round(totalPrice * 0.15))}</span>
+              <div className="flex justify-between text-slate-600 font-medium">
+                <span>Caution remboursable</span>
+                <span className="font-bold text-slate-800">{formatPrice(vehicle.deposit)}</span>
               </div>
-              <div className="flex justify-between text-slate-500">
-                <span>Solde à régler à l'agence (85%)</span>
-                <span className="font-semibold">{formatPrice(totalPrice - Math.round(totalPrice * 0.15))}</span>
+              <div className="flex justify-between text-slate-500 text-[10px]">
+                <span>Paiement</span>
+                <span>À la remise des clés en agence</span>
               </div>
             </div>
           </div>

@@ -1,0 +1,349 @@
+'use client';
+
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { CalendarDays, Car, LayoutDashboard } from 'lucide-react';
+import { canPerformAgencyBookingAction } from '@cardrive/shared';
+import { signOutEverywhere } from '@/lib/auth/client';
+import { canManageAgencyBookings, canManageAgencyFleet } from '@/lib/auth/portals';
+import { Sidebar, type AgencySection } from '@/components/agency/shell/Sidebar';
+import { Topbar } from '@/components/agency/shell/Topbar';
+import { EmptyState, ErrorBanner, Toast } from '@/components/agency/shell/Feedback';
+import { ConfirmDialog } from '@/components/agency/shell/Dialog';
+import { DateRangeInputs, FilterChips } from '@/components/agency/shell/Controls';
+import { RANGE_PRESETS, resolveRange, type RangePreset } from '@/lib/design/tokens';
+import {
+  OverviewPanel,
+  type AgendaResource,
+  type OverviewResource,
+} from '@/components/agency/overview/OverviewPanel';
+import {
+  BookingsPanel,
+  type AgencyBookingRow,
+  type BookingAction,
+  type BookingQuery,
+  type BookingsPage,
+} from '@/components/agency/bookings/BookingsPanel';
+import {
+  BookingDetailModal,
+  type BookingDetail,
+} from '@/components/agency/bookings/BookingDetailModal';
+
+export type AgencyIdentity = {
+  id: string;
+  name: string;
+  verified: boolean;
+  logoUrl: string | null;
+};
+
+export type AgencyProfile = {
+  role: string;
+  email: string;
+  displayName: string;
+  avatarUrl: string | null;
+};
+
+type Notice = { id: number; kind: 'success' | 'error'; message: string };
+
+type Alternative = { id: string; brand: string; model: string; daily_price: number };
+
+const PAGE_SIZE = 15;
+
+async function readJson(response: Response): Promise<unknown> {
+  const body: unknown = await response.json().catch(() => ({}));
+  const record =
+    typeof body === 'object' && body !== null ? (body as Record<string, unknown>) : {};
+  if (!response.ok) {
+    throw new Error(
+      typeof record.error === 'string' ? record.error : `Erreur HTTP ${response.status}`
+    );
+  }
+  return body;
+}
+
+function canActOnBookings(role: string | undefined): boolean {
+  return role ? canManageAgencyBookings(role) : false;
+}
+
+function canEditFleet(role: string | undefined): boolean {
+  return role ? canManageAgencyFleet(role) : false;
+}
+
+export function AgencyWorkspace({
+  agency,
+  profile,
+}: {
+  agency: AgencyIdentity;
+  profile: AgencyProfile | null;
+}) {
+  const [section, setSection] = useState('overview');
+  const [rangePreset, setRangePreset] = useState<RangePreset>('30d');
+  const [rangeInput, setRangeInput] = useState(() => resolveRange('30d'));
+
+  const [stats, setStats] = useState<OverviewResource>({ loading: true, error: null, data: null });
+  const [agenda, setAgenda] = useState<AgendaResource>({ loading: true, error: null, data: null });
+
+  const [bookings, setBookings] = useState<BookingsPage | null>(null);
+  const [bookingsLoading, setBookingsLoading] = useState(true);
+  const [bookingsError, setBookingsError] = useState<string | null>(null);
+  const [query, setQuery] = useState<BookingQuery>({ q: '', status: '', sort: 'created_at' });
+  const [bookingsPage, setBookingsPage] = useState(1);
+
+  const [selected, setSelected] = useState<BookingDetail | null>(null);
+  const [detail, setDetail] = useState<BookingDetail | null>(null);
+  const [loadingDetail, setLoadingDetail] = useState(false);
+  const [detailError, setDetailError] = useState<string | null>(null);
+  const [alternatives, setAlternatives] = useState<readonly Alternative[]>([]);
+  const [loadingAlternatives, setLoadingAlternatives] = useState(false);
+
+  const [pendingAction, setPendingAction] = useState<{
+    action: BookingAction;
+    reference: string;
+    reason: string;
+    alternativeVehicleId: string;
+  } | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [notices, setNotices] = useState<Notice[]>([]);
+
+  const overviewAbort = useRef<AbortController | null>(null);
+  const bookingsAbort = useRef<AbortController | null>(null);
+  const noticeId = useRef(0);
+  const mounted = useRef(true);
+
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+      overviewAbort.current?.abort();
+      bookingsAbort.current?.abort();
+    };
+  }, []);
+
+  const notify = useCallback((kind: Notice['kind'], message: string) => {
+    if (!mounted.current) return;
+    setNotices((previous) => [...previous.slice(-2), { id: ++noticeId.current, kind, message }]);
+  }, []);
+
+  /** Indicateurs et agenda : agregats calculés en base, aucune table ramenée au client. */
+  const loadOverview = useCallback(
+    async (range: { from?: string; to?: string }) => {
+      overviewAbort.current?.abort();
+      const controller = new AbortController();
+      overviewAbort.current = controller;
+
+      setStats({ loading: true, error: null, data: null });
+      setAgenda((previous) => ({ ...previous, loading: true }));
+
+      const params = new URLSearchParams();
+      if (range.from) params.set('from', range.from);
+      if (range.to) params.set('to', range.to);
+      const suffix = params.toString() ? `?${params.toString()}` : '';
+
+      try {
+        const json = await readJson(
+          await fetch(
+            `/api/stats/agency/${encodeURIComponent(agency.id)}/dashboard${suffix}`,
+            { cache: 'no-store', credentials: 'same-origin', signal: controller.signal }
+          )
+        );
+        if (controller.signal.aborted) return;
+        const payload = (json as { data?: { stats: unknown; agenda: unknown } }).data;
+        if (!payload) throw new Error('Reponse de statistiques incomplete.');
+        setStats({ loading: false, error: null, data: payload.stats as OverviewResource extends { data: infer D } ? D : never });
+        setAgenda({ loading: false, error: null, data: payload.agenda as AgendaResource extends { data: infer A } ? A : never });
+      } catch (error) {
+        if (controller.signal.aborted) return;
+        const message = error instanceof Error ? error.message : "Impossible de charger les indicateurs.";
+        setStats({ loading: false, error: message, data: null });
+        setAgenda({ loading: false, error: message, data: null });
+      }
+    },
+    [agency.id]
+  );
+
+  /** Une page de reservations : pagination, recherche et tri sont faits par le serveur. */
+  const loadBookings = useCallback(
+    async (nextQuery: BookingQuery, page: number) => {
+      bookingsAbort.current?.abort();
+      const controller = new AbortController();
+      bookingsAbort.current = controller;
+
+      setBookingsLoading(true);
+      setBookingsError(null);
+
+      const params = new URLSearchParams({ page: String(page), pageSize: String(PAGE_SIZE) });
+      if (nextQuery.q) params.set('q', nextQuery.q);
+      if (nextQuery.status) params.set('status', nextQuery.status);
+      if (nextQuery.sort) params.set('sort', nextQuery.sort);
+
+      try {
+        const json = await readJson(
+          await fetch(
+            `/api/agencies/${encodeURIComponent(agency.id)}/bookings?${params.toString()}`,
+            { cache: 'no-store', credentials: 'same-origin', signal: controller.signal }
+          )
+        );
+        if (controller.signal.aborted) return;
+        const payload = json as { data: AgencyBookingRow[]; meta: BookingsPage['meta'] };
+        setBookings({ data: payload.data ?? [], meta: payload.meta });
+      } catch (error) {
+        if (controller.signal.aborted) return;
+        setBookingsError(
+          error instanceof Error ? error.message : 'Impossible de charger les reservations.'
+        );
+        setBookings(null);
+      } finally {
+        if (!controller.signal.aborted) setBookingsLoading(false);
+      }
+    },
+    [agency.id]
+  );
+
+  // Les effets ne dependent que des criteres : evite les requetes en boucle.
+  useEffect(() => {
+    void loadOverview(resolveRange(rangePreset));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rangePreset]);
+
+  useEffect(() => {
+    void loadBookings(query, bookingsPage);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query, bookingsPage]);
+
+  const onQueryChange = useCallback((next: BookingQuery) => {
+    setBookingsPage(1);
+    setQuery(next);
+  }, []);
+
+  const onPageChange = useCallback((page: number) => {
+    setBookingsPage(Math.max(1, page));
+  }, []);
+
+  /** Charge le dossier complet (lieux, horaires, historique) avant affichage. */
+  const openDetail = useCallback(async (booking: AgencyBookingRow) => {
+    const reference = booking.booking_ref ?? booking.reference ?? booking.id;
+    setSelected(booking as BookingDetail);
+    setDetail(null);
+    setDetailError(null);
+    setLoadingDetail(true);
+
+    try {
+      const json = await readJson(
+        await fetch(`/api/bookings/${encodeURIComponent(reference)}`, {
+          cache: 'no-store',
+          credentials: 'same-origin',
+        })
+      );
+      const payload = (json as { booking?: BookingDetail }).booking;
+      setDetail(payload ?? (booking as BookingDetail));
+    } catch (error) {
+      setDetailError(
+        error instanceof Error
+          ? error.message
+          : 'Details du dossier indisponibles ; informations partielles affichees.'
+      );
+      setDetail(booking as BookingDetail);
+    } finally {
+      setLoadingDetail(false);
+    }
+  }, []);
+
+  /** Vehicules de remplacement candidats : meme agence, periode demandee. */
+  const loadAlternatives = useCallback(
+    async (booking: BookingDetail) => {
+      setLoadingAlternatives(true);
+      try {
+        const json = await readJson(
+          await fetch(
+            `/api/vehicles?agencyId=${encodeURIComponent(agency.id)}&startDate=${encodeURIComponent(booking.start_date)}&endDate=${encodeURIComponent(booking.end_date)}`,
+            { cache: 'no-store', credentials: 'same-origin' }
+          )
+        );
+        const rows = (json as { data?: Alternative[] }).data ?? [];
+        setAlternatives(rows.filter((row) => row.id !== booking.vehicle_id));
+      } catch {
+        setAlternatives([]);
+      } finally {
+        setLoadingAlternatives(false);
+      }
+    },
+    [agency.id]
+  );
+
+  useEffect(() => {
+    if (!selected) {
+      setAlternatives([]);
+      return;
+    }
+    if (!canPerformAgencyBookingAction(selected.status, 'propose_alternative')) return;
+    void loadAlternatives(selected);
+  }, [selected, loadAlternatives]);
+
+  /**
+   * Toute transition passe par l'API, qui applique la machine a etats partagee
+   * et journalise l'evenement. Le client ne decide jamais du statut cible.
+   */
+  const runAction = useCallback(
+    async (
+      reference: string,
+      action: BookingAction,
+      payload: { reason?: string; alternativeVehicleId?: string }
+    ) => {
+      setBusy(true);
+      try {
+        const json = await readJson(
+          await fetch(`/api/bookings/${encodeURIComponent(reference)}/status`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ action, ...payload }),
+          })
+        );
+        const ok = (json as { success?: boolean }).success === true;
+        notify(
+          ok ? 'success' : 'error',
+          ok
+            ? 'Demande mise a jour. Le client est informe.'
+            : "L'action n'a pas pu etre appliquee."
+        );
+        if (ok) {
+          setPendingAction(null);
+          setSelected(null);
+          await loadBookings(query, bookingsPage);
+          await loadOverview(resolveRange(rangePreset));
+        }
+      } catch (error) {
+        notify('error', error instanceof Error ? error.message : 'Action impossible.');
+      } finally {
+        setBusy(false);
+      }
+    },
+    [bookingsPage, loadBookings, loadOverview, notify, query, rangePreset]
+  );
+
+  const downloadPdf = useCallback(
+    async (booking: BookingDetail) => {
+      const reference = booking.booking_ref ?? booking.reference ?? booking.id;
+      try {
+        const response = await fetch(`/api/bookings/${encodeURIComponent(reference)}/pdf`, {
+          cache: 'no-store',
+          credentials: 'same-origin',
+        });
+        if (!response.ok) {
+          throw new Error(`Telechargement impossible (HTTP ${response.status}).`);
+        }
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = `reservation-${reference.replace(/[^a-zA-Z0-9_-]/g, '_')}.pdf`;
+        document.body.append(anchor);
+        anchor.click();
+        anchor.remove();
+        window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+        notify('success', 'Fiche PDF telechargee.');
+      } catch (error) {
+        notify('error', error instanceof Error ? error.message : 'Telechargement impossible.');
+      }
+    },
+    [notify]
+  );

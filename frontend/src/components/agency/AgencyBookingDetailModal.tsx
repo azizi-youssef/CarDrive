@@ -1,9 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Booking, Vehicle } from '@/types';
 import { formatPrice } from '@/lib/utils';
-import { store } from '@/lib/services/store';
 import {
   X,
   CheckCircle2,
@@ -42,13 +41,25 @@ export function AgencyBookingDetailModal({
   const [showAlternativeForm, setShowAlternativeForm] = useState(false);
   const [selectedAlternativeId, setSelectedAlternativeId] = useState('');
   const [alternativeNotes, setAlternativeNotes] = useState('');
+  const [agencyVehicles, setAgencyVehicles] = useState<Vehicle[]>([]);
+
+  useEffect(() => {
+    if (!booking?.agency_id) return;
+    let isMounted = true;
+    fetch(`/api/vehicles?agencyId=${encodeURIComponent(booking.agency_id)}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (isMounted && data.success && Array.isArray(data.vehicles)) {
+          setAgencyVehicles(data.vehicles.filter((v: Vehicle) => v.id !== booking.vehicle_id));
+        }
+      })
+      .catch((err) => console.error('[AgencyBookingDetailModal] Error loading agency vehicles:', err));
+    return () => {
+      isMounted = false;
+    };
+  }, [booking?.agency_id, booking?.vehicle_id]);
 
   if (!isOpen || !booking) return null;
-
-  // Véhicules de la même agence disponibles en alternative
-  const agencyVehicles = store
-    .getVehicles({ agencyId: booking.agency_id })
-    .filter((v) => v.id !== booking.vehicle_id);
 
   const handleApprove = async () => {
     setIsProcessing(true);

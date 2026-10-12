@@ -1,49 +1,77 @@
 ﻿import Link from 'next/link';
-import { Car, Home, Search, ArrowLeft } from 'lucide-react';
+import { Bricolage_Grotesque, Instrument_Sans } from 'next/font/google';
+import { Home, Search } from 'lucide-react';
+
+const displayFont = Bricolage_Grotesque({
+  subsets: ['latin'],
+  variable: '--font-display',
+  display: 'swap',
+});
+
+const bodyFont = Instrument_Sans({
+  subsets: ['latin'],
+  variable: '--font-body',
+  display: 'swap',
+});
 
 export default function NotFound() {
   return (
-    <div className="min-h-[70vh] flex items-center justify-center px-4">
-      <div className="text-center max-w-md space-y-6">
-        {/* Icon */}
-        <div className="flex justify-center">
-          <div className="w-24 h-24 rounded-3xl bg-blue-50 border border-blue-100 flex items-center justify-center shadow-sm">
-            <Car className="w-12 h-12 text-[#02306B]" />
-          </div>
+    <main
+      className={`${displayFont.variable} ${bodyFont.variable} relative flex min-h-[78vh] items-center justify-center overflow-hidden bg-[#F3F5F7] px-5 py-16 font-[family-name:var(--font-body)] text-slate-900`}
+    >
+      {/* Ligne de route */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 bottom-[18%] h-1"
+        style={{
+          backgroundImage:
+            'repeating-linear-gradient(90deg, #0B0E13 0 36px, transparent 36px 68px)',
+          opacity: 0.12,
+        }}
+      />
+
+      <div className="relative w-full max-w-xl text-center">
+        {/* Plaque */}
+        <div
+          role="img"
+          aria-label="Erreur 404"
+          className="inline-flex items-stretch overflow-hidden rounded-2xl bg-white text-[#0B0E13] shadow-[0_18px_50px_rgba(11,14,19,0.14)] ring-1 ring-black/15"
+        >
+          <span className="m-1 flex items-center rounded-xl border-[3px] border-[#0B0E13] px-6 py-2 font-[family-name:var(--font-display)] text-7xl font-extrabold leading-none tracking-[-0.05em] sm:px-8 sm:text-8xl">
+            404
+          </span>
+          <span className="flex items-center bg-[#E63946] px-3.5 text-xs font-semibold text-white sm:px-4 sm:text-sm">
+            Introuvable
+          </span>
         </div>
 
-        {/* Code & Message */}
-        <div>
-          <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">
-            Erreur 404
-          </p>
-          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
-            Page introuvable
-          </h1>
-          <p className="text-sm text-slate-500 mt-3 leading-relaxed">
-            Cette page n'existe pas ou a été déplacée. Peut-être que le véhicule que vous cherchez n'est plus disponible ?
-          </p>
-        </div>
+        <h1 className="mt-10 font-[family-name:var(--font-display)] text-4xl font-extrabold tracking-[-0.04em] text-[#0B0E13] sm:text-5xl">
+          Page introuvable
+        </h1>
 
-        {/* CTAs */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+        <p className="mx-auto mt-4 max-w-md text-base leading-7 text-slate-600">
+          Cette page n'existe pas ou a été déplacée. Le véhicule que vous
+          cherchez a peut-être été retiré de la route.
+        </p>
+
+        <div className="mt-9 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#02306B] hover:bg-[#064181] text-white text-sm font-semibold shadow transition-colors"
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-[#E63946] px-6 text-[15px] font-semibold text-white outline-none transition-colors hover:bg-[#D32F3C] focus-visible:ring-2 focus-visible:ring-[#E63946]/60 focus-visible:ring-offset-2 active:bg-[#BF2935]"
           >
-            <Home className="w-4 h-4" />
-            <span>Retour à l'accueil</span>
+            <Home aria-hidden="true" className="h-4 w-4" />
+            Retour à l'accueil
           </Link>
 
           <Link
             href="/search"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-sm font-semibold transition-colors"
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-6 text-[15px] font-semibold text-slate-800 outline-none transition-colors hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-[#E63946]/50"
           >
-            <Search className="w-4 h-4" />
-            <span>Chercher un véhicule</span>
+            <Search aria-hidden="true" className="h-4 w-4" />
+            Chercher un véhicule
           </Link>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
