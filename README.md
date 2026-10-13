@@ -1,4 +1,16 @@
-# CarDrive — Architecture Monorepo
+# CarDrive — Marketplace de location de voitures à Nador
+
+Plateforme full‑stack (Next.js 16 + Supabase) qui met en relation les voyageurs et les agences de location partenaires vérifiées de Nador : recherche de véhicules, demande de réservation en 4 étapes, PDF officiel, transmission WhatsApp à l'agence et tableaux de bord agence/admin en temps réel.
+
+<p align="center">
+  <img src="frontend/public/UI.png" alt="Aperçu de l'interface CarDrive" width="900" />
+</p>
+
+<p align="center"><em>Aperçu de l'interface utilisateur CarDrive</em></p>
+
+---
+
+## Architecture Monorepo
 
 ```
 CarDrive/

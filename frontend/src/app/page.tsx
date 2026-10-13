@@ -35,21 +35,32 @@ export default function HomePage() {
 
   useEffect(() => {
     let active = true;
+    let loading = false;
     async function load() {
+      if (loading || document.visibilityState !== 'visible') return;
+      loading = true;
       try {
         const [vRes, aRes] = await Promise.all([
-          fetch('/api/vehicles').then((r) => r.json()),
-          fetch('/api/agencies').then((r) => r.json()),
+          fetch('/api/vehicles', { cache: 'no-store' }).then((r) => r.json()),
+          fetch('/api/agencies', { cache: 'no-store' }).then((r) => r.json()),
         ]);
         if (!active) return;
         if (vRes.success && Array.isArray(vRes.data)) setVehicles(vRes.data);
         if (aRes.success && Array.isArray(aRes.data)) setAgencies(aRes.data);
       } catch (err) {
         console.warn('Error loading home data:', err);
+      } finally {
+        loading = false;
       }
     }
-    load();
-    return () => { active = false; };
+    void load();
+    const timer = setInterval(() => void load(), 30_000);
+    window.addEventListener('focus', load);
+    return () => {
+      active = false;
+      clearInterval(timer);
+      window.removeEventListener('focus', load);
+    };
   }, []);
 
   const featuredVehicles = vehicles.slice(0, 6);
@@ -417,9 +428,8 @@ export default function HomePage() {
           <div className="mb-9 flex items-end justify-between">
             <div>
               <div className="mb-2 flex items-center gap-2">
-                <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
                 <span className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
-                  Disponible maintenant
+                  Sélection CarDrive
                 </span>
               </div>
 
@@ -428,8 +438,7 @@ export default function HomePage() {
               </h2>
 
               <p className="mt-2 text-sm text-slate-500">
-                Des voitures sélectionnées parmi les offres disponibles à
-                Nador.
+                Consultez les véhicules et vérifiez leur disponibilité selon vos dates.
               </p>
             </div>
 

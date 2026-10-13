@@ -152,8 +152,12 @@ export default function RootLayout({
       lang="fr"
       data-scroll-behavior="smooth"
       className={`h-full scroll-smooth ${plusJakartaSans.variable}`}
+      suppressHydrationWarning
     >
-      <body className="flex min-h-full flex-col bg-[#F8FAFC] font-sans text-[#0F172A] antialiased selection:bg-[#E63946] selection:text-white">
+      <body
+        className="flex min-h-full flex-col bg-[#F8FAFC] font-sans text-[#0F172A] antialiased selection:bg-[#E63946] selection:text-white"
+        suppressHydrationWarning
+      >
         <AppShell>{children}</AppShell>
 
         <script

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Building2, ChevronLeft, ChevronRight, Eye, Loader2, Plus, Search, ShieldCheck, X } from 'lucide-react';
+import { ArrowLeft, Building2, ChevronLeft, ChevronRight, Eye, ImageUp, Loader2, Plus, Search, ShieldCheck, X } from 'lucide-react';
 import type { AgencyStatus } from '@cardrive/shared';
 import { formatPrice } from '@/lib/utils';
 
@@ -115,6 +115,7 @@ export default function AdminAgenciesPage() {
   const [detail, setDetail] = useState<AgencyDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [syncingLogos, setSyncingLogos] = useState(false);
 
   const load = useCallback(async (signal?: AbortSignal) => {
     setLoading(true);
@@ -245,6 +246,29 @@ export default function AdminAgenciesPage() {
     setQuery(queryInput.trim());
   };
 
+  const syncBundledLogos = async () => {
+    setSyncingLogos(true);
+    setNotice(null);
+    try {
+      const result = await api<{ data: { saved: number; skipped: number } }>(
+        '/api/admin/agencies/sync-logos',
+        { method: 'POST' }
+      );
+      setNotice({
+        kind: 'success',
+        message: `${result.data.saved} logo(s) enregistré(s) en base; ${result.data.skipped} déjà configuré(s).`,
+      });
+      await load();
+    } catch (cause) {
+      setNotice({
+        kind: 'error',
+        message: cause instanceof Error ? cause.message : 'Impossible de synchroniser les logos.',
+      });
+    } finally {
+      setSyncingLogos(false);
+    }
+  };
+
   return (
     <main className="min-h-screen bg-[#F3F5F7] px-4 py-6 text-slate-900 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl space-y-5">
@@ -254,7 +278,13 @@ export default function AdminAgenciesPage() {
             <h1 className="mt-3 flex items-center gap-2 text-2xl font-bold"><Building2 className="h-6 w-6" />Gestion centralisée des agences</h1>
             <p className="mt-1 text-sm text-slate-500">Validation, coordonnées, accès, activité et archivage non destructif.</p>
           </div>
-          <button type="button" onClick={openCreate} className="inline-flex items-center gap-2 rounded-xl bg-[#02306B] px-4 py-3 text-sm font-semibold text-white"><Plus className="h-4 w-4" />Créer une agence</button>
+          <div className="flex flex-wrap gap-2">
+            <button type="button" onClick={() => void syncBundledLogos()} disabled={syncingLogos} className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 disabled:opacity-50">
+              {syncingLogos ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImageUp className="h-4 w-4" />}
+              Enregistrer les logos disponibles
+            </button>
+            <button type="button" onClick={openCreate} className="inline-flex items-center gap-2 rounded-xl bg-[#02306B] px-4 py-3 text-sm font-semibold text-white"><Plus className="h-4 w-4" />Créer une agence</button>
+          </div>
         </div>
         {notice && <div role={notice.kind === 'error' ? 'alert' : 'status'} className={`rounded-xl border p-3 text-sm ${notice.kind === 'error' ? 'border-red-200 bg-red-50 text-red-800' : 'border-emerald-200 bg-emerald-50 text-emerald-800'}`}>{notice.message}</div>}
         {error && <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">{error}</div>}

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import Link from 'next/link';
-import { Bell, ChevronDown, LogOut, RefreshCw, UserRound } from 'lucide-react';
+import { Bell, ChevronDown, Home, LogOut, RefreshCw, UserRound } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { BRAND } from '@/lib/design/tokens';
 
@@ -87,6 +87,7 @@ export function Topbar({
   onRefresh,
   refreshing,
   onSignOut,
+  signingOut = false,
   onNavigate,
   sections,
   activeSection,
@@ -99,6 +100,7 @@ export function Topbar({
   onRefresh: () => void;
   refreshing: boolean;
   onSignOut: () => void;
+  signingOut?: boolean;
   onNavigate: (id: string) => void;
   sections: { id: string; label: string; icon: typeof Bell }[];
   activeSection: string;
@@ -245,14 +247,24 @@ export function Topbar({
             <UserRound aria-hidden="true" className="h-4 w-4 text-slate-400" />
             Mon profil
           </Link>
+          <Link
+            href="/"
+            role="menuitem"
+            onClick={() => setMenuOpen(false)}
+            className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-slate-700 transition-colors hover:bg-slate-50"
+          >
+            <Home aria-hidden="true" className="h-4 w-4 text-slate-400" />
+            Retour à l&apos;accueil
+          </Link>
           <button
             type="button"
             role="menuitem"
             onClick={onSignOut}
-            className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-slate-700 transition-colors hover:bg-slate-50"
+            disabled={signingOut}
+            className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-wait disabled:opacity-50"
           >
             <LogOut aria-hidden="true" className="h-4 w-4 text-slate-400" />
-            Se deconnecter
+            {signingOut ? 'Déconnexion…' : 'Déconnexion'}
           </button>
         </Popover>
       </div>

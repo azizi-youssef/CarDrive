@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Vehicle } from '@/types';
 import { PriceDisplay } from '@/components/ui/PriceDisplay';
 import { Badge } from '@/components/ui/Badge';
 import { calculateDaysBetween, generateBookingRef, generateWhatsAppLink, formatPrice } from '@/lib/utils';
 import { LOCATIONS_NADOR } from '@/lib/constants/catalog';
+import { addDateDays } from '@/lib/utils/date-only';
 import { Calendar, MapPin, MessageSquare, Check, ShieldCheck, Phone, CheckCircle2, Clock } from 'lucide-react';
 import { BookingRequestModal } from './BookingRequestModal';
 
@@ -28,6 +29,42 @@ export function BookingCard({ vehicle }: BookingCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [bookingSuccessRef, setBookingSuccessRef] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [availability, setAvailability] = useState<'checking' | 'available' | 'unavailable' | 'error'>('checking');
+
+  useEffect(() => {
+    let active = true;
+    const check = async () => {
+      setAvailability('checking');
+      try {
+        const query = new URLSearchParams({ startDate, endDate });
+        const response = await fetch(
+          `/api/vehicles/${encodeURIComponent(vehicle.id)}/availability?${query}`,
+          { cache: 'no-store' }
+        );
+        const result = await response.json();
+        if (!response.ok || !result.success) {
+          throw new Error(result.error || 'Échec de la vérification.');
+        }
+        if (active) setAvailability(result.data.available ? 'available' : 'unavailable');
+      } catch {
+        if (active) setAvailability('error');
+      }
+    };
+
+    void check();
+    const refreshOnFocus = () => {
+      if (document.visibilityState === 'visible') void check();
+    };
+    const timer = setInterval(() => {
+      if (document.visibilityState === 'visible') void check();
+    }, 30_000);
+    window.addEventListener('focus', refreshOnFocus);
+    return () => {
+      active = false;
+      clearInterval(timer);
+      window.removeEventListener('focus', refreshOnFocus);
+    };
+  }, [endDate, startDate, vehicle.id]);
 
   const totalDays = calculateDaysBetween(startDate, endDate);
   const totalPrice = totalDays * vehicle.daily_price;
@@ -56,8 +93,17 @@ export function BookingCard({ vehicle }: BookingCardProps) {
             Caution remboursable : {formatPrice(vehicle.deposit)}
           </span>
         </div>
-        <Badge variant={vehicle.status === 'AVAILABLE' ? 'available' : 'rented'} icon>
-          {vehicle.status === 'AVAILABLE' ? 'En stock' : 'Indisponible'}
+        <Badge
+          variant={availability === 'available' ? 'available' : 'rented'}
+          icon
+        >
+          {availability === 'available'
+            ? 'Disponible pour ces dates'
+            : availability === 'checking'
+              ? 'Vérification…'
+              : availability === 'error'
+                ? 'Disponibilité inconnue'
+                : 'Non disponible pour ces dates'}
         </Badge>
       </div>
 
@@ -115,11 +161,12 @@ export function BookingCard({ vehicle }: BookingCardProps) {
               </label>
               <input
                 type="date"
+                required
                 min={today}
                 value={startDate}
                 onChange={(e) => {
                   setStartDate(e.target.value);
-                  if (e.target.value > endDate) setEndDate(e.target.value);
+                  if (e.target.value >= endDate) setEndDate(addDateDays(e.target.value, 1));
                 }}
                 className="w-full bg-transparent text-xs font-semibold text-slate-900 focus:outline-none cursor-pointer mt-0.5"
               />
@@ -130,13 +177,28 @@ export function BookingCard({ vehicle }: BookingCardProps) {
               </label>
               <input
                 type="date"
-                min={startDate}
+                required
+                min={startDate ? addDateDays(startDate, 1) : today}
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
                 className="w-full bg-transparent text-xs font-semibold text-slate-900 focus:outline-none cursor-pointer mt-0.5"
               />
             </div>
           </div>
+          {availability !== 'available' && (
+            <p
+              role="status"
+              className={`text-xs ${availability === 'unavailable' ? 'text-rose-700' : 'text-slate-600'}`}
+            >
+              {availability === 'checking'
+                ? 'Vérification de la disponibilité pour ces dates…'
+                : availability === 'unavailable'
+                  ? 'Ce véhicule n’est pas disponible pour la période choisie.'
+                  : availability === 'error'
+                    ? 'La disponibilité ne peut pas être vérifiée actuellement. Réessayez dans un instant.'
+                    : ''}
+            </p>
+          )}
 
           {/* Lieu */}
           <div>
@@ -223,7 +285,8 @@ export function BookingCard({ vehicle }: BookingCardProps) {
           <button
             type="button"
             onClick={() => setIsModalOpen(true)}
-            className="w-full py-3.5 px-4 rounded-xl bg-[#02306B] hover:bg-[#064181] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-900/15 hover:shadow-xl transition-all cursor-pointer"
+            disabled={availability !== 'available'}
+            className="w-full py-3.5 px-4 rounded-xl bg-[#02306B] hover:bg-[#064181] disabled:bg-slate-400 disabled:shadow-none text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-900/15 hover:shadow-xl transition-all cursor-pointer disabled:cursor-not-allowed"
           >
             <Calendar className="w-4 h-4 text-[#FF7300]" />
             <span>Demander cette voiture</span>
@@ -275,7 +338,8 @@ export function BookingCard({ vehicle }: BookingCardProps) {
         <button
           type="button"
           onClick={() => setIsModalOpen(true)}
-          className="flex-1 py-3 px-4 rounded-xl bg-[#02306B] text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md"
+          disabled={availability !== 'available'}
+          className="flex-1 py-3 px-4 rounded-xl bg-[#02306B] disabled:bg-slate-400 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md disabled:cursor-not-allowed"
         >
           <span>Demander cette voiture</span>
         </button>

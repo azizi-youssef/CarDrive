@@ -37,7 +37,9 @@ export async function POST(
 
     if (action === 'approve') {
       const result = await bookingsService.approveBooking(reference, notes, auth.userId);
-      return NextResponse.json(result, { status: result.success ? 200 : 400 });
+      return NextResponse.json(result, {
+        status: result.success ? 200 : result.availabilityConflict || result.transitionConflict ? 409 : 400,
+      });
     }
 
     if (action === 'reject') {

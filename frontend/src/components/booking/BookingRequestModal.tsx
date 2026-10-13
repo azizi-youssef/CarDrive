@@ -195,11 +195,11 @@ export function BookingRequestModal({
       <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col max-h-[92vh]">
         
         {/* Header de la Modal avec Logo CarDrive Officiel */}
-        <div className="bg-[#02306B] text-white px-5 sm:px-6 py-4 flex items-center justify-between relative shrink-0 border-b border-blue-900/30">
+        <div className="bg-[#02306B] text-white px-5 sm:px-6 py-3 flex items-center justify-between relative shrink-0 border-b border-blue-900/30">
           <div className="flex items-center gap-3">
             <div className="relative h-9 w-28 bg-white/10 rounded-xl p-1.5 flex items-center justify-center backdrop-blur-sm border border-white/15 shrink-0">
               <Image
-                src="/Logo-CarDrive1.png"
+                src="/Logo-CarDrive2.png"
                 alt="CarDrive"
                 fill
                 sizes="112px"
@@ -266,7 +266,7 @@ export function BookingRequestModal({
         )}
 
         {/* Contenu Déroulant */}
-        <div className="p-6 overflow-y-auto flex-grow space-y-5">
+        <div className="p-5 overflow-y-auto flex-grow min-h-0 space-y-5">
           {submissionError && (
             <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
               <AlertCircle className="w-4 h-4 shrink-0 text-red-500" />
@@ -709,13 +709,13 @@ export function BookingRequestModal({
 
           {/* ================= ÉTAPE 5 : CONFIRMATION & SUIVI ================= */}
           {currentStep === 5 && (
-            <div className="py-4 text-center space-y-5">
-              <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-sm">
-                <CheckCircle2 className="w-10 h-10" />
+            <div className="py-1 text-center space-y-4">
+              <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-sm">
+                <CheckCircle2 className="w-7 h-7" />
               </div>
 
               <div>
-                <h3 className="text-xl font-extrabold text-slate-950">
+                <h3 className="text-lg font-extrabold text-slate-950">
                   Votre demande a bien été envoyée !
                 </h3>
                 <p className="text-xs text-slate-600 mt-1">
@@ -724,12 +724,12 @@ export function BookingRequestModal({
               </div>
 
               {/* Dossier Référence Badge & Point de rendez-vous */}
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 max-w-md mx-auto space-y-3">
+              <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 max-w-md mx-auto space-y-2">
                 <div>
                   <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
                     Référence unique de dossier
                   </span>
-                  <span className="font-mono text-lg font-black text-[#02306B] tracking-wider block">
+                  <span className="font-mono text-base font-black text-[#02306B] tracking-wider block">
                     {confirmedBookingRef || 'CD-2026-001842'}
                   </span>
                   <span className="inline-block mt-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
@@ -746,7 +746,7 @@ export function BookingRequestModal({
               </div>
 
               {/* Automatisation PDF & WhatsApp transmise à l'agence */}
-              <div className="p-3.5 rounded-2xl bg-emerald-50/70 border border-emerald-200 max-w-md mx-auto text-left space-y-2">
+              <div className="p-3 rounded-2xl bg-emerald-50/70 border border-emerald-200 max-w-md mx-auto text-left space-y-1.5">
                 <div className="flex items-center gap-2 text-emerald-900 font-bold text-xs">
                   <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
                   <span>Automatisation CarDrive activée :</span>
@@ -807,7 +807,7 @@ export function BookingRequestModal({
 
         {/* Footer Navigation Buttons */}
         {currentStep < 5 && (
-          <div className="bg-slate-50 px-6 py-4 border-t border-slate-200 flex items-center justify-between shrink-0">
+          <div className="bg-slate-50 px-6 py-3 border-t border-slate-200 flex items-center justify-between shrink-0">
             {currentStep > 1 ? (
               <button
                 type="button"

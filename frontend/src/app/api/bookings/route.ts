@@ -26,7 +26,12 @@ export async function POST(req: NextRequest) {
     }
 
     const ip = clientIpFromRequest(req);
-    const distributedLimit = await checkDistributedRateLimit(`booking-post:${ip}`, 8, 60_000);
+    const distributedLimit = await checkDistributedRateLimit(`booking-post:${ip}`, 8, 60_000).catch(
+      (err) => {
+        console.warn('[RateLimit] Distributed rate limit check failed, using memory fallback:', err?.message);
+        return null;
+      }
+    );
     if (!distributedLimit && process.env.NODE_ENV === 'production') {
       return NextResponse.json(
         { success: false, error: 'Service de protection anti-abus indisponible.' },
@@ -81,6 +86,8 @@ export async function POST(req: NextRequest) {
         {
           status: result.idempotencyConflict
             ? 409
+            : result.availabilityConflict
+              ? 409
             : result.serviceUnavailable
               ? 503
               : 400,

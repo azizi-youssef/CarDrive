@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
       success: true,
       data: withCounts,
       meta: { total: withCounts.length },
-    });
+    }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Erreur serveur';
     return NextResponse.json({ success: false, error: message }, { status: 500 });

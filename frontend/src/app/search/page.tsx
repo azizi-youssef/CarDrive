@@ -6,6 +6,7 @@ import { VehicleCard } from '@/components/cars/VehicleCard';
 import { SearchBar } from '@/components/search/SearchBar';
 import { CATEGORIES, POPULAR_BRANDS } from '@/lib/constants/catalog';
 import { apiFetch } from '@/lib/api/client';
+import { formatLocalDate, getEffectiveRentalDates } from '@/lib/utils/date-only';
 import type { Vehicle, Agency } from '@/types';
 import { Filter, SlidersHorizontal, ArrowUpDown, X, Car, CarFront, RefreshCw, Check, Search } from 'lucide-react';
 
@@ -30,25 +31,81 @@ function SearchPageContent() {
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
   const [allVehicles, setAllVehicles] = useState<Vehicle[]>([]);
+  const [searchPeriod, setSearchPeriod] = useState({
+    startDate: initialStartDate,
+    endDate: initialEndDate,
+  });
   const [agencies, setAgencies] = useState<Agency[]>([]);
+  const [vehiclesLoading, setVehiclesLoading] = useState(true);
+  const [vehiclesError, setVehiclesError] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
+    let hasLoaded = false;
+    let isLoading = false;
+    const controller = new AbortController();
     async function loadData() {
+      if (isLoading || document.visibilityState !== 'visible') return;
+      isLoading = true;
+      if (!hasLoaded) setVehiclesLoading(true);
       try {
-        const [vehiclesRes, agenciesRes] = await Promise.all([
-          apiFetch<Vehicle[]>('/api/vehicles'),
-          apiFetch<Agency[]>('/api/agencies'),
-        ]);
-        if (isMounted) {
-          if (vehiclesRes.success && vehiclesRes.data) setAllVehicles(vehiclesRes.data);
-          if (agenciesRes.success && agenciesRes.data) setAgencies(agenciesRes.data);
+        const params = new URLSearchParams();
+        const period =
+          initialStartDate && initialEndDate
+            ? getEffectiveRentalDates(
+                initialStartDate,
+                initialEndDate,
+                formatLocalDate(new Date())
+              )
+            : { startDate: '', endDate: '' };
+        if (period.startDate && period.endDate) {
+          params.set('startDate', period.startDate);
+          params.set('endDate', period.endDate);
         }
-      } catch (e) {
-        console.warn('[SearchPage] Backend fetch error:', e);
+        const query = params.size ? `?${params.toString()}` : '';
+        const vehiclesRes = await apiFetch<Vehicle[]>(`/api/vehicles${query}`, {
+          signal: controller.signal,
+          cache: 'no-store',
+        });
+        if (!vehiclesRes.success || !vehiclesRes.data) {
+          throw new Error(vehiclesRes.error || 'Impossible de vérifier les disponibilités.');
+        }
+        if (isMounted) {
+          setAllVehicles(vehiclesRes.data);
+          setSearchPeriod(period);
+          setVehiclesError(null);
+          hasLoaded = true;
+        }
+      } catch (error: unknown) {
+        if (!isMounted || controller.signal.aborted) return;
+        const message = error instanceof Error ? error.message : 'Impossible de vérifier les disponibilités.';
+        console.error('[SearchPage] Vehicle availability lookup failed:', message);
+        setVehiclesError(message);
+      } finally {
+        isLoading = false;
+        if (isMounted) setVehiclesLoading(false);
       }
     }
-    loadData();
+    void loadData();
+    const timer = setInterval(() => void loadData(), 30_000);
+    window.addEventListener('focus', loadData);
+    return () => {
+      isMounted = false;
+      controller.abort();
+      clearInterval(timer);
+      window.removeEventListener('focus', loadData);
+    };
+  }, [initialStartDate, initialEndDate]);
+
+  useEffect(() => {
+    let isMounted = true;
+    apiFetch<Agency[]>('/api/agencies')
+      .then((response) => {
+        if (isMounted && response.success && response.data) setAgencies(response.data);
+      })
+      .catch((error: unknown) => {
+        console.error('[SearchPage] Agency lookup failed:', error);
+      });
     return () => {
       isMounted = false;
     };
@@ -65,7 +122,11 @@ function SearchPageContent() {
     let result = [...allVehicles];
 
     if (selectedCategory && selectedCategory !== 'Tous les types') {
-      result = result.filter((v) => v.category === selectedCategory);
+      const normSelected = selectedCategory.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      result = result.filter((v) => {
+        const normCat = (v.category || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        return normCat === normSelected;
+      });
     }
 
     if (selectedTransmission !== 'ALL') {
@@ -115,8 +176,6 @@ function SearchPageContent() {
     selectedAgency,
     maxPrice,
     sortBy,
-    initialStartDate,
-    initialEndDate,
   ]);
 
   const resetFilters = () => {
@@ -157,9 +216,17 @@ function SearchPageContent() {
               Location de voiture à Nador
             </h1>
             <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-              <strong>{filteredVehicles.length}</strong> véhicule{filteredVehicles.length > 1 ? 's' : ''} trouvé{filteredVehicles.length > 1 ? 's' : ''} disponible{filteredVehicles.length > 1 ? 's' : ''}
-              {initialStartDate && initialEndDate && (
-                <span> pour la période du {initialStartDate} au {initialEndDate}</span>
+              {vehiclesLoading ? (
+                'Vérification des disponibilités…'
+              ) : vehiclesError ? (
+                'Disponibilités non vérifiées'
+              ) : (
+                <>
+                  <strong>{filteredVehicles.length}</strong> véhicule{filteredVehicles.length > 1 ? 's' : ''} trouvé{filteredVehicles.length > 1 ? 's' : ''} disponible{filteredVehicles.length > 1 ? 's' : ''}
+                </>
+              )}
+              {!vehiclesLoading && !vehiclesError && searchPeriod.startDate && searchPeriod.endDate && (
+                <span> pour la période du {searchPeriod.startDate} au {searchPeriod.endDate}</span>
               )}
             </p>
           </div>
@@ -420,10 +487,23 @@ function SearchPageContent() {
                 );
               })}
             </div>
-            {filteredVehicles.length > 0 ? (
+            {vehiclesError ? (
+              <div role="alert" className="rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-800">
+                {vehiclesError}
+              </div>
+            ) : vehiclesLoading ? (
+              <div role="status" className="rounded-2xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-500">
+                Vérification des disponibilités…
+              </div>
+            ) : filteredVehicles.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {filteredVehicles.map((car, index) => (
-                  <VehicleCard key={car.id} vehicle={car} priority={index < 4} />
+                  <VehicleCard
+                    key={car.id}
+                    vehicle={car}
+                    priority={index < 4}
+                    availabilityChecked={Boolean(initialStartDate && initialEndDate)}
+                  />
                 ))}
               </div>
             ) : (

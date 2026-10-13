@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { canPerformAgencyBookingAction, isBlockingBookingStatus } from '@cardrive/shared';
+import { canPerformAgencyBookingAction } from '@cardrive/shared';
 import { Booking, BookingStatus, BookingEvent, BookingEventType } from '@/types';
 import { createClient, createAdminClient } from '@/lib/supabase/server';
 import { bookingRequestSchema, BookingRequestInput } from '@/lib/validations/booking';
@@ -7,7 +7,6 @@ import { calculateBookingPrice, calculateRentalDays } from '@/lib/utils/pricing'
 import { generateBookingReference } from '@/lib/utils/reference';
 import { commissionService } from './commission.service';
 import { notificationService } from './notification.service';
-import { doDatesOverlap } from '@/lib/availability/engine';
 import { vehiclesService } from './vehicles.service';
 
 /* -------------------------------------------------------------------------- */
@@ -78,6 +77,7 @@ type BookingRequestResult = {
   error?: string;
   idempotentReplay?: boolean;
   idempotencyConflict?: boolean;
+  availabilityConflict?: boolean;
   serviceUnavailable?: boolean;
 };
 
@@ -127,29 +127,10 @@ export class BookingsService {
   async checkAvailability(
     vehicleId: string,
     startDate: string,
-    endDate: string,
-    excludeBookingId?: string
+    endDate: string
   ): Promise<boolean> {
     requireSupabase();
-    const supabase = await createClient();
-    if (!supabase) throw new Error('Client Supabase indisponible.');
-
-    const { data, error } = await supabase
-      .from('bookings')
-      .select('id, start_date, end_date, status')
-      .eq('vehicle_id', vehicleId);
-
-    if (error) {
-      console.error('[BookingsService] Availability check error:', error.message);
-      return false;
-    }
-
-    const hasConflict = (data ?? []).some((b) => {
-      if (excludeBookingId && b.id === excludeBookingId) return false;
-      if (!isBlockingBookingStatus(b.status)) return false;
-      return doDatesOverlap(startDate, endDate, b.start_date, b.end_date);
-    });
-    return !hasConflict;
+    return vehiclesService.checkAvailability(vehicleId, startDate, endDate);
   }
 
   /**
@@ -331,21 +312,22 @@ export class BookingsService {
     const existing = await this.findIdempotentBooking(supabase, idempotencyKey, fingerprint);
     if (existing) return existing;
 
-    // 2. Vérification anti double-booking côté serveur
+    // 2. Récupération du véhicule et validation de l'agence depuis la source serveur.
+    const vehicle = await vehiclesService.getVehicleById(input.vehicleId);
+    if (!vehicle || !vehicle.published || vehicle.agency_id !== input.agencyId) {
+      return {
+        success: false,
+        error: 'Le véhicule demandé est introuvable ou indisponible.',
+      };
+    }
+
+    // 3. Vérification réelle; l'approbation est ensuite arbitrée par la contrainte SQL.
     const isAvailable = await this.checkAvailability(input.vehicleId, input.startDate, input.endDate);
     if (!isAvailable) {
       return {
         success: false,
         error: 'Ce véhicule n\'est plus disponible pour les dates sélectionnées. Veuillez choisir d\'autres dates ou explorer les véhicules équivalents.',
-      };
-    }
-
-    // 3. Récupération du véhicule pour connaître le prix journalier certifié
-    const vehicle = await vehiclesService.getVehicleById(input.vehicleId);
-    if (!vehicle) {
-      return {
-        success: false,
-        error: 'Le véhicule demandé est introuvable ou indisponible.',
+        availabilityConflict: true,
       };
     }
 
@@ -451,7 +433,13 @@ export class BookingsService {
     bookingIdOrRef: string,
     agencyNotes?: string,
     actorId?: string
-  ): Promise<{ success: boolean; booking?: Booking; error?: string }> {
+  ): Promise<{
+    success: boolean;
+    booking?: Booking;
+    error?: string;
+    availabilityConflict?: boolean;
+    transitionConflict?: boolean;
+  }> {
     requireSupabase();
     const booking = await this.resolveBooking(bookingIdOrRef);
     if (!booking) return { success: false, error: 'Réservation introuvable' };
@@ -475,11 +463,26 @@ export class BookingsService {
         updated_at: nowIso,
       })
       .eq('id', booking.id)
+      .eq('status', booking.status)
       .select('*, vehicle:vehicles(*), agency:agencies(*)')
       .single();
 
     if (error) {
       console.error('[BookingsService] Supabase approve error:', error);
+      if (error.code === '23P01') {
+        return {
+          success: false,
+          error: 'Ce véhicule vient d’être réservé pour une période qui chevauche ces dates. Choisissez une autre période ou un autre véhicule.',
+          availabilityConflict: true,
+        };
+      }
+      if (error.code === 'PGRST116') {
+        return {
+          success: false,
+          error: 'Cette demande a déjà été traitée. Actualisez la liste des réservations.',
+          transitionConflict: true,
+        };
+      }
       return { success: false, error: error.message };
     }
 

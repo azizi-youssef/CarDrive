@@ -1,10 +1,11 @@
 'use client';
 
 import React, { use, useState, useEffect } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { VehicleCard } from '@/components/cars/VehicleCard';
+import { AgencyLogo } from '@/components/agencies/AgencyLogo';
+import { AgencyBanner } from '@/components/agencies/AgencyBanner';
 import { Badge } from '@/components/ui/Badge';
 import type { Agency, Vehicle } from '@/types';
 import {
@@ -32,9 +33,31 @@ export default function AgencyDetailPage({ params }: AgencyDetailPageProps) {
 
   useEffect(() => {
     let active = true;
+    let selectedAgencyId: string | null = null;
+    let vehicleRefreshTimer: ReturnType<typeof setInterval> | undefined;
+    let loadingVehicles = false;
+
+    async function loadVehicles(agencyId: string) {
+      if (!active || loadingVehicles || document.visibilityState !== 'visible') return;
+      loadingVehicles = true;
+      try {
+        const response = await fetch(
+          `/api/vehicles?agencyId=${encodeURIComponent(agencyId)}`,
+          { cache: 'no-store' }
+        ).then((r) => r.json());
+        if (active && response.success && Array.isArray(response.data)) {
+          setVehicles(response.data);
+        }
+      } catch (err) {
+        console.warn('Error refreshing agency vehicles:', err);
+      } finally {
+        loadingVehicles = false;
+      }
+    }
+
     async function load() {
       try {
-        const aRes = await fetch('/api/agencies').then((r) => r.json());
+        const aRes = await fetch('/api/agencies', { cache: 'no-store' }).then((r) => r.json());
         if (!active) return;
         const found = aRes.success && Array.isArray(aRes.data)
           ? aRes.data.find((a: Agency) => a.slug === resolvedParams.slug)
@@ -43,12 +66,10 @@ export default function AgencyDetailPage({ params }: AgencyDetailPageProps) {
           setNotFoundState(true);
           return;
         }
+        selectedAgencyId = found.id;
         setAgency(found);
-        const vRes = await fetch(`/api/vehicles?agencyId=${encodeURIComponent(found.id)}`).then((r) => r.json());
-        if (!active) return;
-        if (vRes.success && Array.isArray(vRes.data)) {
-          setVehicles(vRes.data);
-        }
+        await loadVehicles(found.id);
+        vehicleRefreshTimer = setInterval(() => void loadVehicles(found.id), 30_000);
       } catch (err) {
         console.warn('Error loading agency detail:', err);
         if (active) setNotFoundState(true);
@@ -57,8 +78,14 @@ export default function AgencyDetailPage({ params }: AgencyDetailPageProps) {
       }
     }
     load();
+    const refreshOnFocus = () => {
+      if (selectedAgencyId) void loadVehicles(selectedAgencyId);
+    };
+    window.addEventListener('focus', refreshOnFocus);
     return () => {
       active = false;
+      if (vehicleRefreshTimer) clearInterval(vehicleRefreshTimer);
+      window.removeEventListener('focus', refreshOnFocus);
     };
   }, [resolvedParams.slug]);
 
@@ -93,10 +120,9 @@ export default function AgencyDetailPage({ params }: AgencyDetailPageProps) {
 
       {/* Agency Header Banner */}
       <div className="relative h-48 sm:h-64 w-full bg-slate-900">
-        <Image
-          src={agency.banner_url || 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1600&auto=format&fit=crop&q=80'}
-          alt={agency.name}
-          fill
+        <AgencyBanner
+          name={agency.name}
+          bannerUrl={agency.banner_url}
           priority
           sizes="100vw"
           className="object-cover opacity-60"
@@ -110,12 +136,11 @@ export default function AgencyDetailPage({ params }: AgencyDetailPageProps) {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
             <div className="flex items-start sm:items-center gap-4">
               <div className="w-20 h-20 rounded-2xl border-4 border-white bg-white overflow-hidden shadow-lg relative shrink-0">
-                <Image
-                  src={agency.logo_url}
-                  alt={`Logo ${agency.name}`}
-                  fill
-                  sizes="80px"
-                  className="object-cover"
+                <AgencyLogo
+                  slug={agency.slug}
+                  name={agency.name}
+                  logoUrl={agency.logo_url}
+                  className="h-full w-full object-cover"
                 />
               </div>
 
@@ -188,10 +213,10 @@ export default function AgencyDetailPage({ params }: AgencyDetailPageProps) {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
-                Flotte disponible de l’agence
+                Véhicules proposés par l’agence
               </h2>
               <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-                {vehicles.length} véhicule{vehicles.length > 1 ? 's' : ''} en stock actuellement
+                {vehicles.length} véhicule{vehicles.length > 1 ? 's' : ''} à découvrir
               </p>
             </div>
           </div>

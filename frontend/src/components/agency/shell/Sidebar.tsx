@@ -1,7 +1,23 @@
 'use client';
 
+import Link from 'next/link';
 import type { LucideIcon } from 'lucide-react';
-import { LayoutDashboard, Car, CalendarDays, Users, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import {
+  LayoutDashboard,
+  Car,
+  PlusCircle,
+  CalendarDays,
+  ClipboardList,
+  KeyRound,
+  Users,
+  CircleDollarSign,
+  ShieldCheck,
+  Settings,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Home,
+  LogOut,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export type AgencySection = {
@@ -13,15 +29,30 @@ export type AgencySection = {
 };
 
 export const AGENCY_SECTIONS: readonly {
-  id: 'overview' | 'bookings' | 'fleet' | 'customers' | 'access';
+  id:
+    | 'overview'
+    | 'fleet'
+    | 'add_vehicle'
+    | 'calendar'
+    | 'bookings'
+    | 'rentals'
+    | 'customers'
+    | 'finances'
+    | 'access'
+    | 'settings';
   label: string;
   icon: LucideIcon;
 }[] = [
   { id: 'overview', label: "Vue d'ensemble", icon: LayoutDashboard },
-  { id: 'bookings', label: 'Réservations', icon: CalendarDays },
-  { id: 'fleet', label: 'Flotte', icon: Car },
+  { id: 'fleet', label: 'Flotte de véhicules', icon: Car },
+  { id: 'add_vehicle', label: 'Ajouter un véhicule', icon: PlusCircle },
+  { id: 'calendar', label: 'Calendrier & Dispos', icon: CalendarDays },
+  { id: 'bookings', label: 'Réservations', icon: ClipboardList },
+  { id: 'rentals', label: 'Départs & Retours', icon: KeyRound },
   { id: 'customers', label: 'Clients', icon: Users },
-  { id: 'access', label: 'Équipe & accès', icon: Users },
+  { id: 'finances', label: 'Revenus & Commissions', icon: CircleDollarSign },
+  { id: 'access', label: 'Équipe & Permissions', icon: ShieldCheck },
+  { id: 'settings', label: 'Paramètres agence', icon: Settings },
 ] as const;
 
 export function Sidebar({
@@ -32,6 +63,8 @@ export function Sidebar({
   onToggleCollapsed,
   agencyName,
   verified,
+  onSignOut,
+  signingOut = false,
 }: {
   sections: AgencySection[];
   active: string;
@@ -40,6 +73,8 @@ export function Sidebar({
   onToggleCollapsed: () => void;
   agencyName: string;
   verified: boolean;
+  onSignOut?: () => void;
+  signingOut?: boolean;
 }) {
   return (
     <aside
@@ -110,7 +145,33 @@ export function Sidebar({
         </ul>
       </nav>
 
-      <div className="border-t border-white/10 p-3">
+      <div className="space-y-1 border-t border-white/10 p-3">
+        <Link
+          href="/"
+          className={cn(
+            'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-400 outline-none transition-colors hover:bg-white/5 hover:text-white focus-visible:ring-2 focus-visible:ring-[#E63946]',
+            collapsed && 'justify-center px-0'
+          )}
+          title={collapsed ? "Retour à l'accueil" : undefined}
+        >
+          <Home aria-hidden="true" className="h-[18px] w-[18px] shrink-0" />
+          {!collapsed && <span>Retour à l&apos;accueil</span>}
+        </Link>
+        {onSignOut && (
+          <button
+            type="button"
+            onClick={onSignOut}
+            disabled={signingOut}
+            className={cn(
+              'flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-400 outline-none transition-colors hover:bg-white/5 hover:text-white focus-visible:ring-2 focus-visible:ring-[#E63946] disabled:cursor-wait disabled:opacity-50',
+              collapsed && 'justify-center px-0'
+            )}
+            title={collapsed ? 'Déconnexion' : undefined}
+          >
+            <LogOut aria-hidden="true" className="h-[18px] w-[18px] shrink-0" />
+            {!collapsed && <span>{signingOut ? 'Déconnexion…' : 'Déconnexion'}</span>}
+          </button>
+        )}
         <button
           type="button"
           onClick={onToggleCollapsed}

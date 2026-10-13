@@ -31,7 +31,13 @@ export async function getServerAuth(): Promise<ServerAuthContext | null> {
   if (!supabase) return null;
 
   const { data: userData, error: userError } = await supabase.auth.getUser();
-  if (userError || !userData.user) return null;
+  if (userError) {
+    if (userError.name !== 'AuthSessionMissingError') {
+      console.debug('[Auth] Guest visitor or session expired:', userError.message ?? userError.code);
+    }
+    return null;
+  }
+  if (!userData.user) return null;
   const user = userData.user;
 
   const { data: profile, error: profileError } = await supabase
@@ -44,7 +50,10 @@ export async function getServerAuth(): Promise<ServerAuthContext | null> {
     console.error('[Auth] Profile lookup failed:', profileError.message);
     return null;
   }
-  if (!profile) return null;
+  if (!profile) {
+    console.error('[Auth] Authenticated account has no profile row.');
+    return null;
+  }
   const role = USER_ROLES.find((candidate) => candidate === profile.role);
   if (!role) {
     console.error('[Auth] Profile contains an invalid role.');

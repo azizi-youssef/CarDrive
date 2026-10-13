@@ -14,7 +14,18 @@ export async function GET(_req: NextRequest, context: Ctx) {
     if (!vehicle) {
       return NextResponse.json({ success: false, error: 'Véhicule introuvable' }, { status: 404 });
     }
-    return NextResponse.json({ success: true, data: vehicle });
+    const agency = vehicle.agency;
+    const vehicleArchived = 'archived_at' in vehicle && vehicle.archived_at != null;
+    const agencyArchived = Boolean(
+      agency && 'archived_at' in agency && agency.archived_at != null
+    );
+    if (!vehicle.published || vehicleArchived || agency?.status !== 'ACTIVE' || agencyArchived) {
+      return NextResponse.json({ success: false, error: 'Véhicule introuvable' }, { status: 404 });
+    }
+    return NextResponse.json(
+      { success: true, data: vehicle },
+      { headers: { 'Cache-Control': 'no-store' } }
+    );
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Erreur serveur';
     return NextResponse.json({ success: false, error: message }, { status: 500 });

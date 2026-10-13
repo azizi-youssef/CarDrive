@@ -4,7 +4,12 @@ import React, { useId, useState, useSyncExternalStore } from 'react';
 import { useRouter } from 'next/navigation';
 import { MapPin, Calendar, Car, CarFront, Search, type LucideIcon } from 'lucide-react';
 import { LOCATIONS_NADOR, CATEGORIES, POPULAR_BRANDS } from '@/lib/constants/catalog';
-import { addDateDays, formatLocalDate, isValidDateOnly } from '@/lib/utils/date-only';
+import {
+  addDateDays,
+  formatLocalDate,
+  getEffectiveRentalDates,
+  isValidDateOnly,
+} from '@/lib/utils/date-only';
 
 interface SearchBarProps {
   initialLocation?: string;
@@ -87,16 +92,8 @@ export function SearchBar({
     initialBrand && initialBrand !== 'ALL' ? initialBrand : ALL_BRANDS_LABEL
   );
 
-  const effectiveStartDate = today
-    ? isValidDateOnly(startDate) && startDate >= today
-      ? startDate
-      : today
-    : startDate;
-  const effectiveEndDate = today
-    ? isValidDateOnly(endDate) && endDate > effectiveStartDate
-      ? endDate
-      : addDateDays(effectiveStartDate, 3)
-    : endDate;
+  const { startDate: effectiveStartDate, endDate: effectiveEndDate } =
+    getEffectiveRentalDates(startDate, endDate, today);
 
   const handleStartChange = (value: string) => {
     const localToday = today || formatLocalDate(new Date());

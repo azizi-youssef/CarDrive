@@ -33,7 +33,7 @@ export type BookingStatus =
   | 'NO_SHOW';
 
 export function isBlockingBookingStatus(status: BookingStatus | string): boolean {
-  return status === 'CONFIRMED' || status === 'ACTIVE' || status === 'PENDING';
+  return status === 'CONFIRMED' || status === 'ACTIVE';
 }
 
 export interface Agency {

@@ -145,7 +145,7 @@ export default async function SeoLandingPage({ params }: PageProps) {
         {/* Hero Section */}
         <section className="bg-gradient-to-b from-[#011B40] via-[#02306B] to-[#01224D] text-white py-12 lg:py-16 relative overflow-hidden">
           <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none" />
-          
+
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <div className="max-w-3xl">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold mb-4">
@@ -188,10 +188,10 @@ export default async function SeoLandingPage({ params }: PageProps) {
                 Flotte disponible
               </span>
               <h2 className="text-2xl font-bold text-slate-900 mt-1">
-                Véhicules disponibles pour {pageData.zoneName}
+                Véhicules disponibles pour à {pageData.zoneName}
               </h2>
               <p className="text-sm text-slate-500 mt-1">
-                {vehicles.length} véhicules prêts à la réservation immédiate
+                {vehicles.length} véhicules prêts à la réservation immédiatesss
               </p>
             </div>
             <Link

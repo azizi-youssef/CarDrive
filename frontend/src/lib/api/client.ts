@@ -24,10 +24,23 @@ async function apiFetch<T>(
   const url = path.startsWith('http') ? path : `${API_BASE}${path}`;
 
   try {
-    const res = await fetch(url, {
-      headers: { 'Content-Type': 'application/json', ...options?.headers },
-      ...options,
-    });
+    let res: Response;
+    try {
+      res = await fetch(url, {
+        headers: { 'Content-Type': 'application/json', ...options?.headers },
+        ...options,
+      });
+    } catch (fetchErr) {
+      // Si un API_BASE externe a échoué (ex: localhost:4000 éteint), basculer sur le BFF Next.js relatif
+      if (API_BASE && url.startsWith(API_BASE)) {
+        res = await fetch(path, {
+          headers: { 'Content-Type': 'application/json', ...options?.headers },
+          ...options,
+        });
+      } else {
+        throw fetchErr;
+      }
+    }
 
     const json = await res.json().catch(() => ({}));
 

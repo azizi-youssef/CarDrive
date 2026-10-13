@@ -1,9 +1,10 @@
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { Agency } from '@/types';
 import { Badge } from '@/components/ui/Badge';
 import { MapPin, Phone, MessageSquare, Star, ShieldCheck, Car, ArrowRight } from 'lucide-react';
+import { AgencyLogo } from '@/components/agencies/AgencyLogo';
+import { AgencyBanner } from '@/components/agencies/AgencyBanner';
 
 interface AgencyCardProps {
   agency: Agency;
@@ -11,40 +12,25 @@ interface AgencyCardProps {
 }
 
 export function AgencyCard({ agency, carCount }: AgencyCardProps) {
-  const logoUrl = agency.logo_url.trim();
-
   return (
     <div className="bg-white rounded-2xl border border-slate-200/90 overflow-hidden card-hover flex flex-col justify-between shadow-sm">
       <div>
         {/* Banner with Logo Overlay */}
         <div className="relative h-28 w-full bg-slate-100">
-          <Image
-            src={agency.banner_url || 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&auto=format&fit=crop&q=80'}
-            alt={agency.name}
-            fill
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            className="object-cover"
+          <AgencyBanner
+            name={agency.name}
+            bannerUrl={agency.banner_url}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
 
           {/* Logo */}
           <div className="absolute -bottom-4 left-4 w-14 h-14 rounded-xl border-2 border-white bg-white overflow-hidden shadow-md">
-            {logoUrl ? (
-              <Image
-                src={logoUrl}
-                alt={`Logo ${agency.name}`}
-                fill
-                sizes="80px"
-                className="object-cover"
-              />
-            ) : (
-              <span
-                aria-label={`Logo indisponible pour ${agency.name}`}
-                className="flex h-full w-full items-center justify-center bg-[#02306B] text-lg font-bold text-white"
-              >
-                {agency.name.trim().charAt(0).toLocaleUpperCase('fr-FR') || '?'}
-              </span>
-            )}
+            <AgencyLogo
+              slug={agency.slug}
+              name={agency.name}
+              logoUrl={agency.logo_url}
+              className="h-full w-full object-cover"
+            />
           </div>
 
           {/* Verification Badge */}

@@ -3,6 +3,7 @@ import { getServerAuth } from '@/lib/auth/server';
 import { createClient } from '@/lib/supabase/server';
 import {
   checkDistributedRateLimit,
+  checkRateLimit,
   clientIpFromRequest,
 } from '@/lib/rate-limit';
 import { reviewsService } from '@/lib/services/reviews.service';
@@ -40,17 +41,20 @@ export async function POST(req: NextRequest) {
       `review-post:${auth.userId}:${clientIpFromRequest(req)}`,
       3,
       60 * 60_000
-    );
-    if (!distributedLimit) {
+    ).catch(() => null);
+    if (!distributedLimit && process.env.NODE_ENV === 'production') {
       return NextResponse.json(
         { success: false, error: 'Service de protection anti-abus indisponible.' },
         { status: 503 }
       );
     }
-    if (!distributedLimit.ok) {
+    const limited =
+      distributedLimit ??
+      checkRateLimit(`review-post:${auth.userId}:${clientIpFromRequest(req)}`, 3, 60 * 60_000);
+    if (!limited.ok) {
       return NextResponse.json(
         { success: false, error: 'Trop d\'avis. Réessayez plus tard.' },
-        { status: 429, headers: { 'Retry-After': String(distributedLimit.retryAfterSec) } }
+        { status: 429, headers: { 'Retry-After': String(limited.retryAfterSec) } }
       );
     }
 

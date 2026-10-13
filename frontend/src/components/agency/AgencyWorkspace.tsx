@@ -1,6 +1,9 @@
 'use client';
 
+import { createClient } from '@/lib/supabase/client';
+
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { CalendarDays, Car, LayoutDashboard } from 'lucide-react';
 import { canPerformAgencyBookingAction } from '@cardrive/shared';
 import { signOutEverywhere } from '@/lib/auth/client';
@@ -19,14 +22,23 @@ import {
 import {
   BookingsPanel,
   type AgencyBookingRow,
-  type BookingAction,
   type BookingQuery,
   type BookingsPage,
 } from '@/components/agency/bookings/BookingsPanel';
+import type { BookingAction } from '@/components/agency/bookings/BookingDetailModal';
 import {
   BookingDetailModal,
   type BookingDetail,
 } from '@/components/agency/bookings/BookingDetailModal';
+import { AgencyFleetPanel } from '@/components/agency/fleet/AgencyFleetPanel';
+import { VehicleFormModal } from '@/components/agency/fleet/VehicleFormModal';
+import { AgencyCalendarPanel } from '@/components/agency/calendar/AgencyCalendarPanel';
+import { AgencyRentalsPanel } from '@/components/agency/rentals/AgencyRentalsPanel';
+import { AgencyFinancesPanel } from '@/components/agency/finances/AgencyFinancesPanel';
+import { AgencyCustomersPanel } from '@/components/agency/customers/AgencyCustomersPanel';
+import { AgencySettingsPanel } from '@/components/agency/settings/AgencySettingsPanel';
+import AgencyAccessPanel from '@/components/agency/AgencyAccessPanel';
+import { AGENCY_SECTIONS } from '@/components/agency/shell/Sidebar';
 
 export type AgencyIdentity = {
   id: string;
@@ -61,11 +73,11 @@ async function readJson(response: Response): Promise<unknown> {
 }
 
 function canActOnBookings(role: string | undefined): boolean {
-  return role ? canManageAgencyBookings(role) : false;
+  return role ? canManageAgencyBookings(role as any) : false;
 }
 
 function canEditFleet(role: string | undefined): boolean {
-  return role ? canManageAgencyFleet(role) : false;
+  return role ? canManageAgencyFleet(role as any) : false;
 }
 
 export function AgencyWorkspace({
@@ -75,6 +87,7 @@ export function AgencyWorkspace({
   agency: AgencyIdentity;
   profile: AgencyProfile | null;
 }) {
+  const router = useRouter();
   const [section, setSection] = useState('overview');
   const [rangePreset, setRangePreset] = useState<RangePreset>('30d');
   const [rangeInput, setRangeInput] = useState(() => resolveRange('30d'));
@@ -102,6 +115,7 @@ export function AgencyWorkspace({
     alternativeVehicleId: string;
   } | null>(null);
   const [busy, setBusy] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
   const [notices, setNotices] = useState<Notice[]>([]);
 
   const overviewAbort = useRef<AbortController | null>(null);
@@ -123,6 +137,22 @@ export function AgencyWorkspace({
     setNotices((previous) => [...previous.slice(-2), { id: ++noticeId.current, kind, message }]);
   }, []);
 
+  const handleSignOut = useCallback(async () => {
+    if (signingOut) return;
+    setSigningOut(true);
+    try {
+      await signOutEverywhere(createClient());
+      router.replace('/');
+      router.refresh();
+    } catch (error: unknown) {
+      notify(
+        'error',
+        error instanceof Error ? error.message : 'La déconnexion a échoué. Réessayez.'
+      );
+      setSigningOut(false);
+    }
+  }, [notify, router, signingOut]);
+
   /** Indicateurs et agenda : agregats calculés en base, aucune table ramenée au client. */
   const loadOverview = useCallback(
     async (range: { from?: string; to?: string }) => {
@@ -131,7 +161,7 @@ export function AgencyWorkspace({
       overviewAbort.current = controller;
 
       setStats({ loading: true, error: null, data: null });
-      setAgenda((previous) => ({ ...previous, loading: true }));
+      setAgenda({ loading: true, error: null, data: null });
 
       const params = new URLSearchParams();
       if (range.from) params.set('from', range.from);
@@ -347,3 +377,280 @@ export function AgencyWorkspace({
     },
     [notify]
   );
+
+  const pending = stats.data?.pendingBookings ?? 0;
+
+  const sections: AgencySection[] = AGENCY_SECTIONS.map((sec) => {
+    if (sec.id === 'bookings') {
+      return {
+        ...sec,
+        count: pending,
+        badge: pending > 0 ? 'alert' : undefined,
+      };
+    }
+    if (sec.id === 'fleet') {
+      return {
+        ...sec,
+        count: stats.data?.totalVehicles,
+      };
+    }
+    return { ...sec };
+  });
+
+  const currentLabel = sections.find((entry) => entry.id === section)?.label ?? 'Agence';
+  const canBookings = canActOnBookings(profile?.role);
+
+  return (
+    <div className="flex min-h-screen bg-[#F1F5F9] text-[#0F172A]">
+      <a
+        href="#agency-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-white focus:p-3"
+      >
+        Aller au contenu
+      </a>
+
+      <Sidebar
+        sections={sections}
+        active={section}
+        onNavigate={setSection}
+        collapsed={false}
+        onToggleCollapsed={() => undefined}
+        agencyName={agency.name}
+        verified={agency.verified}
+        onSignOut={() => void handleSignOut()}
+        signingOut={signingOut}
+      />
+
+      <div className="min-w-0 flex-1">
+        <Topbar
+          agencyName={agency.name}
+          userLabel={profile?.displayName ?? 'Compte agence'}
+          avatarUrl={profile?.avatarUrl ?? null}
+          crumbs={[{ label: currentLabel }]}
+          notifications={
+            pending > 0
+              ? [
+                  {
+                    id: 'pending',
+                    tone: 'alert',
+                    label: `${pending} demande(s) de reservation a traiter`,
+                  },
+                ]
+              : []
+          }
+          onRefresh={() => {
+            void loadOverview(resolveRange(rangePreset));
+            void loadBookings(query, bookingsPage);
+          }}
+          refreshing={stats.loading || bookingsLoading}
+          onSignOut={() => void handleSignOut()}
+          signingOut={signingOut}
+          onNavigate={setSection}
+          sections={sections}
+          activeSection={section}
+        />
+
+        <main
+          id="agency-content"
+          className="mx-auto max-w-[1400px] space-y-6 px-4 py-6 sm:px-6 lg:px-10 lg:py-8"
+        >
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight text-[#0F172A] sm:text-3xl">
+                {currentLabel}
+              </h1>
+              <p className="mt-1 text-sm text-[#64748B]">{agency.name}</p>
+            </div>
+
+            {section === 'overview' && (
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+                <FilterChips
+                  options={RANGE_PRESETS}
+                  value={rangePreset}
+                  onChange={(value) => {
+                    setRangePreset(value);
+                    setRangeInput(resolveRange(value));
+                  }}
+                  label="Periode des indicateurs"
+                />
+                <DateRangeInputs
+                  value={{ from: rangeInput.from ?? '', to: rangeInput.to ?? '' }}
+                  onChange={(next) => {
+                    setRangeInput(next);
+                    void loadOverview({ from: next.from || undefined, to: next.to || undefined });
+                  }}
+                />
+              </div>
+            )}
+          </div>
+
+          <section aria-label="Notifications" className="space-y-2">
+            {notices.map((notice) => (
+              <p
+                key={notice.id}
+                role={notice.kind === 'error' ? 'alert' : 'status'}
+                className={
+                  notice.kind === 'success'
+                    ? 'rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900'
+                    : 'rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900'
+                }
+              >
+                {notice.message}
+              </p>
+            ))}
+          </section>
+
+          {section === 'overview' && (
+            <OverviewPanel
+              stats={stats}
+              agenda={agenda}
+              onRetry={() => void loadOverview(resolveRange(rangePreset))}
+              onOpenBookings={() => setSection('bookings')}
+            />
+          )}
+
+          {section === 'bookings' && (
+            <BookingsPanel
+              page={bookings}
+              loading={bookingsLoading}
+              error={bookingsError}
+              onQueryChange={onQueryChange}
+              onPageChange={onPageChange}
+              onRetry={() => void loadBookings(query, bookingsPage)}
+              onOpenDetail={(booking) => void openDetail(booking)}
+              canAct={canBookings}
+              busy={busy}
+            />
+          )}
+
+          {section === 'fleet' && (
+            <AgencyFleetPanel
+              agencyId={agency.id}
+              canManage={canEditFleet(profile?.role)}
+              onOpenCalendar={() => setSection('calendar')}
+            />
+          )}
+
+          {section === 'add_vehicle' && (
+            <div className="space-y-4">
+              <VehicleFormModal
+                agencyId={agency.id}
+                onClose={() => setSection('fleet')}
+                onSuccess={() => setSection('fleet')}
+              />
+            </div>
+          )}
+
+          {section === 'calendar' && (
+            <AgencyCalendarPanel
+              agencyId={agency.id}
+              canManage={canEditFleet(profile?.role)}
+            />
+          )}
+
+          {section === 'rentals' && (
+            <AgencyRentalsPanel
+              agencyId={agency.id}
+              canManage={canBookings}
+            />
+          )}
+
+          {section === 'customers' && (
+            <AgencyCustomersPanel
+              agencyId={agency.id}
+            />
+          )}
+
+          {section === 'finances' && (
+            <AgencyFinancesPanel
+              agencyId={agency.id}
+            />
+          )}
+
+          {section === 'access' && (
+            <AgencyAccessPanel
+              agencyId={agency.id}
+              agencyName={agency.name}
+              profile={profile as any}
+            />
+          )}
+
+          {section === 'settings' && (
+            <AgencySettingsPanel
+              agencyId={agency.id}
+              canManage={canEditFleet(profile?.role)}
+            />
+          )}
+        </main>
+      </div>
+
+      {selected && (
+        <BookingDetailModal
+          booking={selected}
+          detail={detail}
+          loadingDetail={loadingDetail}
+          detailError={detailError}
+          canAct={canBookings}
+          busy={busy}
+          alternatives={alternatives}
+          loadingAlternatives={loadingAlternatives}
+          onClose={() => {
+            setSelected(null);
+            setPendingAction(null);
+          }}
+          onReload={() => void openDetail(selected)}
+          onAction={(action, payload) => {
+            const reference = selected.booking_ref ?? selected.reference ?? selected.id;
+            if (action === 'approve') {
+              void runAction(reference, action, payload);
+              return;
+            }
+            // Refus et alternative passent par une confirmation explicite.
+            setPendingAction({
+              action,
+              reference,
+              reason: payload.reason ?? '',
+              alternativeVehicleId: payload.alternativeVehicleId ?? '',
+            });
+          }}
+          onDownloadPdf={() => void downloadPdf(selected)}
+        />
+      )}
+
+      {pendingAction && (
+        <ConfirmDialog
+          title={
+            pendingAction.action === 'reject'
+              ? 'Refuser cette demande ?'
+              : 'Proposer un vehicule alternatif ?'
+          }
+          message={
+            pendingAction.action === 'reject'
+              ? 'Le client sera informe du refus et du motif saisi. Cette action est journalisee.'
+              : "Le client recevra une proposition de remplacement qu'il pourra accepter ou refuser."
+          }
+          confirmLabel={
+            pendingAction.action === 'reject' ? 'Confirmer le refus' : 'Envoyer la proposition'
+          }
+          destructive={pendingAction.action === 'reject'}
+          busy={busy}
+          onCancel={() => setPendingAction(null)}
+          onConfirm={() => {
+            void runAction(pendingAction.reference, pendingAction.action, {
+              reason: pendingAction.reason || undefined,
+              alternativeVehicleId: pendingAction.alternativeVehicleId || undefined,
+            });
+          }}
+        />
+      )}
+
+      {notices.length > 0 && (
+        <Toast
+          kind={notices[notices.length - 1]!.kind}
+          message={notices[notices.length - 1]!.message}
+          onDismiss={() => setNotices([])}
+        />
+      )}
+    </div>
+  );
+}

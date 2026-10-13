@@ -12,7 +12,7 @@ export default function AgenciesPage() {
 
   useEffect(() => {
     let active = true;
-    fetch('/api/agencies')
+    fetch('/api/agencies', { cache: 'no-store' })
       .then((r) => r.json())
       .then((res) => {
         if (active && res.success && Array.isArray(res.data)) {

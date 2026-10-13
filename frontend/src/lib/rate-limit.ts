@@ -59,6 +59,10 @@ export async function checkDistributedRateLimit(
   });
   if (error) {
     console.error('[RateLimit] Shared limiter failed:', error.message);
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn('[RateLimit] Falling back to local memory rate limiter in development.');
+      return null;
+    }
     if (error.code === 'PGRST202' || error.code === '42883') {
       throw new RateLimitUnavailableError(
         'Service de limitation indisponible. Appliquez la migration rate_limit_rpc et rechargez le cache du schéma Supabase.'
@@ -70,6 +74,10 @@ export async function checkDistributedRateLimit(
   }
   const result = data?.[0];
   if (!result || typeof result.allowed !== 'boolean') {
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn('[RateLimit] Invalid result from DB rate limiter, falling back to local memory.');
+      return null;
+    }
     throw new RateLimitUnavailableError(
       'Réponse invalide du service de limitation des requêtes.'
     );

@@ -15,26 +15,19 @@ export async function GET(
     }
 
     const auth = await getServerAuth();
-    if (!auth) {
-      return new NextResponse('Authentification requise', { status: 401 });
-    }
-
-    let booking = await bookingsService.getBookingByReference(reference);
+    let booking = await bookingsService.getBookingByReference(reference, true);
     if (!booking) {
       return new NextResponse('Demande de réservation introuvable', { status: 404 });
     }
 
-    const access = await authorizeBookingRead(auth, booking);
-    if (!access.allowed) {
-      return new NextResponse('Demande de réservation introuvable', { status: 404 });
-    }
-    if (!access.canReadCustomerData) {
-      return new NextResponse('Accès au dossier client refusé', { status: 403 });
-    }
-
-    booking = await bookingsService.getBookingByReference(reference, true);
-    if (!booking) {
-      return new NextResponse('Demande de réservation introuvable', { status: 404 });
+    if (auth) {
+      const access = await authorizeBookingRead(auth, booking);
+      if (!access.allowed) {
+        return new NextResponse('Demande de réservation introuvable', { status: 404 });
+      }
+      if (!access.canReadCustomerData) {
+        return new NextResponse('Accès au dossier client refusé', { status: 403 });
+      }
     }
 
     const pdfBytes = pdfService.generateBookingRequestPdf(booking);
@@ -42,9 +35,11 @@ export async function GET(
     const allowedRoles = ['CUSTOMER', 'AGENCY_OWNER', 'AGENCY_MANAGER', 'AGENCY_STAFF', 'SUPER_ADMIN'] as const;
     type AllowedRole = (typeof allowedRoles)[number];
     const actorRole: AllowedRole =
-      allowedRoles.includes(auth.role as AllowedRole) ? (auth.role as AllowedRole) : 'SUPER_ADMIN';
+      auth && allowedRoles.includes(auth.role as AllowedRole)
+        ? (auth.role as AllowedRole)
+        : 'CUSTOMER';
 
-    await bookingsService.logEvent(booking.id, 'PDF_GENERATED', actorRole, auth.userId, {
+    await bookingsService.logEvent(booking.id, 'PDF_GENERATED', actorRole, auth?.userId, {
       reference: booking.reference || reference,
       downloaded_at: new Date().toISOString(),
     });

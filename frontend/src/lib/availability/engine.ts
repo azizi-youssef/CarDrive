@@ -20,20 +20,25 @@ export function doDatesOverlap(
 
 /**
  * Determines if a specific vehicle is available for the given date range,
- * considering confirmed or active bookings
+ * considering accepted/active bookings. Pending requests have no expiry policy
+ * and therefore do not reserve dates.
  */
 export function isVehicleAvailable(
   vehicle: Vehicle,
-  bookings: Booking[],
+  bookings: Pick<Booking, 'vehicle_id' | 'start_date' | 'end_date' | 'status'>[],
   startDate?: string,
   endDate?: string
 ): boolean {
-  if (vehicle.status !== 'AVAILABLE' || !vehicle.published) {
+  if (!vehicle.published) {
     return false;
   }
 
   if (!startDate || !endDate) {
-    return true;
+    return vehicle.status === 'AVAILABLE';
+  }
+
+  if (vehicle.status === 'MAINTENANCE' || vehicle.status === 'BLOCKED') {
+    return false;
   }
 
   // Check against active/confirmed bookings

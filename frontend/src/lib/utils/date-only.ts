@@ -42,3 +42,22 @@ export function addDateDays(value: string, days: number): string {
     String(date.getUTCDate()).padStart(2, '0'),
   ].join('-');
 }
+
+export function getEffectiveRentalDates(
+  startDate: string,
+  endDate: string,
+  today: string
+): { startDate: string; endDate: string } {
+  if (!isValidDateOnly(today)) {
+    return { startDate, endDate };
+  }
+
+  const effectiveStartDate =
+    isValidDateOnly(startDate) && startDate >= today ? startDate : today;
+  const effectiveEndDate =
+    isValidDateOnly(endDate) && endDate > effectiveStartDate
+      ? endDate
+      : addDateDays(effectiveStartDate, 3);
+
+  return { startDate: effectiveStartDate, endDate: effectiveEndDate };
+}

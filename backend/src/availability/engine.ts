@@ -27,12 +27,16 @@ export function isVehicleAvailable(
   startDate?: string,
   endDate?: string
 ): boolean {
-  if (vehicle.status !== 'AVAILABLE' || !vehicle.published) {
+  if (!vehicle.published) {
     return false;
   }
 
   if (!startDate || !endDate) {
-    return true;
+    return vehicle.status === 'AVAILABLE';
+  }
+
+  if (vehicle.status === 'MAINTENANCE' || vehicle.status === 'BLOCKED') {
+    return false;
   }
 
   // Check against active/confirmed bookings

@@ -27,7 +27,6 @@ import {
   CalendarDays,
   LockKeyhole,
   CarFront,
-  CircleCheck,
   Info,
   ArrowRight,
   Heart,
@@ -118,7 +117,15 @@ export default function CarDetailsPage({
         'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=1400&auto=format&fit=crop&q=85',
       ];
 
-  const isAvailable = vehicle.status === 'AVAILABLE';
+  const isFleetListed = vehicle.status === 'AVAILABLE';
+  const vehicleStatusLabel =
+    vehicle.status === 'AVAILABLE'
+      ? 'Dates à vérifier'
+      : vehicle.status === 'MAINTENANCE'
+        ? 'Maintenance'
+        : vehicle.status === 'BLOCKED'
+          ? 'Indisponible'
+          : 'Actuellement loué';
 
   const averageRating =
     reviews.length > 0
@@ -196,21 +203,21 @@ export default function CarDetailsPage({
 
                 <Badge
                   variant={
-                    isAvailable
-                      ? 'available'
-                      : 'rented'
+                    isFleetListed
+                      ? 'outline'
+                      : vehicle.status === 'MAINTENANCE'
+                        ? 'pending'
+                        : 'rented'
                   }
                   icon
                 >
-                  {isAvailable
-                    ? 'Disponible'
-                    : 'Actuellement loué'}
+                  {vehicleStatusLabel}
                 </Badge>
 
-                {isAvailable && (
-                  <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[9px] font-bold text-emerald-700">
-                    <CircleCheck className="h-3 w-3" />
-                    Réservation possible
+                {isFleetListed && (
+                  <span className="flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-[9px] font-bold text-slate-600">
+                    <Info className="h-3 w-3" />
+                    Choisissez vos dates pour vérifier
                   </span>
                 )}
 
@@ -336,6 +343,7 @@ export default function CarDetailsPage({
                   priority
                   sizes="(max-width: 1024px) 100vw, 66vw"
                   className="object-cover"
+                  unoptimized
                 />
 
                 {/* Gradient */}
@@ -348,10 +356,10 @@ export default function CarDetailsPage({
                 </div>
 
                 {/* Availability */}
-                {isAvailable && (
-                  <div className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-white/95 px-2.5 py-1.5 text-[9px] font-bold text-emerald-700 shadow-sm backdrop-blur">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                    Disponible
+                {isFleetListed && (
+                  <div className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-white/95 px-2.5 py-1.5 text-[9px] font-bold text-slate-700 shadow-sm backdrop-blur">
+                    <Info className="h-3 w-3" />
+                    Dates à vérifier
                   </div>
                 )}
 

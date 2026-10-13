@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 
 import { AdminShell } from '@/components/admin/AdminShell';
+import { AccountProfileSettings } from '@/components/shared/AccountProfileSettings';
 
 export const metadata: Metadata = {
   title: 'Paramètres | CarDrive Admin',
@@ -70,6 +71,8 @@ export default function AdminSettingsPage() {
       subtitle="Centralisez la configuration et la gestion de CarDrive."
     >
       <div className="mx-auto w-full max-w-6xl space-y-8">
+        <AccountProfileSettings />
+
         {/* Page introduction */}
         <section className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
           <div

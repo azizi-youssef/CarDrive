@@ -2,10 +2,25 @@ import { NextRequest, NextResponse } from 'next/server';
 import { vehiclesService } from '@/lib/services/vehicles.service';
 import { requireAgencyPermissionApi } from '@/lib/auth/access-api';
 import type { SearchFilters } from '@/types';
+import { isValidDateOnly } from '@/lib/utils/date-only';
 
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = req.nextUrl;
+    const startDate = searchParams.get('startDate') || undefined;
+    const endDate = searchParams.get('endDate') || undefined;
+    if (
+      Boolean(startDate) !== Boolean(endDate) ||
+      (startDate && !isValidDateOnly(startDate)) ||
+      (endDate && !isValidDateOnly(endDate)) ||
+      (startDate && endDate && startDate >= endDate)
+    ) {
+      return NextResponse.json(
+        { success: false, error: 'La période de recherche est invalide.' },
+        { status: 400 }
+      );
+    }
+
     const filters: SearchFilters = {
       category: searchParams.get('category') || undefined,
       brand: searchParams.get('brand') || undefined,
@@ -15,8 +30,8 @@ export async function GET(req: NextRequest) {
       maxPrice: searchParams.get('maxPrice') ? Number(searchParams.get('maxPrice')) : undefined,
       agencyId: searchParams.get('agencyId') || undefined,
       query: searchParams.get('query') || undefined,
-      startDate: searchParams.get('startDate') || undefined,
-      endDate: searchParams.get('endDate') || undefined,
+      startDate,
+      endDate,
       sortBy: (searchParams.get('sortBy') as SearchFilters['sortBy']) || undefined,
     };
 
@@ -25,11 +40,14 @@ export async function GET(req: NextRequest) {
     const limit = searchParams.get('limit') ? Number(searchParams.get('limit')) : vehicles.length;
     const paginated = vehicles.slice(offset, offset + limit);
 
-    return NextResponse.json({
-      success: true,
-      data: paginated,
-      meta: { total: vehicles.length, limit, offset },
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        data: paginated,
+        meta: { total: vehicles.length, limit, offset },
+      },
+      { headers: { 'Cache-Control': 'no-store' } }
+    );
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Erreur serveur';
     return NextResponse.json({ success: false, error: message }, { status: 500 });

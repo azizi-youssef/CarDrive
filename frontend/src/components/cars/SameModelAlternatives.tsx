@@ -28,14 +28,14 @@ export function SameModelAlternatives({
         <div>
           <div className="flex items-center gap-2">
             <h3 className="text-base sm:text-lg font-bold text-slate-900">
-              Disponible chez d’autres agences à Nador
+              Autres offres similaires à Nador
             </h3>
             <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-[#02306B]">
-              {alternatives.length} trouvée{alternatives.length > 1 ? 's' : ''}
+              {alternatives.length} offre{alternatives.length > 1 ? 's' : ''}
             </span>
           </div>
           <p className="text-xs sm:text-sm text-slate-600 mt-0.5">
-            Vous cherchez un <strong>{currentVehicle.brand} {currentVehicle.model}</strong> ? Voici les modèles identiques immédiatement disponibles auprès de nos agences partenaires vérifiées.
+            Vous cherchez un <strong>{currentVehicle.brand} {currentVehicle.model}</strong> ? Les disponibilités de ces offres dépendent des dates choisies et doivent être vérifiées sur chaque fiche véhicule.
           </p>
         </div>
       </div>

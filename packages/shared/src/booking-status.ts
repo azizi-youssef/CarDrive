@@ -22,15 +22,9 @@ export type BookingStatus = (typeof BOOKING_STATUSES)[number];
 
 /** Statuts qui bloquent le calendrier véhicule (overlap). */
 export const BLOCKING_BOOKING_STATUSES: readonly BookingStatus[] = [
-  'REQUESTED',
-  'UNDER_REVIEW',
-  'SENT_TO_AGENCY',
-  'AGENCY_REVIEW',
   'APPROVED',
-  'ALTERNATIVE_PROPOSED',
   'READY_FOR_PICKUP',
   'ACTIVE',
-  'PENDING',
   'CONFIRMED',
 ];
 

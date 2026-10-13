@@ -1,7 +1,6 @@
 import { Vehicle, SearchFilters } from '@/types';
 import { createClient, createAdminClient } from '@/lib/supabase/server';
-import { isVehicleAvailable, findSameModelAlternatives } from '@/lib/availability/engine';
-import { isBlockingBookingStatus } from '@cardrive/shared';
+import { findSameModelAlternatives } from '@/lib/availability/engine';
 
 function requireSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -15,18 +14,22 @@ function requireSupabase() {
 
 /** Normalise les résultats Supabase vers le type Vehicle attendu */
 function normalizeVehicle(row: any): Vehicle {
+  const rawImages = Array.isArray(row.images) ? row.images : [];
+  const images = rawImages
+    .map((img: any) => (typeof img === 'string' ? img : img?.url))
+    .filter((url: any): url is string => typeof url === 'string' && url.length > 0);
+
+  const rawFeatures =
+    Array.isArray(row.vehicle_features) && row.vehicle_features.length > 0
+      ? row.vehicle_features.map((f: any) => (typeof f === 'string' ? f : f?.name))
+      : Array.isArray(row.features) && row.features.length > 0
+      ? row.features.map((f: any) => (typeof f === 'string' ? f : f?.name))
+      : [];
+
   return {
     ...row,
-    images:
-      Array.isArray(row.images) && row.images.length > 0
-        ? row.images.map((img: any) => img.url)
-        : [],
-    features:
-      Array.isArray(row.vehicle_features) && row.vehicle_features.length > 0
-        ? row.vehicle_features.map((f: any) => f.name as string)
-        : Array.isArray(row.features) && row.features.length > 0
-        ? row.features
-        : [],
+    images,
+    features: rawFeatures.filter(Boolean),
   };
 }
 
@@ -38,8 +41,10 @@ export class VehiclesService {
 
     let query = supabase
       .from('vehicles')
-      .select('*, agency:agencies(*), images:vehicle_images(url, is_primary), vehicle_features(name)')
-      .eq('published', true);
+      .select('*, agency:agencies!inner(*), images:vehicle_images(url, is_primary), vehicle_features(name)')
+      .eq('published', true)
+      .eq('agency.status', 'ACTIVE')
+      .is('agency.archived_at', null);
 
     if (filters?.agencyId) {
       query = query.eq('agency_id', filters.agencyId);
@@ -79,21 +84,28 @@ export class VehiclesService {
 
     const mapped: Vehicle[] = (data ?? []).map(normalizeVehicle);
 
-    // Filtrage par disponibilité si des dates sont fournies
+    // Date-specific availability is computed in PostgreSQL to share one source of truth.
     if (filters?.startDate && filters?.endDate) {
-      const { data: bData, error: bookingsError } = await supabase
-        .from('bookings')
-        .select('id, vehicle_id, start_date, end_date, status')
-        .in('status', ['CONFIRMED', 'ACTIVE', 'PENDING', 'REQUESTED', 'UNDER_REVIEW', 'SENT_TO_AGENCY', 'AGENCY_REVIEW', 'APPROVED', 'READY_FOR_PICKUP'])
-        .lte('start_date', filters.endDate)
-        .gte('end_date', filters.startDate);
-
-      if (bookingsError) {
-        console.error('[VehiclesService] Availability lookup failed:', bookingsError.message);
-        throw new Error('Impossible de vérifier la disponibilité des véhicules.');
+      const availability: { vehicle_id: string; available: boolean }[] = [];
+      for (let offset = 0; offset < mapped.length; offset += 500) {
+        const { data, error: availabilityError } = await supabase.rpc(
+          'vehicle_availability',
+          {
+            p_vehicle_ids: mapped.slice(offset, offset + 500).map((vehicle) => vehicle.id),
+            p_start_date: filters.startDate,
+            p_end_date: filters.endDate,
+          }
+        );
+        if (availabilityError) {
+          console.error('[VehiclesService] Availability lookup failed:', availabilityError.message);
+          throw new Error('Impossible de vérifier la disponibilité des véhicules.');
+        }
+        availability.push(...(data ?? []));
       }
-      const allBookings = (bData ?? []) as any[];
-      return mapped.filter((v) => isVehicleAvailable(v, allBookings, filters.startDate, filters.endDate));
+      const availableIds = new Set(
+        availability.filter((item) => item.available).map((item) => item.vehicle_id)
+      );
+      return mapped.filter((vehicle) => availableIds.has(vehicle.id));
     }
 
     return mapped;
@@ -141,25 +153,36 @@ export class VehiclesService {
     endDate?: string
   ): Promise<Vehicle[]> {
     requireSupabase();
-    const allVehicles = await this.getVehicles();
-    const supabase = (await createAdminClient()) ?? (await createClient());
-    let allBookings: any[] = [];
-
-    if (supabase) {
-      const { data } = await supabase
-        .from('bookings')
-        .select('id, vehicle_id, start_date, end_date, status')
-        .in('status', ['CONFIRMED', 'ACTIVE', 'PENDING', 'REQUESTED', 'UNDER_REVIEW', 'SENT_TO_AGENCY', 'AGENCY_REVIEW', 'APPROVED', 'READY_FOR_PICKUP']);
-      if (data) allBookings = data;
-    }
+    const allVehicles = await this.getVehicles(
+      startDate && endDate ? { startDate, endDate } : undefined
+    );
 
     return findSameModelAlternatives({
       currentVehicle: vehicle,
       allVehicles,
-      allBookings,
+      allBookings: [],
       startDate,
       endDate,
     });
+  }
+
+  async checkAvailability(vehicleId: string, startDate: string, endDate: string): Promise<boolean> {
+    requireSupabase();
+    const supabase = (await createAdminClient()) ?? (await createClient());
+    if (!supabase) throw new Error('Client Supabase indisponible.');
+
+    const { data, error } = await supabase.rpc('vehicle_availability', {
+      p_vehicle_ids: [vehicleId],
+      p_start_date: startDate,
+      p_end_date: endDate,
+    });
+    if (error) {
+      console.error('[VehiclesService] Availability lookup failed:', error.message);
+      throw new Error('Impossible de vérifier la disponibilité du véhicule.');
+    }
+    return data?.some((item: { vehicle_id: string; available: boolean }) =>
+      item.vehicle_id === vehicleId && item.available
+    ) ?? false;
   }
 
   async addVehicle(newCar: Omit<Vehicle, 'id' | 'created_at'>): Promise<Vehicle> {

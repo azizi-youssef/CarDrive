@@ -15,6 +15,7 @@ import {
 import { Btn } from '@/components/admin/AdminUI';
 import type { Agency } from '@/types';
 import { updateAdminAgency } from '@/lib/api/admin-dashboard.api';
+import { AgencyLogoUploader } from '@/components/agency/settings/AgencyLogoUploader';
 
 const MOROCCAN_CITIES = [
   'Nador',
@@ -159,6 +160,14 @@ export function EditAgencyModal({
               <span>{error}</span>
             </div>
           )}
+
+          <AgencyLogoUploader
+            agencyId={agency.id}
+            agencyName={agency.name}
+            imageUrl={logoUrl}
+            disabled={loading}
+            onUploaded={setLogoUrl}
+          />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="sm:col-span-2">
