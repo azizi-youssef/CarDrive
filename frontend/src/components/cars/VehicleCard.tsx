@@ -33,33 +33,49 @@ interface VehicleCardProps {
 function getStatusConfig(status: Vehicle['status'], availabilityChecked: boolean) {
   if (availabilityChecked && (status === 'AVAILABLE' || status === 'RENTED')) {
     return {
-      label: 'Disponible pour ces dates',
+      label: 'Disponible',
       color: 'text-emerald-700',
-      bg: 'bg-emerald-50 border-emerald-200/60',
+      bg: 'bg-emerald-50 border-emerald-200/80',
       dot: 'bg-emerald-500',
-    };
-  }
-
-  if (status === 'AVAILABLE' && !availabilityChecked) {
-    return {
-      label: 'Dates à vérifier',
-      color: 'text-slate-600',
-      bg: 'bg-slate-50 border-slate-200',
-      dot: 'bg-slate-400',
     };
   }
 
   switch (status) {
     case 'AVAILABLE':
-      return { label: 'Disponible', color: 'text-emerald-700', bg: 'bg-emerald-50 border-emerald-200/60', dot: 'bg-emerald-500' };
+      return {
+        label: 'Disponible',
+        color: 'text-emerald-700',
+        bg: 'bg-emerald-50 border-emerald-200/80',
+        dot: 'bg-emerald-500',
+      };
     case 'RENTED':
-      return { label: 'Indisponible', color: 'text-red-700', bg: 'bg-red-50 border-red-200/60', dot: 'bg-red-500' };
+      return {
+        label: 'Non disponible',
+        color: 'text-red-700',
+        bg: 'bg-red-50 border-red-200/80',
+        dot: 'bg-red-500',
+      };
     case 'MAINTENANCE':
-      return { label: 'Maintenance', color: 'text-amber-700', bg: 'bg-amber-50 border-amber-200/60', dot: 'bg-amber-500' };
+      return {
+        label: 'Maintenance',
+        color: 'text-amber-700',
+        bg: 'bg-amber-50 border-amber-200/80',
+        dot: 'bg-amber-500',
+      };
     case 'BLOCKED':
-      return { label: 'Indisponible', color: 'text-red-700', bg: 'bg-red-50 border-red-200/60', dot: 'bg-red-500' };
+      return {
+        label: 'Non disponible',
+        color: 'text-red-700',
+        bg: 'bg-red-50 border-red-200/80',
+        dot: 'bg-red-500',
+      };
     default:
-      return { label: 'Indisponible', color: 'text-slate-600', bg: 'bg-slate-50 border-slate-200', dot: 'bg-slate-400' };
+      return {
+        label: 'Non disponible',
+        color: 'text-slate-600',
+        bg: 'bg-slate-50 border-slate-200',
+        dot: 'bg-slate-400',
+      };
   }
 }
 
@@ -247,8 +263,9 @@ export function VehicleCard({
         {/* Status badge */}
         <div className="absolute top-2.5 left-2.5 z-10">
           <div className={cn(
-            'inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold border backdrop-blur-sm bg-white/90',
-            statusConfig.color
+            'inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold border backdrop-blur-sm bg-white/95',
+            statusConfig.color,
+            statusConfig.bg
           )}>
             <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', statusConfig.dot)} />
             {statusConfig.label}
@@ -387,7 +404,7 @@ export function VehicleCard({
             tabIndex={isAvailable ? 0 : -1}
             aria-disabled={!isAvailable}
           >
-            <span>{isAvailable ? 'Voir le véhicule' : 'Indisponible'}</span>
+            <span>{isAvailable ? 'Voir le véhicule' : 'Non disponible'}</span>
             {isAvailable && (
               <ArrowRight className="w-3.5 h-3.5 group-hover/cta:translate-x-1 transition-transform duration-200" />
             )}

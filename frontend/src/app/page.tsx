@@ -63,7 +63,7 @@ export default function HomePage() {
     };
   }, []);
 
-  const featuredVehicles = vehicles.slice(0, 6);
+  const featuredVehicles = vehicles;
   const featuredAgencies = agencies.slice(0, 4);
 
   const totalVehicles = vehicles.length;
@@ -88,14 +88,14 @@ export default function HomePage() {
       name: 'Économique',
       count: getCategoryCount('Économique'),
       image:
-        'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=900&q=85&auto=format&fit=crop',
+        '/economique.jpeg',
       description: 'Pratique & économique',
     },
     {
       name: 'SUV',
       count: getCategoryCount('SUV'),
       image:
-        'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=900&q=85&auto=format&fit=crop',
+        '/suv.jpeg',
       description: 'Confort & aventure',
     },
     {
@@ -109,7 +109,7 @@ export default function HomePage() {
       name: 'Luxe',
       count: getCategoryCount('Luxe'),
       image:
-        'https://images.unsplash.com/photo-1563720223185-11003d516935?w=900&q=85&auto=format&fit=crop',
+        '/luxe.jpeg',
       description: 'Premium & prestige',
     },
     {
@@ -123,7 +123,7 @@ export default function HomePage() {
       name: '7 places',
       count: getCategoryCount('7 places'),
       image:
-        'https://images.unsplash.com/photo-1544829099-b9a0c07fad1a?w=900&q=85&auto=format&fit=crop',
+        '/voiture%207%20places.jpeg',
       description: 'Famille & groupes',
     },
   ];
@@ -134,28 +134,28 @@ export default function HomePage() {
       name: 'Aéroport Nador-Al Aroui',
       shortName: 'Aéroport',
       image:
-        'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1000&q=85&auto=format&fit=crop',
+        '/aeroport%20nador%20al%20aroui.jpeg',
       icon: Plane,
     },
     {
       name: 'Nador Centre',
       shortName: 'Nador',
       image:
-        'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1000&q=85&auto=format&fit=crop',
+        '/centre%20nadar.jpeg',
       icon: MapPin,
     },
     {
       name: 'Port Beni Ansar',
       shortName: 'Beni Ansar',
       image:
-        'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=1000&q=85&auto=format&fit=crop',
+        '/frontera%20melilla.jpeg',
       icon: MapPin,
     },
     {
       name: 'Marchica & alentours',
       shortName: 'Marchica',
       image:
-        'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1000&q=85&auto=format&fit=crop',
+        '/atalayoun%20nador.jpg',
       icon: MapPin,
     },
   ];

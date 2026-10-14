@@ -486,6 +486,14 @@ export class BookingsService {
       return { success: false, error: error.message };
     }
 
+    // Mettre à jour le véhicule en RENTED pour refléter son statut réservé
+    if (booking.vehicle_id) {
+      await supabase
+        .from('vehicles')
+        .update({ status: 'RENTED', updated_at: nowIso })
+        .eq('id', booking.vehicle_id);
+    }
+
     await this.logEvent(booking.id, 'AGENCY_ACCEPTED', 'AGENCY_OWNER', actorId, { agencyNotes });
     await this.logEvent(booking.id, 'COMMISSION_CONFIRMED', 'SYSTEM', undefined, {
       commission_amount: (data as any).commission_amount ?? booking.commission_amount,
@@ -529,6 +537,23 @@ export class BookingsService {
     if (error) {
       console.error('[BookingsService] Supabase reject error:', error);
       return { success: false, error: error.message };
+    }
+
+    // Si aucune autre réservation active/confirmée n'existe sur le véhicule, le remettre en AVAILABLE
+    if (booking.vehicle_id) {
+      const { data: otherBookings } = await supabase
+        .from('bookings')
+        .select('id')
+        .eq('vehicle_id', booking.vehicle_id)
+        .neq('id', booking.id)
+        .in('status', ['APPROVED', 'CONFIRMED', 'ACTIVE', 'READY_FOR_PICKUP']);
+
+      if (!otherBookings || otherBookings.length === 0) {
+        await supabase
+          .from('vehicles')
+          .update({ status: 'AVAILABLE', updated_at: nowIso })
+          .eq('id', booking.vehicle_id);
+      }
     }
 
     await this.logEvent(booking.id, 'AGENCY_REJECTED', 'AGENCY_OWNER', actorId, { reason });

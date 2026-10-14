@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { findSameModelAlternatives } from '@/lib/availability/engine';
 import { BookingCard } from '@/components/booking/BookingCard';
-import { generateWhatsAppLink, formatPrice } from '@/lib/utils';
+import { generateWhatsAppLink, formatPrice, cn } from '@/lib/utils';
 import { SameModelAlternatives } from '@/components/cars/SameModelAlternatives';
 import { Badge } from '@/components/ui/Badge';
 import { PriceDisplay } from '@/components/ui/PriceDisplay';
@@ -18,6 +18,7 @@ import {
   Gauge,
   DoorOpen,
   ShieldCheck,
+  CheckCircle2,
   Check,
   Star,
   MapPin,
@@ -120,17 +121,15 @@ export default function CarDetailsPage({
   const isFleetListed = vehicle.status === 'AVAILABLE';
   const vehicleStatusLabel =
     vehicle.status === 'AVAILABLE'
-      ? 'Dates à vérifier'
+      ? 'Disponible'
       : vehicle.status === 'MAINTENANCE'
         ? 'Maintenance'
-        : vehicle.status === 'BLOCKED'
-          ? 'Indisponible'
-          : 'Actuellement loué';
+        : 'Non disponible';
 
   const averageRating =
     reviews.length > 0
       ? reviews.reduce((sum, review) => sum + review.rating, 0) /
-      reviews.length
+        reviews.length
       : vehicle.agency?.rating ?? 0;
 
   const agencyPhone = vehicle.agency?.phone?.replace(/[^0-9]/g, '') || '212661987654';
@@ -204,7 +203,7 @@ export default function CarDetailsPage({
                 <Badge
                   variant={
                     isFleetListed
-                      ? 'outline'
+                      ? 'available'
                       : vehicle.status === 'MAINTENANCE'
                         ? 'pending'
                         : 'rented'
@@ -356,12 +355,19 @@ export default function CarDetailsPage({
                 </div>
 
                 {/* Availability */}
-                {isFleetListed && (
-                  <div className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-white/95 px-2.5 py-1.5 text-[9px] font-bold text-slate-700 shadow-sm backdrop-blur">
-                    <Info className="h-3 w-3" />
-                    Dates à vérifier
-                  </div>
-                )}
+                <div
+                  className={cn(
+                    'absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-white/95 px-2.5 py-1.5 text-[9px] font-bold shadow-sm backdrop-blur',
+                    isFleetListed ? 'text-emerald-700' : 'text-red-700'
+                  )}
+                >
+                  {isFleetListed ? (
+                    <CheckCircle2 className="h-3 w-3 text-emerald-600" />
+                  ) : (
+                    <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
+                  )}
+                  {isFleetListed ? 'Disponible' : 'Non disponible'}
+                </div>
 
               </div>
 

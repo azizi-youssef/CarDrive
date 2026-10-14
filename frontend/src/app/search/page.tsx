@@ -26,7 +26,7 @@ function SearchPageContent() {
   const [selectedBrand, setSelectedBrand] = useState<string>(initialBrand);
   const [brandSearchInput, setBrandSearchInput] = useState<string>('');
   const [selectedAgency, setSelectedAgency] = useState<string>('ALL');
-  const [maxPrice, setMaxPrice] = useState<number>(1500);
+  const [maxPrice, setMaxPrice] = useState<number>(5000);
   const [sortBy, setSortBy] = useState<'price_asc' | 'price_desc' | 'rating' | 'featured'>('featured');
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
@@ -154,7 +154,7 @@ function SearchPageContent() {
       result = result.filter((v) => v.agency_id === selectedAgency);
     }
 
-    result = result.filter((v) => v.daily_price <= maxPrice);
+    result = result.filter((v) => maxPrice >= 5000 || v.daily_price <= maxPrice);
 
     // Sorting
     if (sortBy === 'price_asc') {
@@ -185,7 +185,7 @@ function SearchPageContent() {
     setSelectedBrand('ALL');
     setBrandSearchInput('');
     setSelectedAgency('ALL');
-    setMaxPrice(1500);
+    setMaxPrice(5000);
     setSortBy('featured');
   };
 
@@ -222,7 +222,7 @@ function SearchPageContent() {
                 'Disponibilités non vérifiées'
               ) : (
                 <>
-                  <strong>{filteredVehicles.length}</strong> véhicule{filteredVehicles.length > 1 ? 's' : ''} trouvé{filteredVehicles.length > 1 ? 's' : ''} disponible{filteredVehicles.length > 1 ? 's' : ''}
+                  <strong>{filteredVehicles.length}</strong> véhicule{filteredVehicles.length > 1 ? 's' : ''} trouvé{filteredVehicles.length > 1 ? 's' : ''}
                 </>
               )}
               {!vehiclesLoading && !vehiclesError && searchPeriod.startDate && searchPeriod.endDate && (
@@ -284,12 +284,14 @@ function SearchPageContent() {
             <div>
               <div className="flex justify-between items-center text-xs font-semibold text-slate-700 mb-2">
                 <span>Budget max / jour</span>
-                <span className="text-[#02306B] font-bold">{maxPrice} DH</span>
+                <span className="text-[#02306B] font-bold">
+                  {maxPrice >= 5000 ? 'Tous les prix' : `${maxPrice} DH`}
+                </span>
               </div>
               <input
                 type="range"
                 min="200"
-                max="1500"
+                max="5000"
                 step="50"
                 value={maxPrice}
                 onChange={(e) => setMaxPrice(Number(e.target.value))}
@@ -297,7 +299,7 @@ function SearchPageContent() {
               />
               <div className="flex justify-between text-[10px] text-slate-400 mt-1">
                 <span>200 DH</span>
-                <span>1500+ DH</span>
+                <span>5000+ DH</span>
               </div>
             </div>
 
@@ -561,12 +563,14 @@ function SearchPageContent() {
               <div>
                 <div className="flex justify-between items-center text-xs font-semibold text-slate-700 mb-2">
                   <span>Budget max / jour</span>
-                  <span className="text-[#02306B] font-bold">{maxPrice} DH</span>
+                  <span className="text-[#02306B] font-bold">
+                    {maxPrice >= 5000 ? 'Tous les prix' : `${maxPrice} DH`}
+                  </span>
                 </div>
                 <input
                   type="range"
                   min="200"
-                  max="1500"
+                  max="5000"
                   step="50"
                   value={maxPrice}
                   onChange={(e) => setMaxPrice(Number(e.target.value))}
