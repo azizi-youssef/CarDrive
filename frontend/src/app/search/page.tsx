@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState, useMemo, useEffect, Suspense } from 'react';
+import React, { useState, useMemo, useEffect, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { VehicleCard } from '@/components/cars/VehicleCard';
 import { SearchBar } from '@/components/search/SearchBar';
 import { CATEGORIES, POPULAR_BRANDS } from '@/lib/constants/catalog';
 import { apiFetch } from '@/lib/api/client';
 import { formatLocalDate, getEffectiveRentalDates } from '@/lib/utils/date-only';
+import { useRealtimeRefresh } from '@/lib/supabase/realtime';
 import type { Vehicle, Agency } from '@/types';
 import { Filter, SlidersHorizontal, ArrowUpDown, X, Car, CarFront, RefreshCw, Check, Search } from 'lucide-react';
 
@@ -39,63 +40,52 @@ function SearchPageContent() {
   const [vehiclesLoading, setVehiclesLoading] = useState(true);
   const [vehiclesError, setVehiclesError] = useState<string | null>(null);
 
-  useEffect(() => {
-    let isMounted = true;
-    let hasLoaded = false;
-    let isLoading = false;
-    const controller = new AbortController();
-    async function loadData() {
-      if (isLoading || document.visibilityState !== 'visible') return;
-      isLoading = true;
-      if (!hasLoaded) setVehiclesLoading(true);
-      try {
-        const params = new URLSearchParams();
-        const period =
-          initialStartDate && initialEndDate
-            ? getEffectiveRentalDates(
-                initialStartDate,
-                initialEndDate,
-                formatLocalDate(new Date())
-              )
-            : { startDate: '', endDate: '' };
-        if (period.startDate && period.endDate) {
-          params.set('startDate', period.startDate);
-          params.set('endDate', period.endDate);
-        }
-        const query = params.size ? `?${params.toString()}` : '';
-        const vehiclesRes = await apiFetch<Vehicle[]>(`/api/vehicles${query}`, {
-          signal: controller.signal,
-          cache: 'no-store',
-        });
-        if (!vehiclesRes.success || !vehiclesRes.data) {
-          throw new Error(vehiclesRes.error || 'Impossible de vérifier les disponibilités.');
-        }
-        if (isMounted) {
-          setAllVehicles(vehiclesRes.data);
-          setSearchPeriod(period);
-          setVehiclesError(null);
-          hasLoaded = true;
-        }
-      } catch (error: unknown) {
-        if (!isMounted || controller.signal.aborted) return;
-        const message = error instanceof Error ? error.message : 'Impossible de vérifier les disponibilités.';
-        console.error('[SearchPage] Vehicle availability lookup failed:', message);
-        setVehiclesError(message);
-      } finally {
-        isLoading = false;
-        if (isMounted) setVehiclesLoading(false);
+  const loadData = useCallback(async (isInitial = false) => {
+    if (document.visibilityState !== 'visible') return;
+    if (isInitial) setVehiclesLoading(true);
+    try {
+      const params = new URLSearchParams();
+      const period =
+        initialStartDate && initialEndDate
+          ? getEffectiveRentalDates(
+              initialStartDate,
+              initialEndDate,
+              formatLocalDate(new Date())
+            )
+          : { startDate: '', endDate: '' };
+      if (period.startDate && period.endDate) {
+        params.set('startDate', period.startDate);
+        params.set('endDate', period.endDate);
       }
+      const query = params.size ? `?${params.toString()}` : '';
+      const vehiclesRes = await apiFetch<Vehicle[]>(`/api/vehicles${query}`, {
+        cache: 'no-store',
+      });
+      if (!vehiclesRes.success || !vehiclesRes.data) {
+        throw new Error(vehiclesRes.error || 'Impossible de vérifier les disponibilités.');
+      }
+      setAllVehicles(vehiclesRes.data);
+      setSearchPeriod(period);
+      setVehiclesError(null);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Impossible de vérifier les disponibilités.';
+      console.error('[SearchPage] Vehicle availability lookup failed:', message);
+      setVehiclesError(message);
+    } finally {
+      if (isInitial) setVehiclesLoading(false);
     }
-    void loadData();
-    const timer = setInterval(() => void loadData(), 30_000);
-    window.addEventListener('focus', loadData);
-    return () => {
-      isMounted = false;
-      controller.abort();
-      clearInterval(timer);
-      window.removeEventListener('focus', loadData);
-    };
   }, [initialStartDate, initialEndDate]);
+
+  useEffect(() => {
+    void loadData(true);
+  }, [loadData]);
+
+  // Rafraîchissement automatique en direct (Supabase Realtime + Multi-onglets + Focus)
+  useRealtimeRefresh({
+    tables: ['vehicles', 'bookings', 'vehicle_unavailability'],
+    onRefresh: () => loadData(false),
+    pollingIntervalMs: 20_000,
+  });
 
   useEffect(() => {
     let isMounted = true;

@@ -7,7 +7,6 @@ import {
   RefreshCw,
   Eye,
   EyeOff,
-  Sparkles,
   AlertTriangle,
   Lock,
 } from 'lucide-react';
@@ -112,8 +111,8 @@ export function ResetPasswordModal({
                 onClick={handleGenerate}
                 className="text-xs text-amber-700 hover:text-amber-800 font-medium inline-flex items-center gap-1"
               >
-                <Sparkles className="h-3 w-3" />
-                <span>Générer automatiquement</span>
+                <RefreshCw className="h-3 w-3" />
+                <span>Générer un mot de passe</span>
               </button>
             </div>
 

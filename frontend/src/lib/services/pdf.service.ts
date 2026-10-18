@@ -23,10 +23,10 @@ function loadLogoDataUrl(): string | null {
     ];
 
     for (const p of candidatePaths) {
-      if (fs.existsSync(p)) {
+      if (fs.existsSync(/*turbopackIgnore: true*/ p)) {
         const ext = path.extname(p).toLowerCase().replace('.', '');
         const mime = ext === 'jpg' ? 'jpeg' : ext;
-        const base64 = fs.readFileSync(p).toString('base64');
+        const base64 = fs.readFileSync(/*turbopackIgnore: true*/ p).toString('base64');
         return `data:image/${mime};base64,${base64}`;
       }
     }
@@ -96,7 +96,7 @@ export class PdfService {
 
       doc.setFontSize(8);
       doc.setFont('helvetica', 'normal');
-      doc.text('Smart Car Rental Marketplace • Nador & Oriental', margin + 8, currentY + 18);
+      doc.text('Plateforme de Location Automobile • Nador & Région Oriental', margin + 8, currentY + 18);
     } else {
       // Titre / Slogan textuel à côté du logo officiel
       doc.setTextColor(255, 255, 255);
@@ -241,7 +241,25 @@ export class PdfService {
     doc.setFont('helvetica', 'bold');
     doc.text('Carburant :', clientX2, currentY);
     doc.setFont('helvetica', 'normal');
-    doc.text(booking.vehicle?.fuel || 'Diesel / Essence', clientX2 + 38, currentY);
+    const fuelLabels: Record<string, string> = {
+      DIESEL: 'Diesel',
+      GASOLINE: 'Essence / Sans-plomb',
+      HYBRID: 'Hybride (Essence + Électrique)',
+      ELECTRIC: 'Électrique (100%)',
+      // Variantes minuscules ou mixtes possibles depuis la DB
+      diesel: 'Diesel',
+      gasoline: 'Essence / Sans-plomb',
+      hybrid: 'Hybride (Essence + Électrique)',
+      electric: 'Électrique (100%)',
+      Diesel: 'Diesel',
+      Gasoline: 'Essence / Sans-plomb',
+      Hybrid: 'Hybride (Essence + Électrique)',
+      Electric: 'Électrique (100%)',
+    };
+    // Normaliser la clé pour robustesse (majuscule)
+    const fuelKey = (booking.vehicle?.fuel || '').trim().toUpperCase();
+    const fuelLabel = fuelKey ? (fuelLabels[fuelKey] || fuelKey) : 'Non renseigné';
+    doc.text(fuelLabel, clientX2 + 38, currentY);
 
     currentY += 6;
 
@@ -380,7 +398,30 @@ export class PdfService {
     doc.line(margin + 6, currentY + 11, pageWidth - margin - 6, currentY + 11);
 
     doc.text('Kilométrage au départ : _________________ km', margin + 6, currentY + 18);
-    doc.text('Niveau carburant : [ ] 1/4  [ ] 1/2  [ ] 3/4  [ ] Plein', margin + 6, currentY + 25);
+
+    // Afficher le type de carburant pré-rempli depuis la fiche véhicule
+    const handoverFuelLabels: Record<string, string> = {
+      DIESEL: 'Diesel',
+      GASOLINE: 'Essence',
+      HYBRID: 'Hybride',
+      ELECTRIC: 'Électrique',
+    };
+    const hFuelKey = (booking.vehicle?.fuel || '').trim().toUpperCase();
+    const hFuelType = hFuelKey ? (handoverFuelLabels[hFuelKey] || hFuelKey) : null;
+
+    if (hFuelType) {
+      // Type connu : afficher proprement avec le type pré-rempli
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(primaryNavy[0], primaryNavy[1], primaryNavy[2]);
+      doc.text(`Type carburant : ${hFuelType}`, margin + 6, currentY + 25);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(darkSlate[0], darkSlate[1], darkSlate[2]);
+      doc.text('  Niveau : [ ] 1/4  [ ] 1/2  [ ] 3/4  [X] Plein  (à cocher au départ)', margin + 6 + 44, currentY + 25);
+    } else {
+      // Type inconnu : cases à cocher sans pré-remplissage
+      doc.text('Carburant & Niveau : _______________  [ ] 1/4  [ ] 1/2  [ ] 3/4  [ ] Plein', margin + 6, currentY + 25);
+    }
+
     doc.text('Date & heure réelles : _____ / _____ / 2026 à _____ : _____', margin + 6, currentY + 32);
 
     // Cadre signatures

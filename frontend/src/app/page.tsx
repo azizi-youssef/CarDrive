@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { SearchBar } from '@/components/search/SearchBar';
 import { VehicleCard } from '@/components/cars/VehicleCard';
 import { AgencyCard } from '@/components/agencies/AgencyCard';
 import { loginUrl } from '@/lib/auth/login-portals';
+import { useRealtimeRefresh } from '@/lib/supabase/realtime';
 import type { Vehicle, Agency } from '@/types';
 
 import {
@@ -23,7 +24,7 @@ import {
   Plane,
   Search,
   ShieldCheck,
-  Sparkles,
+  SlidersHorizontal,
   Star,
   Users,
   Zap,
@@ -33,35 +34,29 @@ export default function HomePage() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [agencies, setAgencies] = useState<Agency[]>([]);
 
-  useEffect(() => {
-    let active = true;
-    let loading = false;
-    async function load() {
-      if (loading || document.visibilityState !== 'visible') return;
-      loading = true;
-      try {
-        const [vRes, aRes] = await Promise.all([
-          fetch('/api/vehicles', { cache: 'no-store' }).then((r) => r.json()),
-          fetch('/api/agencies', { cache: 'no-store' }).then((r) => r.json()),
-        ]);
-        if (!active) return;
-        if (vRes.success && Array.isArray(vRes.data)) setVehicles(vRes.data);
-        if (aRes.success && Array.isArray(aRes.data)) setAgencies(aRes.data);
-      } catch (err) {
-        console.warn('Error loading home data:', err);
-      } finally {
-        loading = false;
-      }
+  const load = useCallback(async () => {
+    try {
+      const [vRes, aRes] = await Promise.all([
+        fetch('/api/vehicles', { cache: 'no-store' }).then((r) => r.json()),
+        fetch('/api/agencies', { cache: 'no-store' }).then((r) => r.json()),
+      ]);
+      if (vRes.success && Array.isArray(vRes.data)) setVehicles(vRes.data);
+      if (aRes.success && Array.isArray(aRes.data)) setAgencies(aRes.data);
+    } catch (err) {
+      console.warn('Error loading home data:', err);
     }
-    void load();
-    const timer = setInterval(() => void load(), 30_000);
-    window.addEventListener('focus', load);
-    return () => {
-      active = false;
-      clearInterval(timer);
-      window.removeEventListener('focus', load);
-    };
   }, []);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  // Rafraîchissement automatique en direct (Supabase Realtime + Multi-onglets + Focus)
+  useRealtimeRefresh({
+    tables: ['vehicles', 'agencies', 'bookings'],
+    onRefresh: load,
+    pollingIntervalMs: 20_000,
+  });
 
   const featuredVehicles = vehicles;
   const featuredAgencies = agencies.slice(0, 4);
@@ -196,7 +191,7 @@ export default function HomePage() {
       title: 'Comparez',
       description:
         'Comparez les véhicules, prix, équipements et agences partenaires en toute transparence.',
-      icon: Sparkles,
+      icon: SlidersHorizontal,
     },
     {
       number: '03',
@@ -488,8 +483,8 @@ export default function HomePage() {
             {/* Copy */}
             <div>
               <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#E63946]/25 bg-[#E63946]/10 px-3 py-1.5 text-xs font-bold text-[#FF6B75]">
-                <Sparkles className="h-3.5 w-3.5" />
-                Une recherche plus intelligente
+                <Search className="h-3.5 w-3.5" />
+                Réseau multi-agences à Nador
               </div>
 
               <h2 className="max-w-xl text-4xl font-black leading-[1.05] tracking-tight sm:text-5xl">
@@ -542,20 +537,19 @@ export default function HomePage() {
                 {/* Header */}
                 <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
                   <div>
-                    <p className="font-mono text-[10px] uppercase tracking-wider text-slate-500">
-                      CarDrive Search
+                    <p className="font-mono text-[10px] uppercase tracking-wider text-slate-400">
+                      Réseau partenaires CarDrive
                     </p>
 
-                    <p className="mt-1 text-xs font-semibold text-slate-300">
-                      Résultats intelligents
+                    <p className="mt-1 text-xs font-semibold text-white">
+                      Disponibilité multi-agences
                     </p>
                   </div>
 
-                  <div className="flex gap-1.5">
-                    <span className="h-2 w-2 rounded-full bg-red-400" />
-                    <span className="h-2 w-2 rounded-full bg-amber-400" />
-                    <span className="h-2 w-2 rounded-full bg-emerald-400" />
-                  </div>
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[11px] font-semibold">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                    En direct
+                  </span>
                 </div>
 
                 <div className="space-y-4 p-5 sm:p-6">
@@ -579,8 +573,8 @@ export default function HomePage() {
 
                   {/* Alternative */}
                   <div className="flex items-center gap-2 text-xs font-bold text-emerald-400">
-                    <Sparkles className="h-4 w-4" />
-                    3 alternatives trouvées
+                    <CheckCircle2 className="h-4 w-4" />
+                    3 alternatives disponibles
                   </div>
 
                   {[

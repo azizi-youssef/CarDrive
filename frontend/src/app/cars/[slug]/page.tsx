@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { use, useState, useEffect } from 'react';
+import React, { use, useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -11,6 +11,7 @@ import { generateWhatsAppLink, formatPrice, cn } from '@/lib/utils';
 import { SameModelAlternatives } from '@/components/cars/SameModelAlternatives';
 import { Badge } from '@/components/ui/Badge';
 import { PriceDisplay } from '@/components/ui/PriceDisplay';
+import { useRealtimeRefresh } from '@/lib/supabase/realtime';
 import type { Vehicle, Review } from '@/types';
 import {
   Users,
@@ -32,7 +33,6 @@ import {
   ArrowRight,
   Heart,
   Share2,
-  Sparkles,
   BadgeCheck,
 } from 'lucide-react';
 
@@ -53,44 +53,47 @@ export default function CarDetailsPage({
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [favorite, setFavorite] = useState(false);
 
-  useEffect(() => {
-    let active = true;
-    async function load() {
-      try {
-        const [vRes, listRes] = await Promise.all([
-          fetch(`/api/vehicles/${encodeURIComponent(resolvedParams.slug)}`).then((r) => r.json()),
-          fetch('/api/vehicles').then((r) => r.json()),
-        ]);
-        if (!active) return;
-        if (vRes.success && vRes.data) {
-          setVehicle(vRes.data);
-          // Fetch reviews for this vehicle from database
-          try {
-            const revRes = await fetch(`/api/reviews?vehicle_id=${encodeURIComponent(vRes.data.id)}`).then((r) => r.json());
-            if (active && revRes.success && Array.isArray(revRes.data)) {
-              setReviews(revRes.data);
-            }
-          } catch (rErr) {
-            console.warn('Could not fetch reviews:', rErr);
+  const load = useCallback(async (isInitial = false) => {
+    try {
+      const [vRes, listRes] = await Promise.all([
+        fetch(`/api/vehicles/${encodeURIComponent(resolvedParams.slug)}`, { cache: 'no-store' }).then((r) => r.json()),
+        fetch('/api/vehicles', { cache: 'no-store' }).then((r) => r.json()),
+      ]);
+      if (vRes.success && vRes.data) {
+        setVehicle(vRes.data);
+        // Fetch reviews for this vehicle from database
+        try {
+          const revRes = await fetch(`/api/reviews?vehicle_id=${encodeURIComponent(vRes.data.id)}`, { cache: 'no-store' }).then((r) => r.json());
+          if (revRes.success && Array.isArray(revRes.data)) {
+            setReviews(revRes.data);
           }
-        } else {
-          setNotFoundState(true);
+        } catch (rErr) {
+          console.warn('Could not fetch reviews:', rErr);
         }
-        if (listRes.success && Array.isArray(listRes.data)) {
-          setAllVehicles(listRes.data);
-        }
-      } catch (err) {
-        console.warn('Error loading vehicle from database:', err);
-        if (active) setNotFoundState(true);
-      } finally {
-        if (active) setLoading(false);
+      } else if (isInitial) {
+        setNotFoundState(true);
       }
+      if (listRes.success && Array.isArray(listRes.data)) {
+        setAllVehicles(listRes.data);
+      }
+    } catch (err) {
+      console.warn('Error loading vehicle from database:', err);
+      if (isInitial) setNotFoundState(true);
+    } finally {
+      if (isInitial) setLoading(false);
     }
-    load();
-    return () => {
-      active = false;
-    };
   }, [resolvedParams.slug]);
+
+  useEffect(() => {
+    void load(true);
+  }, [load]);
+
+  // Rafraîchissement automatique en direct (Supabase Realtime + Multi-onglets + Focus)
+  useRealtimeRefresh({
+    tables: ['vehicles', 'bookings', 'reviews', 'vehicle_unavailability'],
+    onRefresh: () => load(false),
+    pollingIntervalMs: 20_000,
+  });
 
   if (loading) {
     return (

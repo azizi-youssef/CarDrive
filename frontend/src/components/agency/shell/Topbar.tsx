@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import Link from 'next/link';
-import { Bell, ChevronDown, Home, LogOut, RefreshCw, UserRound } from 'lucide-react';
+import { Bell, ChevronDown, Home, LogOut, RefreshCw, Settings, UserRound } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { BRAND } from '@/lib/design/tokens';
 
@@ -22,6 +22,7 @@ function initialsOf(label: string): string {
 function Popover({
   open,
   onClose,
+  onToggle,
   label,
   align = 'right',
   width = 'w-80',
@@ -30,6 +31,7 @@ function Popover({
 }: {
   open: boolean;
   onClose: () => void;
+  onToggle?: () => void;
   label: string;
   align?: 'left' | 'right';
   width?: string;
@@ -60,7 +62,11 @@ function Popover({
 
   return (
     <div ref={ref} className="relative">
-      {trigger({ onClick: () => onClose(), 'aria-expanded': open, 'aria-haspopup': 'menu' })}
+      {trigger({
+        onClick: onToggle ?? (() => (open ? onClose() : undefined)),
+        'aria-expanded': open,
+        'aria-haspopup': 'menu',
+      })}
       {open && (
         <div
           role="menu"
@@ -153,6 +159,7 @@ export function Topbar({
         <Popover
           open={bellOpen}
           onClose={() => setBellOpen(false)}
+          onToggle={() => setBellOpen((prev) => !prev)}
           label="Notifications"
           width="w-80"
           trigger={(props) => (
@@ -207,65 +214,102 @@ export function Topbar({
         <Popover
           open={menuOpen}
           onClose={() => setMenuOpen(false)}
+          onToggle={() => setMenuOpen((prev) => !prev)}
           label="Compte"
-          width="w-56"
+          width="w-64"
           trigger={(props) => (
             <button
               type="button"
               {...props}
               className="flex shrink-0 items-center gap-2 rounded-xl border border-slate-200 py-1.5 pl-1.5 pr-2.5 outline-none transition-colors hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-[#E63946]"
             >
-              {avatarUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element -- avatar distant, taille imposee
-                <img src={avatarUrl} alt="" className="h-7 w-7 rounded-lg object-cover" />
-              ) : (
-                <span
-                  aria-hidden="true"
-                  className="flex h-7 w-7 items-center justify-center rounded-lg text-[11px] font-bold text-white"
-                  style={{ background: BRAND.navy }}
-                >
-                  {initialsOf(userLabel)}
-                </span>
-              )}
+              <div className="relative h-7 w-7 rounded-lg overflow-hidden bg-white border border-slate-200 shrink-0 flex items-center justify-center">
+                {avatarUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src="/icon_logo.png" alt="" className="h-full w-full object-contain p-0.5" />
+                )}
+              </div>
               <span className="hidden max-w-32 truncate text-sm font-medium text-slate-700 sm:block">
                 {userLabel}
               </span>
-              <ChevronDown aria-hidden="true" className="h-3.5 w-3.5 text-slate-400" />
+              <ChevronDown
+                aria-hidden="true"
+                className={cn(
+                  'h-3.5 w-3.5 text-slate-400 transition-transform duration-200',
+                  menuOpen && 'rotate-180 text-slate-700'
+                )}
+              />
             </button>
           )}
         >
-          <div className="border-b border-slate-100 px-3 pb-2.5 pt-2">
-            <p className="truncate text-sm font-semibold text-[#0F172A]">{userLabel}</p>
-            <p className="truncate text-xs text-[#64748B]">{agencyName}</p>
+          <div className="border-b border-slate-100 px-3 pb-2.5 pt-2 flex items-center gap-2.5">
+            <div className="relative h-9 w-9 rounded-lg overflow-hidden bg-white border border-slate-200 shrink-0 flex items-center justify-center shadow-xs">
+              {avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src="/icon_logo.png" alt="" className="h-full w-full object-contain p-0.5" />
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold text-[#0F172A]">{userLabel}</p>
+              <p className="truncate text-xs text-[#64748B]">{agencyName}</p>
+            </div>
           </div>
-          <Link
-            href="/account"
-            role="menuitem"
-            onClick={() => setMenuOpen(false)}
-            className="mt-1 flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-slate-700 transition-colors hover:bg-slate-50"
-          >
-            <UserRound aria-hidden="true" className="h-4 w-4 text-slate-400" />
-            Mon profil
-          </Link>
-          <Link
-            href="/"
-            role="menuitem"
-            onClick={() => setMenuOpen(false)}
-            className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-slate-700 transition-colors hover:bg-slate-50"
-          >
-            <Home aria-hidden="true" className="h-4 w-4 text-slate-400" />
-            Retour à l&apos;accueil
-          </Link>
-          <button
-            type="button"
-            role="menuitem"
-            onClick={onSignOut}
-            disabled={signingOut}
-            className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-wait disabled:opacity-50"
-          >
-            <LogOut aria-hidden="true" className="h-4 w-4 text-slate-400" />
-            {signingOut ? 'Déconnexion…' : 'Déconnexion'}
-          </button>
+
+          <div className="py-1">
+            <Link
+              href="/account"
+              role="menuitem"
+              onClick={() => setMenuOpen(false)}
+              className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-slate-700 transition-colors hover:bg-slate-50"
+            >
+              <UserRound aria-hidden="true" className="h-4 w-4 text-slate-400" />
+              <span>Mon profil & photo</span>
+            </Link>
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                setMenuOpen(false);
+                onNavigate('settings');
+              }}
+              className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-slate-700 transition-colors hover:bg-slate-50 text-left"
+            >
+              <Settings aria-hidden="true" className="h-4 w-4 text-slate-400" />
+              <span>Paramètres de l&apos;agence</span>
+            </button>
+            <Link
+              href="/"
+              target="_blank"
+              role="menuitem"
+              onClick={() => setMenuOpen(false)}
+              className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-slate-700 transition-colors hover:bg-slate-50"
+            >
+              <Home aria-hidden="true" className="h-4 w-4 text-slate-400" />
+              <span>Voir le site CarDrive</span>
+            </Link>
+          </div>
+
+          <div className="border-t border-slate-100 pt-1">
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                setMenuOpen(false);
+                onSignOut();
+              }}
+              disabled={signingOut}
+              className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50 disabled:cursor-wait disabled:opacity-50"
+            >
+              <LogOut aria-hidden="true" className="h-4 w-4 text-red-500" />
+              <span>{signingOut ? 'Déconnexion en cours…' : 'Se déconnecter'}</span>
+            </button>
+          </div>
         </Popover>
       </div>
 

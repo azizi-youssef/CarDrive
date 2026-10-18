@@ -63,6 +63,7 @@ export function Sidebar({
   onToggleCollapsed,
   agencyName,
   verified,
+  logoUrl,
   onSignOut,
   signingOut = false,
 }: {
@@ -73,6 +74,7 @@ export function Sidebar({
   onToggleCollapsed: () => void;
   agencyName: string;
   verified: boolean;
+  logoUrl?: string | null;
   onSignOut?: () => void;
   signingOut?: boolean;
 }) {
@@ -87,9 +89,15 @@ export function Sidebar({
       <div className="flex h-16 items-center gap-3 border-b border-white/10 px-4">
         <div
           aria-hidden="true"
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#E63946] text-sm font-bold text-white"
+          className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white overflow-hidden border border-white/20 shadow-xs"
         >
-          CD
+          {logoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={logoUrl} alt={agencyName} className="h-full w-full object-cover" />
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src="/icon_logo.png" alt="CarDrive" className="h-full w-full object-contain p-1" />
+          )}
         </div>
         {!collapsed && (
           <div className="min-w-0 flex-1">

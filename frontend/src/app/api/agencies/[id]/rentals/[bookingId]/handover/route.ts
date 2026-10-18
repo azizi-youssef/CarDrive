@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAgencyPermissionApi } from '@/lib/auth/access-api';
-import { createAdminClient } from '@/lib/supabase/server';
+import { deliveryService } from '@/lib/services';
 import { z } from 'zod';
 
 type RouteContext = { params: Promise<{ id: string; bookingId: string }> };
@@ -53,124 +53,37 @@ export async function POST(request: NextRequest, context: RouteContext) {
   }
 
   const input = parsed.data;
-  const supabase = await createAdminClient();
-  if (!supabase) return failure('Service de base de données indisponible.', 503);
 
-  // 1. Récupérer la réservation
-  const { data: booking, error: bErr } = await supabase
-    .from('bookings')
-    .select('id, reference, booking_ref, vehicle_id, agency_id, status, total_price, deposit_amount')
-    .eq('id', bookingId)
-    .eq('agency_id', agencyId)
-    .maybeSingle();
+  const result = await deliveryService.validateHandover({
+    bookingId,
+    agencyId,
+    type: input.type,
+    actorId: gate.auth.userId,
+    actorRole: 'AGENCY_MANAGER',
+    mileage: input.mileage,
+    fuelLevel: input.fuelLevel,
+    cleanliness: input.cleanliness,
+    checklist: input.checklist,
+    notes: input.notes,
+    damagesDescription: input.damagesDescription,
+    depositReturned: input.depositReturned,
+    depositDeduction: input.depositDeduction,
+    sendWhatsAppNotification: true,
+  });
 
-  if (bErr || !booking) {
-    return failure('Réservation introuvable pour cette agence.', 404);
+  if (!result.success) {
+    return failure(result.error || 'Erreur lors de la validation de la remise', 500);
   }
 
-  const nowIso = new Date().toISOString();
-  const actorRole = 'AGENCY_MANAGER';
-  const actorId = gate.auth.userId;
-
-  if (input.type === 'PICKUP') {
-    // Validation du départ : le statut passe à ACTIVE
-    const { error: updateErr } = await supabase
-      .from('bookings')
-      .update({
-        status: 'ACTIVE',
-        updated_at: nowIso,
-      })
-      .eq('id', bookingId);
-
-    if (updateErr) {
-      return failure(`Erreur mise à jour départ: ${updateErr.message}`, 500);
-    }
-
-    // Mettre à jour le véhicule en RENTED et synchroniser son compteur
-    if (booking.vehicle_id) {
-      await supabase
-        .from('vehicles')
-        .update({
-          status: 'RENTED',
-          mileage: input.mileage,
-          updated_at: nowIso,
-        })
-        .eq('id', booking.vehicle_id);
-    }
-
-    // Journaliser dans booking_events
-    await supabase.from('booking_events').insert({
-      booking_id: bookingId,
-      actor_id: actorId,
-      actor_role: actorRole,
-      event_type: 'RENTAL_STARTED',
-      metadata: {
-        type: 'PICKUP',
-        mileage: input.mileage,
-        fuelLevel: input.fuelLevel,
-        cleanliness: input.cleanliness,
-        checklist: input.checklist,
-        notes: input.notes,
-        timestamp: nowIso,
-      },
-    });
-
-    return NextResponse.json({
-      success: true,
-      message: 'Véhicule remis au client. Location en cours.',
-      status: 'ACTIVE',
-    });
-  } else {
-    // Validation du retour : le statut passe à COMPLETED
-    const { error: updateErr } = await supabase
-      .from('bookings')
-      .update({
-        status: 'COMPLETED',
-        completed_at: nowIso,
-        updated_at: nowIso,
-      })
-      .eq('id', bookingId);
-
-    if (updateErr) {
-      return failure(`Erreur mise à jour retour: ${updateErr.message}`, 500);
-    }
-
-    // Mettre à jour le véhicule en AVAILABLE avec son nouveau compteur
-    if (booking.vehicle_id) {
-      await supabase
-        .from('vehicles')
-        .update({
-          status: 'AVAILABLE',
-          mileage: input.mileage,
-          updated_at: nowIso,
-        })
-        .eq('id', booking.vehicle_id);
-    }
-
-    // Journaliser dans booking_events
-    await supabase.from('booking_events').insert({
-      booking_id: bookingId,
-      actor_id: actorId,
-      actor_role: actorRole,
-      event_type: 'RENTAL_COMPLETED',
-      metadata: {
-        type: 'RETURN',
-        mileage: input.mileage,
-        fuelLevel: input.fuelLevel,
-        cleanliness: input.cleanliness,
-        checklist: input.checklist,
-        damagesDescription: input.damagesDescription,
-        depositReturned: input.depositReturned,
-        depositDeduction: input.depositDeduction,
-        notes: input.notes,
-        timestamp: nowIso,
-      },
-    });
-
-    return NextResponse.json({
-      success: true,
-      message: 'Véhicule restitué et inspecté. Réservation finalisée.',
-      status: 'COMPLETED',
-    });
-  }
+  return NextResponse.json({
+    success: true,
+    message:
+      input.type === 'PICKUP'
+        ? 'Véhicule remis au client. Location en cours.'
+        : 'Véhicule restitué et inspecté. Réservation finalisée.',
+    status: result.bookingStatus,
+    vehicleStatus: result.vehicleStatus,
+    distanceDrivenKm: result.distanceDrivenKm,
+    whatsappSent: result.whatsappSent,
+  });
 }

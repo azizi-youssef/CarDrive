@@ -1,12 +1,13 @@
 'use client';
 
-import React, { use, useState, useEffect } from 'react';
+import React, { use, useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { VehicleCard } from '@/components/cars/VehicleCard';
 import { AgencyLogo } from '@/components/agencies/AgencyLogo';
 import { AgencyBanner } from '@/components/agencies/AgencyBanner';
 import { Badge } from '@/components/ui/Badge';
+import { useRealtimeRefresh } from '@/lib/supabase/realtime';
 import type { Agency, Vehicle } from '@/types';
 import {
   MapPin,
@@ -31,63 +32,56 @@ export default function AgencyDetailPage({ params }: AgencyDetailPageProps) {
   const [loading, setLoading] = useState(true);
   const [notFoundState, setNotFoundState] = useState(false);
 
+  const loadVehicles = useCallback(async (agencyId: string) => {
+    try {
+      const response = await fetch(
+        `/api/vehicles?agencyId=${encodeURIComponent(agencyId)}`,
+        { cache: 'no-store' }
+      ).then((r) => r.json());
+      if (response.success && Array.isArray(response.data)) {
+        setVehicles(response.data);
+      }
+    } catch (err) {
+      console.warn('Error refreshing agency vehicles:', err);
+    }
+  }, []);
+
+  const load = useCallback(async () => {
+    try {
+      const aRes = await fetch('/api/agencies', { cache: 'no-store' }).then((r) => r.json());
+      const found = aRes.success && Array.isArray(aRes.data)
+        ? aRes.data.find((a: Agency) => a.slug === resolvedParams.slug)
+        : null;
+      if (!found) {
+        setNotFoundState(true);
+        return;
+      }
+      setAgency(found);
+      await loadVehicles(found.id);
+    } catch (err) {
+      console.warn('Error loading agency detail:', err);
+      setNotFoundState(true);
+    } finally {
+      setLoading(false);
+    }
+  }, [resolvedParams.slug, loadVehicles]);
+
   useEffect(() => {
-    let active = true;
-    let selectedAgencyId: string | null = null;
-    let vehicleRefreshTimer: ReturnType<typeof setInterval> | undefined;
-    let loadingVehicles = false;
+    void load();
+  }, [load]);
 
-    async function loadVehicles(agencyId: string) {
-      if (!active || loadingVehicles || document.visibilityState !== 'visible') return;
-      loadingVehicles = true;
-      try {
-        const response = await fetch(
-          `/api/vehicles?agencyId=${encodeURIComponent(agencyId)}`,
-          { cache: 'no-store' }
-        ).then((r) => r.json());
-        if (active && response.success && Array.isArray(response.data)) {
-          setVehicles(response.data);
-        }
-      } catch (err) {
-        console.warn('Error refreshing agency vehicles:', err);
-      } finally {
-        loadingVehicles = false;
+  // Rafraîchissement automatique en direct
+  useRealtimeRefresh({
+    tables: ['vehicles', 'agencies', 'bookings'],
+    onRefresh: () => {
+      if (agency?.id) {
+        void loadVehicles(agency.id);
+      } else {
+        void load();
       }
-    }
-
-    async function load() {
-      try {
-        const aRes = await fetch('/api/agencies', { cache: 'no-store' }).then((r) => r.json());
-        if (!active) return;
-        const found = aRes.success && Array.isArray(aRes.data)
-          ? aRes.data.find((a: Agency) => a.slug === resolvedParams.slug)
-          : null;
-        if (!found) {
-          setNotFoundState(true);
-          return;
-        }
-        selectedAgencyId = found.id;
-        setAgency(found);
-        await loadVehicles(found.id);
-        vehicleRefreshTimer = setInterval(() => void loadVehicles(found.id), 30_000);
-      } catch (err) {
-        console.warn('Error loading agency detail:', err);
-        if (active) setNotFoundState(true);
-      } finally {
-        if (active) setLoading(false);
-      }
-    }
-    load();
-    const refreshOnFocus = () => {
-      if (selectedAgencyId) void loadVehicles(selectedAgencyId);
-    };
-    window.addEventListener('focus', refreshOnFocus);
-    return () => {
-      active = false;
-      if (vehicleRefreshTimer) clearInterval(vehicleRefreshTimer);
-      window.removeEventListener('focus', refreshOnFocus);
-    };
-  }, [resolvedParams.slug]);
+    },
+    pollingIntervalMs: 20_000,
+  });
 
   if (loading) {
     return (

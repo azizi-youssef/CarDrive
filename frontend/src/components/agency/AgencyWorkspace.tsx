@@ -123,6 +123,30 @@ export function AgencyWorkspace({
   const noticeId = useRef(0);
   const mounted = useRef(true);
 
+  const [currentLogoUrl, setCurrentLogoUrl] = useState<string | null>(
+    () => agency.logoUrl || profile?.avatarUrl || null
+  );
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      fetch('/api/auth/me', { cache: 'no-store' })
+        .then((res) => res.json())
+        .then((body) => {
+          if (body?.success && body?.user) {
+            const logo = body.user.agencyLogoUrl || body.user.avatarUrl;
+            if (logo) setCurrentLogoUrl(logo);
+          }
+        })
+        .catch(() => {});
+    };
+    window.addEventListener('cardrive:profile-updated', handleUpdate);
+    window.addEventListener('focus', handleUpdate);
+    return () => {
+      window.removeEventListener('cardrive:profile-updated', handleUpdate);
+      window.removeEventListener('focus', handleUpdate);
+    };
+  }, []);
+
   useEffect(() => {
     mounted.current = true;
     return () => {
@@ -417,6 +441,7 @@ export function AgencyWorkspace({
         onToggleCollapsed={() => undefined}
         agencyName={agency.name}
         verified={agency.verified}
+        logoUrl={currentLogoUrl}
         onSignOut={() => void handleSignOut()}
         signingOut={signingOut}
       />
@@ -424,8 +449,8 @@ export function AgencyWorkspace({
       <div className="min-w-0 flex-1">
         <Topbar
           agencyName={agency.name}
-          userLabel={profile?.displayName ?? 'Compte agence'}
-          avatarUrl={profile?.avatarUrl ?? null}
+          userLabel={profile?.displayName ?? agency.name}
+          avatarUrl={currentLogoUrl}
           crumbs={[{ label: currentLabel }]}
           notifications={
             pending > 0

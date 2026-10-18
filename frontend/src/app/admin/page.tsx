@@ -11,6 +11,8 @@ export const metadata: Metadata = {
   title: "Vue d'ensemble",
 };
 
+export const dynamic = 'force-dynamic';
+
 // Server-side data fetching
 async function getOverviewData() {
   const [stats, commissionSettings] = await Promise.allSettled([

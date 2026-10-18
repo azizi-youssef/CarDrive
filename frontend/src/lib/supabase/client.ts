@@ -8,6 +8,8 @@ export function isSupabaseConfigured(): boolean {
   );
 }
 
+let browserClientInstance: ReturnType<typeof createBrowserClient> | null = null;
+
 export function createClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
@@ -15,6 +17,13 @@ export function createClient() {
   if (!isSupabaseConfigured()) {
     // Mode dégradé si non configuré
     return null;
+  }
+
+  if (typeof window !== 'undefined') {
+    if (!browserClientInstance) {
+      browserClientInstance = createBrowserClient(supabaseUrl, supabaseAnonKey);
+    }
+    return browserClientInstance;
   }
 
   return createBrowserClient(supabaseUrl, supabaseAnonKey);

@@ -155,7 +155,7 @@ export class BookingsService {
     const { data, error } = await supabase
       .from('bookings')
       .select(
-        `${BOOKING_READ_COLUMNS}${includeCustomerData ? `, ${BOOKING_CUSTOMER_COLUMNS}` : ''}, vehicle:vehicles(id, agency_id, brand, model, slug, category, daily_price), agency:agencies(id, name, slug, phone, whatsapp, email, city, address)`
+        `${BOOKING_READ_COLUMNS}${includeCustomerData ? `, ${BOOKING_CUSTOMER_COLUMNS}` : ''}, vehicle:vehicles(*), agency:agencies(*)`
       )
       .or(`reference.eq.${cleanRef},booking_ref.eq.${cleanRef}`)
       .maybeSingle();
@@ -192,7 +192,7 @@ export class BookingsService {
     let query = supabase
       .from('bookings')
       .select(
-        `${BOOKING_READ_COLUMNS}${includeCustomerData ? `, ${BOOKING_CUSTOMER_COLUMNS}` : ''}, vehicle:vehicles(id, agency_id, brand, model, slug, category, daily_price), agency:agencies(id, name, slug, phone, whatsapp, email, city, address), events:booking_events(id, booking_id, actor_role, event_type, created_at)`
+        `${BOOKING_READ_COLUMNS}${includeCustomerData ? `, ${BOOKING_CUSTOMER_COLUMNS}` : ''}, vehicle:vehicles(*), agency:agencies(*), events:booking_events(id, booking_id, actor_role, event_type, created_at)`
       );
 
     if (filters?.agencyId) {

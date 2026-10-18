@@ -10,6 +10,7 @@ import { LOCATIONS_NADOR } from '@/lib/constants/catalog';
 import { MEETING_POINTS, getMeetingPoint } from '@/lib/constants/meetingPoints';
 import { MeetingPointBadge } from './MeetingPointBadge';
 import { addDateDays, formatLocalDate, isValidDateOnly } from '@/lib/utils/date-only';
+import { notifyRealtimeChange } from '@/lib/supabase/realtime';
 import {
   X,
   User,
@@ -182,6 +183,8 @@ export function BookingRequestModal({
       if (data.agencyWhatsAppUrl) {
         setAgencyWhatsAppUrl(data.agencyWhatsAppUrl);
       }
+      // Notifier immédiatement toutes les pages/onglets ouverts pour rafraîchir les disponibilités
+      notifyRealtimeChange(['bookings', 'vehicles', 'vehicle_unavailability']);
       setCurrentStep(5); // Écran de confirmation
     } catch (err: any) {
       setSubmissionError(err.message || 'Une erreur est survenue lors de l’envoi de votre demande.');

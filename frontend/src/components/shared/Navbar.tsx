@@ -17,7 +17,7 @@ import {
   Plane,
   Anchor,
   CarFront,
-  Sparkles,
+  Gauge,
   ArrowRight,
   MapPin,
   ShieldCheck,
@@ -136,7 +136,7 @@ const destinationItems = [
     shortTitle: 'Automatique',
     href: '/location-voiture-nador-automatique',
     desc: 'Confort et conduite simplifiée',
-    icon: Sparkles,
+    icon: Gauge,
   },
 ];
 

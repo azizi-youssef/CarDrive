@@ -49,6 +49,9 @@ export function AgencyLogoUploader({
         throw new Error(result.error || `Impossible d’enregistrer l’image.`);
       }
       onUploaded(result.data[field]);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('cardrive:profile-updated'));
+      }
     } catch (uploadError) {
       setError(uploadError instanceof Error ? uploadError.message : 'Échec du téléversement.');
     } finally {

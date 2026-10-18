@@ -5,7 +5,7 @@ export interface MeetingPoint {
   code: string;
   type: 'AIRPORT' | 'PORT' | 'AGENCY' | 'CITY' | 'RESORT' | 'TRAIN';
   badgeLabel: string;
-  iconName: 'Plane' | 'Anchor' | 'Building2' | 'MapPin' | 'Sparkles' | 'Train';
+  iconName: 'Plane' | 'Anchor' | 'Building2' | 'MapPin' | 'Hotel' | 'Train';
   gradientBg: string;
   borderColor: string;
   textColor: string;
@@ -73,7 +73,7 @@ export const MEETING_POINTS: MeetingPoint[] = [
     code: 'MARCHICA',
     type: 'RESORT',
     badgeLabel: 'Resort & Hôtels',
-    iconName: 'Sparkles',
+    iconName: 'Hotel',
     gradientBg: 'from-emerald-600 to-teal-700',
     borderColor: 'border-emerald-300',
     textColor: 'text-emerald-700',

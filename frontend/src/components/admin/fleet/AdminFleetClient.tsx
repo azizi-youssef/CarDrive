@@ -7,6 +7,7 @@ import {
   AdminCard, TableWrapper, Th, Td, TableSkeletonRows,
   EmptyState, Pagination, SearchInput, SelectFilter, Btn, ErrorBanner, StatusBadge,
 } from '@/components/admin/AdminUI';
+import { useRealtimeRefresh } from '@/lib/supabase/realtime';
 
 const PAGE_SIZE = 20;
 const CATEGORY_OPTIONS = [
@@ -47,6 +48,13 @@ export function AdminFleetClient() {
   }, []);
 
   useEffect(() => { void load('initial'); return () => abortRef.current?.abort(); }, [load]);
+
+  // Rafraîchissement automatique en direct de la flotte
+  useRealtimeRefresh({
+    tables: ['vehicles'],
+    onRefresh: () => load('refresh'),
+    pollingIntervalMs: 20_000,
+  });
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();

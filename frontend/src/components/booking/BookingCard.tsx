@@ -152,7 +152,7 @@ export function BookingCard({ vehicle }: BookingCardProps) {
       ) : (
         /* Booking Form */
         <form onSubmit={handleOnlineBooking} className="space-y-4">
-          
+
           {/* Dates Picker */}
           <div className="grid grid-cols-2 gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-200/80">
             <div>
@@ -262,7 +262,7 @@ export function BookingCard({ vehicle }: BookingCardProps) {
               <span>Tarif journalier</span>
               <span className="font-semibold text-slate-900">{formatPrice(vehicle.daily_price)}</span>
             </div>
-            
+
             <div className="pt-2 border-t border-slate-200 flex justify-between text-sm font-extrabold text-[#0B1220]">
               <span>Total location</span>
               <span>{formatPrice(totalPrice)}</span>

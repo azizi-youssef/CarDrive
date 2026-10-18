@@ -173,10 +173,12 @@ export function AdminCard({
   children,
   className,
   noPadding,
+  title,
 }: {
   children: React.ReactNode;
   className?: string;
   noPadding?: boolean;
+  title?: React.ReactNode;
 }) {
   return (
     <div
@@ -186,6 +188,11 @@ export function AdminCard({
         className
       )}
     >
+      {title && (
+        <div className="border-b border-slate-100 pb-3 mb-4">
+          <h3 className="text-sm font-semibold text-slate-900">{title}</h3>
+        </div>
+      )}
       {children}
     </div>
   );
@@ -406,10 +413,13 @@ export function Btn({
   size = 'md',
   children,
   className,
+  loading = false,
+  disabled,
   ...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: 'primary' | 'secondary' | 'danger' | 'ghost';
+  variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'outline';
   size?: 'sm' | 'md';
+  loading?: boolean;
 }) {
   const base =
     'inline-flex items-center justify-center gap-2 font-medium rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed';
@@ -418,6 +428,8 @@ export function Btn({
       'bg-[#E63946] text-white hover:bg-[#C92F3B] focus-visible:ring-[#E63946]/50 shadow-sm',
     secondary:
       'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 focus-visible:ring-slate-400/50',
+    outline:
+      'bg-transparent border border-slate-300 text-slate-700 hover:bg-slate-50 focus-visible:ring-slate-400/50',
     danger:
       'bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-500/50 shadow-sm',
     ghost:
@@ -428,7 +440,34 @@ export function Btn({
     md: 'h-9 px-4 text-sm',
   };
   return (
-    <button type="button" className={cn(base, variants[variant], sizes[size], className)} {...props}>
+    <button
+      type="button"
+      disabled={disabled || loading}
+      className={cn(base, variants[variant], sizes[size], className)}
+      {...props}
+    >
+      {loading && (
+        <svg
+          className="h-3.5 w-3.5 animate-spin text-current"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <circle
+            className="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+          />
+          <path
+            className="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8v8H4z"
+          />
+        </svg>
+      )}
       {children}
     </button>
   );

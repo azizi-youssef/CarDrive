@@ -154,6 +154,34 @@ export default function RootLayout({
       className={`h-full scroll-smooth ${plusJakartaSans.variable}`}
       suppressHydrationWarning
     >
+      <head>
+        {/* Nettoyage des attributs injectés par les extensions navigateur (ex: Bitdefender bis_skin_checked) avant l'hydratation React */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var clean = function() {
+                    var els = document.querySelectorAll('[bis_skin_checked]');
+                    for (var i = 0; i < els.length; i++) {
+                      els[i].removeAttribute('bis_skin_checked');
+                    }
+                  };
+                  clean();
+                  if (typeof MutationObserver !== 'undefined') {
+                    var obs = new MutationObserver(clean);
+                    obs.observe(document.documentElement, {
+                      attributes: true,
+                      subtree: true,
+                      attributeFilter: ['bis_skin_checked']
+                    });
+                  }
+                } catch (e) {}
+              })();
+            `,
+          }}
+        />
+      </head>
       <body
         className="flex min-h-full flex-col bg-[#F8FAFC] font-sans text-[#0F172A] antialiased selection:bg-[#E63946] selection:text-white"
         suppressHydrationWarning

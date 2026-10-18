@@ -4,6 +4,7 @@ import { AdminFinanceClient } from '@/components/admin/finance/AdminFinanceClien
 import { commissionService } from '@/lib/services/commission.service';
 
 export const metadata: Metadata = { title: 'Commissions & Finance' };
+export const dynamic = 'force-dynamic';
 
 export default async function AdminFinancePage() {
   let commissionRate = 15;

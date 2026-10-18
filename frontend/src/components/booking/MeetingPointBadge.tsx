@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plane, Anchor, Building2, MapPin, Sparkles, Train } from 'lucide-react';
+import { Plane, Anchor, Building2, MapPin, Hotel, Train } from 'lucide-react';
 import { getMeetingPoint, MeetingPoint } from '@/lib/constants/meetingPoints';
 
 interface MeetingPointBadgeProps {
@@ -25,8 +25,8 @@ export function MeetingPointBadge({
         return <Anchor className={iconSizeClass} />;
       case 'Building2':
         return <Building2 className={iconSizeClass} />;
-      case 'Sparkles':
-        return <Sparkles className={iconSizeClass} />;
+      case 'Hotel':
+        return <Hotel className={iconSizeClass} />;
       case 'Train':
         return <Train className={iconSizeClass} />;
       default:

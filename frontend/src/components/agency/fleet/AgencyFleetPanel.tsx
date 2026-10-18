@@ -21,7 +21,6 @@ import {
   EyeOff,
   Fuel,
   Gauge,
-  Sparkles,
   Camera,
 } from 'lucide-react';
 import { cn, formatPrice } from '@/lib/utils';

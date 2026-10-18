@@ -29,6 +29,7 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { fetchClientAuthProfile, type ClientAuthProfile } from '@/lib/auth/client';
 
 /* ── Navigation items ──────────────────────────────────────────────── */
 const NAV_GROUPS = [
@@ -341,7 +342,27 @@ export function AdminTopBar({
   loggingOut: boolean;
 }) {
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [userProfile, setUserProfile] = useState<ClientAuthProfile | null>(null);
   const profileRef = useRef<HTMLDivElement>(null);
+
+  const loadProfile = useCallback(() => {
+    fetchClientAuthProfile()
+      .then((profile) => {
+        if (profile) setUserProfile(profile);
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    loadProfile();
+    const handleUpdate = () => loadProfile();
+    window.addEventListener('cardrive:profile-updated', handleUpdate);
+    window.addEventListener('focus', handleUpdate);
+    return () => {
+      window.removeEventListener('cardrive:profile-updated', handleUpdate);
+      window.removeEventListener('focus', handleUpdate);
+    };
+  }, [loadProfile]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -356,6 +377,13 @@ export function AdminTopBar({
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [profileMenuOpen]);
+
+  const customAvatar = userProfile?.avatarUrl || userProfile?.agencyLogoUrl;
+  const avatarSrc = customAvatar || '/icon_logo.png';
+  const isCustom = Boolean(customAvatar);
+  const displayName = userProfile?.displayName || 'Super Admin';
+  const email = userProfile?.email || 'admin@cardrive.ma';
+  const roleCode = userProfile?.role || 'SUPER_ADMIN';
 
   return (
     <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/90 h-16 sm:h-[70px] flex items-center px-4 sm:px-6 lg:px-8 gap-3 sm:gap-4 transition-all shadow-2xs">
@@ -435,19 +463,24 @@ export function AdminTopBar({
           aria-expanded={profileMenuOpen}
           aria-haspopup="true"
         >
-          <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-xl bg-gradient-to-br from-[#E63946] to-[#C92F3B] flex items-center justify-center text-white text-xs font-bold shrink-0 shadow-xs border border-white/20">
-            SA
+          <div className="relative h-8 w-8 sm:h-9 sm:w-9 rounded-xl bg-white flex items-center justify-center shrink-0 shadow-xs border border-slate-200/90 overflow-hidden ring-1 ring-slate-100">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={avatarSrc}
+              alt={displayName}
+              className={isCustom ? "h-full w-full object-cover" : "h-full w-full object-contain p-1"}
+            />
           </div>
           <div className="hidden sm:block text-left">
             <p className="text-xs font-bold text-slate-900 leading-tight flex items-center gap-1">
-              <span>Super Admin</span>
+              <span className="max-w-[120px] truncate">{displayName}</span>
               <ChevronDown
                 className={`h-3 w-3 text-slate-400 transition-transform duration-200 ${
                   profileMenuOpen ? 'rotate-180 text-slate-700' : ''
                 }`}
               />
             </p>
-            <p className="text-[11px] text-slate-500 font-mono">admin@cardrive.ma</p>
+            <p className="text-[11px] text-slate-500 font-mono max-w-[140px] truncate">{email}</p>
           </div>
         </button>
 
@@ -455,12 +488,22 @@ export function AdminTopBar({
         {profileMenuOpen && (
           <div className="absolute right-0 top-full mt-2 w-64 rounded-2xl bg-white shadow-2xl border border-slate-200 p-2 text-left z-50 animate-scale-in">
             {/* Header info card */}
-            <div className="px-3 py-2.5 bg-slate-50 rounded-xl mb-1.5 border border-slate-100">
-              <p className="text-xs font-bold text-slate-900">Super Administrateur</p>
-              <p className="text-[11px] text-slate-500 font-mono truncate">admin@cardrive.ma</p>
-              <div className="mt-2 flex items-center gap-1 text-[10px] font-semibold text-red-700 bg-red-100/70 px-2 py-0.5 rounded-md w-fit">
-                <ShieldCheck className="h-3 w-3" />
-                <span>Rôle : SUPER_ADMIN</span>
+            <div className="px-3 py-2.5 bg-slate-50 rounded-xl mb-1.5 border border-slate-100 flex items-center gap-2.5">
+              <div className="relative h-10 w-10 rounded-xl bg-white border border-slate-200 shrink-0 overflow-hidden shadow-xs ring-1 ring-slate-100">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={avatarSrc}
+                  alt={displayName}
+                  className={isCustom ? "h-full w-full object-cover" : "h-full w-full object-contain p-1"}
+                />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-bold text-slate-900 truncate">{displayName}</p>
+                <p className="text-[11px] text-slate-500 font-mono truncate">{email}</p>
+                <div className="mt-1 flex items-center gap-1 text-[10px] font-semibold text-red-700 bg-red-100/70 px-1.5 py-0.5 rounded-md w-fit">
+                  <ShieldCheck className="h-3 w-3" />
+                  <span>Rôle : {roleCode}</span>
+                </div>
               </div>
             </div>
 

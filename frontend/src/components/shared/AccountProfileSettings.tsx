@@ -127,6 +127,9 @@ export function AccountProfileSettings() {
       setSuccess('Votre profil a été mis à jour.');
       setRemoveAvatar(false);
       clearSelectedPhoto();
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('cardrive:profile-updated'));
+      }
       router.refresh();
     } catch (saveError: unknown) {
       setError(saveError instanceof Error ? saveError.message : 'Impossible d’enregistrer le profil.');

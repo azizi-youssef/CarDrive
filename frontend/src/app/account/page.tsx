@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { formatPrice } from '@/lib/utils';
 import { Badge } from '@/components/ui/Badge';
 import { Booking } from '@/types';
+import { useRealtimeRefresh } from '@/lib/supabase/realtime';
 import {
   User,
   Calendar,
@@ -15,7 +16,7 @@ import {
   MapPin,
   CheckCircle2,
   LogOut,
-  Sparkles,
+  ShieldCheck,
   Loader2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -46,12 +47,12 @@ export default function AccountPage() {
       return;
     }
 
-    supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user);
+    supabase.auth.getUser().then(({ data }: any) => {
+      setUser(data?.user ?? null);
       setLoadingUser(false);
     });
 
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event: any, session: any) => {
       setUser(session?.user ?? null);
     });
 
@@ -60,22 +61,36 @@ export default function AccountPage() {
     };
   }, []);
 
-  useEffect(() => {
+  const loadBookings = useCallback(async (isInitial = false) => {
     if (!user) {
       setBookings([]);
       return;
     }
-    setLoadingBookings(true);
-    fetch('/api/bookings')
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success && Array.isArray(data.bookings)) {
-          setBookings(data.bookings);
-        }
-      })
-      .catch((err) => console.error('[AccountPage] Error loading bookings:', err))
-      .finally(() => setLoadingBookings(false));
+    if (isInitial) setLoadingBookings(true);
+    try {
+      const res = await fetch('/api/bookings', { cache: 'no-store' });
+      const data = await res.json();
+      if (data.success && Array.isArray(data.bookings)) {
+        setBookings(data.bookings);
+      }
+    } catch (err) {
+      console.error('[AccountPage] Error loading bookings:', err);
+    } finally {
+      if (isInitial) setLoadingBookings(false);
+    }
   }, [user]);
+
+  useEffect(() => {
+    void loadBookings(true);
+  }, [loadBookings]);
+
+  // Rafraîchissement automatique en direct des réservations du client
+  useRealtimeRefresh({
+    tables: ['bookings', 'vehicles'],
+    onRefresh: () => loadBookings(false),
+    enabled: Boolean(user),
+    pollingIntervalMs: 20_000,
+  });
 
   const handleSignOut = async () => {
     if (signingOut) return;
@@ -177,7 +192,7 @@ export default function AccountPage() {
           <div className="mb-4 p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-[#E63946]/10 text-[#E63946] flex items-center justify-center shrink-0">
-                <Sparkles className="w-5 h-5" />
+                <ShieldCheck className="w-5 h-5" />
               </div>
               <div>
                 <p className="text-xs font-bold text-slate-900">

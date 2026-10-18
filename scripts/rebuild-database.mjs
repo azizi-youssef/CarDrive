@@ -29,6 +29,7 @@ const SQL_FILES = [
   { label: 'Agency Access Control',       path: join(ROOT, 'backend/supabase/migrations/20261010_agency_access_control.sql') },
   { label: 'Security Remediation',        path: join(ROOT, 'backend/supabase/migrations/20261011_security_remediation.sql') },
   { label: 'Populate Images & Features',  path: join(ROOT, 'backend/supabase/migrations/20261010_populate_images_features.sql') },
+  { label: 'Enable Supabase Realtime',    path: join(ROOT, 'backend/supabase/migrations/20261016_enable_supabase_realtime.sql') },
 ];
 
 async function runSQL(label, sql) {
