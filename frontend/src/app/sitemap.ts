@@ -33,6 +33,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   return [
+    // ── Core pages ──────────────────────────────────────────────────────
     {
       url: baseUrl,
       lastModified: new Date(),
@@ -55,11 +56,46 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${baseUrl}/about`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
+      priority: 0.6,
+    },
+    // ── Support & informational pages ────────────────────────────────────
+    {
+      url: `${baseUrl}/faq`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.6,
+    },
+    {
+      url: `${baseUrl}/contact`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
       priority: 0.5,
     },
+    // ── Legal pages ──────────────────────────────────────────────────────
+    {
+      url: `${baseUrl}/cgv`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.3,
+    },
+    {
+      url: `${baseUrl}/confidentialite`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.3,
+    },
+    {
+      url: `${baseUrl}/mentions-legales`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.3,
+    },
+    // ── SEO landing pages ────────────────────────────────────────────────
     ...seoLandingUrls,
+    // ── Dynamic content ──────────────────────────────────────────────────
     ...vehicleUrls,
     ...agencyUrls,
   ];
 }
+
 

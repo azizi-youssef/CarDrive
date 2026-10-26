@@ -96,7 +96,7 @@ export class PdfService {
 
       doc.setFontSize(8);
       doc.setFont('helvetica', 'normal');
-      doc.text('Plateforme de Location Automobile • Nador & Région Oriental', margin + 8, currentY + 18);
+      doc.text('Smart Car Rental Marketplace • Nador & Oriental', margin + 8, currentY + 18);
     } else {
       // Titre / Slogan textuel à côté du logo officiel
       doc.setTextColor(255, 255, 255);

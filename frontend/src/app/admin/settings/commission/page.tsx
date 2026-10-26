@@ -8,34 +8,51 @@ import {
   Percent,
   CheckCircle2,
   AlertCircle,
-  ShieldAlert,
+  ShieldCheck,
   Save,
   HelpCircle,
   RefreshCw,
   Coins,
-  History,
+  Sparkles,
   TrendingUp,
+  Layers,
+  Car,
+  Check,
+  Zap,
 } from 'lucide-react';
+import type { SubscriptionPlan } from '@/types';
 
 export default function CommissionSettingsPage() {
-  const [currentRate, setCurrentRate] = useState<number>(15.0);
-  const [newRateInput, setNewRateInput] = useState<string>('15.0');
+  const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
+  const [currentRate, setCurrentRate] = useState<number>(0.0);
+  const [newRateInput, setNewRateInput] = useState<string>('0.0');
   const [loading, setLoading] = useState<boolean>(true);
   const [saving, setSaving] = useState<boolean>(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
+  // Simulateur de parc
+  const [simulatedVehicleCount, setSimulatedVehicleCount] = useState<number>(8);
+
   const fetchSettings = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await fetch('/api/settings/commission');
-      const data = await res.json();
-      if (data.success && data.settings) {
-        const rate = Number(data.settings.commission_rate || 15.0);
+      const [commRes, plansRes] = await Promise.all([
+        fetch('/api/settings/commission'),
+        fetch('/api/subscriptions/plans'),
+      ]);
+      const commData = await commRes.json();
+      const plansData = await plansRes.json();
+
+      if (commData.success && commData.settings) {
+        const rate = Number(commData.settings.commission_rate ?? 0.0);
         setCurrentRate(rate);
         setNewRateInput(rate.toString());
       }
+      if (plansData.success && plansData.data) {
+        setPlans(plansData.data);
+      }
     } catch (err) {
-      console.warn('Could not fetch commission settings:', err);
+      console.warn('Could not fetch settings:', err);
     } finally {
       setLoading(false);
     }
@@ -45,7 +62,7 @@ export default function CommissionSettingsPage() {
     void fetchSettings();
   }, [fetchSettings]);
 
-  const handleSave = async (e: React.FormEvent) => {
+  const handleSaveCommission = async (e: React.FormEvent) => {
     e.preventDefault();
     setFeedback(null);
     const parsed = parseFloat(newRateInput);
@@ -71,7 +88,7 @@ export default function CommissionSettingsPage() {
         setCurrentRate(parsed);
         setFeedback({
           type: 'success',
-          message: `Le taux de commission de la plateforme a été mis à jour avec succès à ${parsed.toFixed(2)} %.`,
+          message: `Le taux de commission a été mis à jour avec succès à ${parsed.toFixed(2)} %.`,
         });
       } else {
         setFeedback({
@@ -89,41 +106,42 @@ export default function CommissionSettingsPage() {
     }
   };
 
-  // Exemple interactif
-  const sampleTotal = 1800; // 5 jours à 360 DH
-  const parsedNewRate = isNaN(parseFloat(newRateInput)) ? currentRate : parseFloat(newRateInput);
-  const sampleCommission = Math.round((sampleTotal * parsedNewRate) / 100);
-  const sampleAgency = sampleTotal - sampleCommission;
+  // Trouver le palier correspondant à la simulation
+  const recommendedPlan =
+    plans.find((p) => {
+      if (p.max_vehicles === null) return simulatedVehicleCount >= p.min_vehicles;
+      return simulatedVehicleCount >= p.min_vehicles && simulatedVehicleCount <= p.max_vehicles;
+    }) || plans[0];
 
   return (
     <div className="bg-[#F8FAFC] min-h-screen py-10 pb-20">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         
         {/* Navigation retour */}
         <div className="flex items-center justify-between">
           <Link
-            href="/admin"
+            href="/admin/settings"
             className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Retour à l'administration CarDrive</span>
+            <span>Retour aux paramètres</span>
           </Link>
           <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider">
-            Paramètres Plateforme
+            Finance & Monétisation
           </span>
         </div>
 
         {/* Titre */}
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-[#02306B] text-xs font-bold mb-2">
-            <Coins className="w-3.5 h-3.5 text-[#FF7300]" />
-            <span>Modèle Économique & Monétisation</span>
+            <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+            <span>Nouveau Modèle de Monétisation</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-950 tracking-tight">
-            Commission de la plateforme
+            Abonnements Concessionnaires par Capacité de Flotte
           </h1>
-          <p className="text-xs text-slate-500 mt-1">
-            Définissez le pourcentage prélevé par CarDrive sur chaque réservation de véhicule confirmée.
+          <p className="text-xs sm:text-sm text-slate-500 mt-1">
+            Les concessions paient un abonnement mensuel calculé sur leur nombre de véhicules. Les réservations clients sont soumises à <strong>0% de commission</strong> (100% conservé par les agences).
           </p>
         </div>
 
@@ -145,42 +163,149 @@ export default function CommissionSettingsPage() {
           </div>
         )}
 
-        {/* Main Settings Card */}
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-6">
-          
-          {/* Taux actuel vs nouveau */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-6 border-b border-slate-100">
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
-                Taux actuellement appliqué
-              </span>
-              <div className="flex items-baseline gap-1">
-                <span className="text-3xl font-black text-[#02306B]">
-                  {loading ? '...' : currentRate.toFixed(2)}
-                </span>
-                <span className="text-lg font-bold text-slate-500">%</span>
-              </div>
-              <p className="text-[11px] text-slate-500 mt-1">
-                Taux standard sur toutes les nouvelles demandes.
+        {/* Section 1: Grille des Paliers d'Abonnement */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-bold text-slate-900">Grille tarifaire des abonnements</h2>
+              <p className="text-xs text-slate-500">
+                Paliers appliqués automatiquement aux concessions selon le nombre de véhicules enregistrés.
               </p>
             </div>
+            <span className="rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1">
+              Modèle Actif : 0% Commission
+            </span>
+          </div>
 
-            <div className="p-4 rounded-2xl bg-blue-50/70 border border-blue-200">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700 block mb-1">
-                Règle de rétroactivité & historique
-              </span>
-              <p className="text-xs text-blue-950 font-medium leading-relaxed">
-                Les réservations passées ou déjà confirmées <strong>conservent leur taux historique</strong> enregistré au moment de la confirmation.
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {plans.map((plan) => (
+              <div
+                key={plan.id}
+                className="relative flex flex-col justify-between rounded-3xl border border-slate-200 bg-white p-6 shadow-xs hover:border-slate-300 hover:shadow-md transition"
+              >
+                {plan.badge && (
+                  <div className="absolute -top-3 left-6">
+                    <span className="rounded-full bg-[#E63946] px-3 py-0.5 text-[10px] font-bold text-white shadow-xs">
+                      {plan.badge}
+                    </span>
+                  </div>
+                )}
+
+                <div>
+                  <h3 className="text-lg font-extrabold text-slate-900">{plan.name}</h3>
+                  <div className="mt-2 mb-3">
+                    <span className="text-3xl font-black text-[#02306B]">
+                      {formatPrice(plan.price_monthly)}
+                    </span>
+                    <span className="text-xs font-semibold text-slate-500"> / mois</span>
+                  </div>
+
+                  <div className="rounded-xl bg-blue-50/70 border border-blue-100 p-2.5 text-xs text-blue-900 font-semibold mb-4">
+                    {plan.max_vehicles === null
+                      ? 'Capacité illimitée (31+ véh.)'
+                      : `De ${plan.min_vehicles} à ${plan.max_vehicles} véhicules`}
+                  </div>
+
+                  <ul className="space-y-2 text-xs text-slate-600 mb-6">
+                    {plan.features.map((feat, idx) => (
+                      <li key={idx} className="flex items-start gap-1.5 leading-snug">
+                        <Check className="h-3.5 w-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                        <span>{feat}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="pt-3 border-t border-slate-100 text-[11px] font-medium text-slate-400">
+                  Blocage automatique dès {plan.max_vehicles ? plan.max_vehicles + 1 : 'N/A'} véh.
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Section 2: Simulateur de concession */}
+        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-6">
+          <div className="flex items-center gap-3 pb-4 border-b border-slate-100">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-[#02306B]">
+              <TrendingUp className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="font-bold text-slate-900 text-base">
+                Simulateur de palier selon la flotte de l'agence
+              </h3>
+              <p className="text-xs text-slate-500">
+                Ajustez le curseur pour voir le palier recommandé et le coût mensuel correspondant.
               </p>
             </div>
           </div>
 
-          {/* Formulaire de modification */}
-          <form onSubmit={handleSave} className="space-y-5">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
+            <div className="lg:col-span-2 space-y-4">
+              <div className="flex justify-between items-center">
+                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  Nombre de véhicules de la concession
+                </label>
+                <span className="text-2xl font-black text-[#02306B]">
+                  {simulatedVehicleCount} véhicules
+                </span>
+              </div>
+
+              <input
+                type="range"
+                min="1"
+                max="50"
+                value={simulatedVehicleCount}
+                onChange={(e) => setSimulatedVehicleCount(Number(e.target.value))}
+                className="w-full h-2.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-[#02306B]"
+              />
+
+              <div className="flex justify-between text-[11px] text-slate-400 font-semibold">
+                <span>1 véh. (Starter)</span>
+                <span>15 véh. (Pro)</span>
+                <span>30 véh. (Business)</span>
+                <span>50+ (Illimité)</span>
+              </div>
+            </div>
+
+            {recommendedPlan && (
+              <div className="rounded-2xl border border-blue-200 bg-linear-to-br from-blue-50/60 to-white p-5 shadow-xs text-center space-y-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700">
+                  Palier Assigné Automatiquement
+                </span>
+                <p className="text-xl font-extrabold text-[#02306B]">
+                  Formule {recommendedPlan.name}
+                </p>
+                <p className="text-2xl font-black text-slate-900">
+                  {formatPrice(recommendedPlan.price_monthly)}
+                  <span className="text-xs font-normal text-slate-500"> / mois</span>
+                </p>
+                <p className="text-xs text-emerald-700 font-semibold">
+                  0 DH de commission sur les réservations
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Section 3: Commission résiduelle / historique */}
+        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-6">
+          <div className="flex items-center gap-3 pb-4 border-b border-slate-100">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
+              <Percent className="h-5 w-5" />
+            </div>
             <div>
-              <label className="block text-xs font-bold text-slate-900 mb-1.5">
-                Nouveau taux de commission plateforme (%)
-              </label>
+              <h3 className="font-bold text-slate-900 text-base">
+                Commission transactionnelle sur réservations
+              </h3>
+              <p className="text-xs text-slate-500">
+                Fixé à 0.00% dans le modèle abonnement pur. Modifiable uniquement si une formule hybride est souhaitée.
+              </p>
+            </div>
+          </div>
+
+          <form onSubmit={handleSaveCommission} className="space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
               <div className="relative max-w-xs">
                 <input
                   type="number"
@@ -189,62 +314,27 @@ export default function CommissionSettingsPage() {
                   max="100"
                   value={newRateInput}
                   onChange={(e) => setNewRateInput(e.target.value)}
-                  className="w-full pl-4 pr-10 py-3 rounded-xl border border-slate-300 font-extrabold text-lg text-slate-900 outline-none focus:border-[#02306B] focus:ring-2 focus:ring-[#02306B]/20"
+                  className="w-full pl-4 pr-10 py-2.5 rounded-xl border border-slate-300 font-extrabold text-base text-slate-900 outline-none focus:border-[#02306B] focus:ring-2 focus:ring-[#02306B]/20"
                 />
                 <span className="absolute right-4 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-sm">
                   %
                 </span>
               </div>
-              <p className="text-[11px] text-slate-500 mt-1.5">
-                Recommandé pour la région de Nador : 15.00 % (garantit un bon équilibre entre attractivité pour les agences et rentabilité).
-              </p>
-            </div>
-
-            {/* Simulateur instantané */}
-            <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-50 to-blue-50/50 border border-slate-200 space-y-2 text-xs">
-              <div className="flex items-center gap-2 font-bold text-slate-800 pb-1 border-b border-slate-200">
-                <TrendingUp className="w-4 h-4 text-[#FF7300]" />
-                <span>Simulation sur une réservation type (Dacia Duster 5 jours - 1 800 DH)</span>
-              </div>
-
-              <div className="grid grid-cols-3 gap-3 pt-1 text-center">
-                <div className="p-2.5 bg-white rounded-xl border border-slate-200">
-                  <span className="text-[10px] text-slate-400 block">Total payé</span>
-                  <span className="font-bold text-slate-900 text-xs sm:text-sm">{formatPrice(sampleTotal)}</span>
-                </div>
-                <div className="p-2.5 bg-white rounded-xl border border-emerald-200 text-emerald-800">
-                  <span className="text-[10px] text-emerald-600 font-semibold block">Part Agence</span>
-                  <span className="font-extrabold text-xs sm:text-sm">{formatPrice(sampleAgency)}</span>
-                </div>
-                <div className="p-2.5 bg-white rounded-xl border border-blue-200 text-[#02306B]">
-                  <span className="text-[10px] text-blue-600 font-semibold block">Commission CarDrive</span>
-                  <span className="font-extrabold text-xs sm:text-sm">{formatPrice(sampleCommission)}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Bouton Enregistrer */}
-            <div className="pt-3 flex items-center justify-between border-t border-slate-100">
-              <button
-                type="button"
-                onClick={fetchSettings}
-                className="px-4 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition"
-              >
-                <RefreshCw className="w-3.5 h-3.5" />
-                <span>Réinitialiser</span>
-              </button>
 
               <button
                 type="submit"
                 disabled={saving}
-                className="px-6 py-3 rounded-xl bg-[#02306B] hover:bg-[#064181] disabled:opacity-50 text-white text-xs sm:text-sm font-bold flex items-center gap-2 shadow-lg shadow-blue-900/15 transition-all cursor-pointer"
+                className="px-5 py-2.5 rounded-xl bg-[#02306B] hover:bg-[#064181] disabled:opacity-50 text-white text-xs font-bold flex items-center gap-2 shadow-xs transition cursor-pointer"
               >
                 <Save className="w-4 h-4" />
-                <span>{saving ? 'Enregistrement...' : 'Enregistrer le nouveau taux'}</span>
+                <span>{saving ? 'Enregistrement...' : 'Mettre à jour le taux'}</span>
               </button>
             </div>
-          </form>
 
+            <p className="text-xs text-slate-500">
+              Actuel : <strong>{currentRate.toFixed(2)}%</strong>. Dans le modèle par abonnement mensuel, la valeur recommandée est <strong>0.00%</strong> afin que les agences perçoivent l'intégralité du tarif de location.
+            </p>
+          </form>
         </div>
 
       </div>

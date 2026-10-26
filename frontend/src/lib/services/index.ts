@@ -5,5 +5,6 @@ export { reviewsService, ReviewsService } from './reviews.service';
 export { statsService, StatsService } from './stats.service';
 export { commissionService } from './commission.service';
 export { notificationService } from './notification.service';
+export { subscriptionService } from './subscription.service';
 export { whatsappService, WhatsAppService } from './whatsapp.service';
 export { deliveryService, DeliveryService } from './delivery.service';

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAgencyPermissionApi } from '@/lib/auth/access-api';
 import { createAdminClient } from '@/lib/supabase/server';
 import { vehicleCreateSchema } from '@/lib/validations/vehicle';
+import { subscriptionService } from '@/lib/services/subscription.service';
 const slugify = (str: string) =>
   str
     .toLowerCase()
@@ -139,6 +140,22 @@ export async function POST(request: NextRequest, context: RouteContext) {
     return failure(
       parsed.error.issues.map((i) => i.message).join(', '),
       422
+    );
+  }
+
+  // Vérification stricte de la capacité maximale du forfait d'abonnement
+  const capacityCheck = await subscriptionService.canAgencyAddVehicle(agencyId);
+  if (!capacityCheck.allowed) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: capacityCheck.reason,
+        code: 'CAPACITY_LIMIT_REACHED',
+        current_count: capacityCheck.currentCount,
+        max_vehicles: capacityCheck.maxVehicles,
+        plan_name: capacityCheck.planName,
+      },
+      { status: 403 }
     );
   }
 

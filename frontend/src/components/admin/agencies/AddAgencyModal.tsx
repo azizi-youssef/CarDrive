@@ -11,6 +11,7 @@ import {
   EyeOff,
   CheckCircle2,
   AlertCircle,
+  Sparkles,
   Phone,
   User,
   Globe,
@@ -404,8 +405,8 @@ export function AddAgencyModal({ isOpen, onClose, onSuccess }: AddAgencyModalPro
                 disabled={generating || !name.trim()}
                 className="text-xs text-red-600 hover:text-red-700 font-medium inline-flex items-center gap-1 disabled:opacity-40"
               >
-                <RefreshCw className={`h-3 w-3 ${generating ? 'animate-spin' : ''}`} />
-                <span>Générer les identifiants</span>
+                <Sparkles className="h-3 w-3" />
+                <span>Auto-générer</span>
               </button>
             </div>
 

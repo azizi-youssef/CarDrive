@@ -103,7 +103,7 @@ function TrustItem({
 }) {
   return (
     <div className="group flex items-start gap-3">
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-white/5 bg-white/[0.04] text-emerald-400 transition-colors duration-200 group-hover:border-emerald-400/20 group-hover:bg-emerald-400/10">
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-white/5 bg-white/4 text-emerald-400 transition-colors duration-200 group-hover:border-emerald-400/20 group-hover:bg-emerald-400/10">
         {icon}
       </div>
 
@@ -158,7 +158,7 @@ export function Footer() {
         className="pointer-events-none absolute inset-0 overflow-hidden"
       >
         <div className="absolute -right-40 -top-40 h-96 w-96 rounded-full bg-[#E63946]/[0.035] blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 h-96 w-96 rounded-full bg-blue-500/[0.025] blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 h-96 w-96 rounded-full bg-blue-500/2.5 blur-3xl" />
       </div>
 
       {/* ================================================================ */}
@@ -167,7 +167,7 @@ export function Footer() {
 
       <section className="relative border-b border-slate-800/60">
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-          <div className="relative overflow-hidden rounded-2xl border border-white/[0.07] bg-gradient-to-br from-white/[0.055] to-white/[0.015] p-5 sm:p-6">
+          <div className="relative overflow-hidden rounded-2xl border border-white/[0.07] bg-linear-to-br from-white/5.5 to-white/1.5 p-5 sm:p-6">
 
             {/* Accent glow */}
             <div
@@ -232,7 +232,7 @@ export function Footer() {
               aria-label="CarDrive — Accueil"
               className="inline-flex items-center"
             >
-              <div className="relative h-10 w-[150px]">
+              <div className="relative h-10 w-37.5">
                 <Image
                   src="/Logo-CarDrive2.png"
                   alt="CarDrive"
@@ -303,7 +303,7 @@ export function Footer() {
                 href="mailto:contact@cardrive.ma"
                 className="group mt-2.5 flex items-center gap-2.5 text-xs text-slate-400 transition-colors hover:text-white"
               >
-                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/[0.04]">
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/4">
                   <Mail className="h-3.5 w-3.5" />
                 </span>
                 contact@cardrive.ma
@@ -440,9 +440,9 @@ export function Footer() {
 
               <Link
                 href="/search"
-                className="group flex items-center gap-3 rounded-xl border border-white/[0.05] bg-white/[0.025] p-3 transition-all duration-200 hover:border-white/10 hover:bg-white/[0.05]"
+                className="group flex items-center gap-3 rounded-xl border border-white/5 bg-white/2.5 p-3 transition-all duration-200 hover:border-white/10 hover:bg-white/5"
               >
-                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/[0.05] text-slate-400 transition-colors group-hover:text-white">
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/5 text-slate-400 transition-colors group-hover:text-white">
                   <Search className="h-3.5 w-3.5" />
                 </span>
 
@@ -458,9 +458,9 @@ export function Footer() {
 
               <Link
                 href="/agencies"
-                className="group flex items-center gap-3 rounded-xl border border-white/[0.05] bg-white/[0.025] p-3 transition-all duration-200 hover:border-white/10 hover:bg-white/[0.05]"
+                className="group flex items-center gap-3 rounded-xl border border-white/5 bg-white/2.5 p-3 transition-all duration-200 hover:border-white/10 hover:bg-white/5"
               >
-                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/[0.05] text-slate-400 transition-colors group-hover:text-white">
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/5 text-slate-400 transition-colors group-hover:text-white">
                   <Users className="h-3.5 w-3.5" />
                 </span>
 
@@ -476,9 +476,9 @@ export function Footer() {
 
               <Link
                 href="/faq"
-                className="group flex items-center gap-3 rounded-xl border border-white/[0.05] bg-white/[0.025] p-3 transition-all duration-200 hover:border-white/10 hover:bg-white/[0.05]"
+                className="group flex items-center gap-3 rounded-xl border border-white/5 bg-white/2.5 p-3 transition-all duration-200 hover:border-white/10 hover:bg-white/5"
               >
-                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/[0.05] text-slate-400 transition-colors group-hover:text-white">
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/5 text-slate-400 transition-colors group-hover:text-white">
                   <HelpCircle className="h-3.5 w-3.5" />
                 </span>
 
@@ -533,17 +533,24 @@ export function Footer() {
               className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[11px] text-slate-500"
             >
               <Link
-                href="/terms"
+                href="/cgv"
                 className="transition-colors hover:text-slate-300"
               >
-                Conditions
+                CGV
               </Link>
 
               <Link
-                href="/privacy"
+                href="/confidentialite"
                 className="transition-colors hover:text-slate-300"
               >
                 Confidentialité
+              </Link>
+
+              <Link
+                href="/mentions-legales"
+                className="transition-colors hover:text-slate-300"
+              >
+                Mentions légales
               </Link>
 
               <Link

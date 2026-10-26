@@ -217,3 +217,53 @@ export interface SearchFilters {
   location?: string;
   sortBy?: 'price_asc' | 'price_desc' | 'rating' | 'newest';
 }
+
+export interface SubscriptionPlan {
+  id: string;
+  name: string;
+  slug: 'starter' | 'pro' | 'business' | 'unlimited' | string;
+  min_vehicles: number;
+  max_vehicles: number | null; // null = illimité
+  price_monthly: number; // en MAD
+  currency: string;
+  features: string[];
+  badge?: string;
+  is_popular?: boolean;
+  is_active: boolean;
+  sort_order: number;
+}
+
+export type SubscriptionStatus = 'TRIAL' | 'ACTIVE' | 'PAST_DUE' | 'CANCELLED' | 'EXPIRED';
+
+export interface AgencySubscription {
+  id: string;
+  agency_id: string;
+  agency_name?: string;
+  plan: SubscriptionPlan;
+  status: SubscriptionStatus;
+  current_vehicles_count: number;
+  vehicle_capacity: number | null; // null = illimité
+  capacity_usage_pct: number;
+  is_at_capacity: boolean;
+  can_add_vehicle: boolean;
+  price_monthly: number;
+  billing_cycle_start: string;
+  billing_cycle_end: string;
+  days_remaining: number;
+  auto_renew: boolean;
+  payment_method?: string;
+  created_at: string;
+}
+
+export interface SubscriptionStats {
+  monthlyRecurringRevenue: number; // MRR
+  activeSubscribers: number;
+  totalAgencies: number;
+  fleetCapacityTotal: number;
+  plansDistribution: {
+    planName: string;
+    slug: string;
+    count: number;
+    revenue: number;
+  }[];
+}

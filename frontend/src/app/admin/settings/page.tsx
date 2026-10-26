@@ -34,11 +34,11 @@ const SETTING_SECTIONS: SettingSection[] = [
   {
     href: '/admin/settings/commission',
     icon: DollarSign,
-    label: 'Commission plateforme',
+    label: 'Abonnements & Monétisation',
     description:
-      'Configurez le taux de commission prélevé sur les réservations et suivez les règles de monétisation.',
-    accent: 'text-[#E63946]',
-    iconBackground: 'bg-red-50',
+      'Gérez les forfaits mensuels basés sur la capacité en véhicules et les règles de monétisation CarDrive.',
+    accent: 'text-[#02306B]',
+    iconBackground: 'bg-blue-50',
     category: 'Finance',
     access: 'SUPER_ADMIN',
   },
@@ -150,7 +150,7 @@ export default function AdminSettingsPage() {
                 <Link
                   key={section.href}
                   href={section.href}
-                  className="group flex min-h-[250px] flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-slate-300 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#02306B] focus-visible:ring-offset-2 sm:p-6"
+                  className="group flex min-h-62.5 flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-slate-300 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#02306B] focus-visible:ring-offset-2 sm:p-6"
                 >
                   {/* Card header */}
                   <div className="flex items-start justify-between gap-3">

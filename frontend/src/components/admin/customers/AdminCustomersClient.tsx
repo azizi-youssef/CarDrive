@@ -307,7 +307,7 @@ export function AdminCustomersClient() {
                           {cust.email !== '—' && (
                             <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
                               <Mail className="h-3 w-3 text-slate-400" />
-                              <span className="truncate max-w-[140px]">{cust.email}</span>
+                              <span className="truncate max-w-35">{cust.email}</span>
                             </div>
                           )}
                         </div>

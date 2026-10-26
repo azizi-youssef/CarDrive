@@ -320,7 +320,7 @@ const loginStyles = `
   }
   .cd-portal-tabs {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 8px;
     margin-bottom: 28px;
   }
@@ -840,21 +840,59 @@ function PortalLoginForm() {
         </div>
 
         <div className="cd-form-content">
-          <div className="cd-portal-tabs" role="tablist" aria-label="Type de compte">
-            {(['client', 'agency', 'admin'] as LoginPortal[]).map((p) => (
+          {portal !== 'admin' ? (
+            <div className="cd-portal-tabs" role="tablist" aria-label="Type de compte">
+              {(['client', 'agency'] as LoginPortal[]).map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  role="tab"
+                  aria-current={p === portal ? 'true' : undefined}
+                  className="cd-portal-tab"
+                  onClick={() => switchPortal(p)}
+                  disabled={busy}
+                >
+                  {PORTAL_LABEL[p]}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div
+              style={{
+                marginBottom: '24px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '10px 14px',
+                borderRadius: '10px',
+                border: '1px solid var(--cd-line)',
+                background: 'rgba(255,255,255,.03)',
+                fontSize: '12px',
+                color: 'var(--cd-muted)',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <ShieldCheck style={{ width: '16px', height: '16px', color: '#ff6673' }} aria-hidden="true" />
+                <span style={{ fontWeight: 600, color: 'var(--cd-text)' }}>Accès réservé administration</span>
+              </div>
               <button
-                key={p}
                 type="button"
-                role="tab"
-                aria-current={p === portal ? 'true' : undefined}
-                className="cd-portal-tab"
-                onClick={() => switchPortal(p)}
+                onClick={() => switchPortal('client')}
                 disabled={busy}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#ff9ca5',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  padding: 0,
+                }}
               >
-                {PORTAL_LABEL[p]}
+                Espace public
               </button>
-            ))}
-          </div>
+            </div>
+          )}
 
           <header className="cd-form-header">
             <div className="cd-access-label">

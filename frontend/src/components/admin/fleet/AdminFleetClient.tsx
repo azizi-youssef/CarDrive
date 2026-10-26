@@ -118,7 +118,7 @@ export function AdminFleetClient() {
                     </div>
                   </Td>
                   <Td className="hidden sm:table-cell"><span className="text-xs text-slate-600">{v.category}</span></Td>
-                  <Td className="hidden md:table-cell"><span className="text-sm text-slate-700 truncate max-w-[140px] block">{v.agency?.name ?? '—'}</span></Td>
+                  <Td className="hidden md:table-cell"><span className="text-sm text-slate-700 truncate max-w-35 block">{v.agency?.name ?? '—'}</span></Td>
                   <Td className="hidden lg:table-cell"><span className="text-sm font-semibold tabular-nums text-slate-900">{v.daily_price} DH</span></Td>
                   <Td className="hidden xl:table-cell"><span className="font-mono text-xs text-slate-500">{v.license_plate ?? '—'}</span></Td>
                   <Td><StatusBadge variant={vehicleStatusVariant(v.status) as any}>{vehicleStatusLabel(v.status)}</StatusBadge></Td>

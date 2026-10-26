@@ -242,10 +242,10 @@ export function AdminAnalyticsClient() {
                   <div className="text-[11px] font-semibold text-slate-700 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                     {m.volume.toLocaleString('fr-FR')} DH
                   </div>
-                  <div className="w-full max-w-[48px] bg-slate-100 rounded-t-lg relative flex items-end overflow-hidden h-40">
+                  <div className="w-full max-w-12 bg-slate-100 rounded-t-lg relative flex items-end overflow-hidden h-40">
                     <div
                       style={{ height: `${heightPct}%` }}
-                      className="w-full bg-gradient-to-t from-[#02306B] to-blue-500 rounded-t-lg transition-all duration-500 group-hover:from-blue-700 group-hover:to-blue-400"
+                      className="w-full bg-linear-to-t from-[#02306B] to-blue-500 rounded-t-lg transition-all duration-500 group-hover:from-blue-700 group-hover:to-blue-400"
                     />
                   </div>
                   <div className="text-center">

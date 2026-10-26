@@ -8,7 +8,6 @@ import { Badge } from '@/components/ui/Badge';
 import { Booking } from '@/types';
 import { useRealtimeRefresh } from '@/lib/supabase/realtime';
 import {
-  User,
   Calendar,
   Heart,
   Settings,
@@ -16,14 +15,16 @@ import {
   MapPin,
   CheckCircle2,
   LogOut,
-  ShieldCheck,
+  Sparkles,
   Loader2,
+  Star,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { createClient, isSupabaseConfigured } from '@/lib/supabase/client';
 import { signOutEverywhere } from '@/lib/auth/client';
 import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton';
 import { loginUrl } from '@/lib/auth/login-portals';
+import { ReviewModal } from '@/components/shared/ReviewModal';
 
 export default function AccountPage() {
   const router = useRouter();
@@ -39,6 +40,9 @@ export default function AccountPage() {
   const [loadingBookings, setLoadingBookings] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const [signOutError, setSignOutError] = useState<string | null>(null);
+  // Avis : quelle réservation est en cours de notation
+  const [reviewBooking, setReviewBooking] = useState<Booking | null>(null);
+  const [reviewedBookingIds, setReviewedBookingIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const supabase = createClient();
@@ -124,7 +128,7 @@ export default function AccountPage() {
   return (
     <div className="bg-[#F8FAFC] min-h-screen pb-16">
       {/* Profile Header */}
-      <div className="bg-gradient-to-br from-[#0B1220] via-[#0F172A] to-[#1E293B] text-white pt-10 pb-20 border-b border-slate-800">
+      <div className="bg-linear-to-br from-[#0B1220] via-[#0F172A] to-[#1E293B] text-white pt-10 pb-20 border-b border-slate-800">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
             <div className="flex items-center gap-4">
@@ -192,7 +196,7 @@ export default function AccountPage() {
           <div className="mb-4 p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-[#E63946]/10 text-[#E63946] flex items-center justify-center shrink-0">
-                <ShieldCheck className="w-5 h-5" />
+                <Sparkles className="w-5 h-5" />
               </div>
               <div>
                 <p className="text-xs font-bold text-slate-900">
@@ -307,6 +311,25 @@ export default function AccountPage() {
                             >
                               PDF
                             </a>
+                            {/* Bouton avis — uniquement pour les locations terminées */}
+                            {booking.status === 'COMPLETED' && !reviewedBookingIds.has(booking.id) && (
+                              <button
+                                type="button"
+                                id={`review-btn-${booking.id}`}
+                                onClick={() => setReviewBooking(booking)}
+                                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-amber-300 bg-amber-50 text-amber-700 text-xs font-semibold hover:bg-amber-100 transition"
+                                title="Donner un avis sur cette location"
+                              >
+                                <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                                Avis
+                              </button>
+                            )}
+                            {booking.status === 'COMPLETED' && reviewedBookingIds.has(booking.id) && (
+                              <span className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-emerald-50 text-emerald-600 text-xs font-semibold">
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                                Noté
+                              </span>
+                            )}
                             <Link
                               href={`/account/bookings/${encodeURIComponent(booking.reference || booking.booking_ref || '')}`}
                               className="px-3 py-1.5 rounded-lg bg-[#02306B] text-white text-xs font-semibold hover:bg-[#064181] transition shadow-sm"
@@ -401,13 +424,32 @@ export default function AccountPage() {
           </div>
         </div>
 
-        {/* Quick links */}
         <div className="mt-6 text-center text-xs text-slate-500">
           <Link href="/search" className="text-slate-700 font-semibold hover:text-[#E63946] transition">
             ← Retourner à la recherche de voitures
           </Link>
         </div>
       </div>
+
+      {/* Modal d'avis — s'ouvre sur les locations terminées */}
+      {reviewBooking && (
+        <ReviewModal
+          bookingId={reviewBooking.id}
+          bookingRef={reviewBooking.reference || reviewBooking.booking_ref || reviewBooking.id}
+          vehicleName={
+            reviewBooking.vehicle
+              ? `${reviewBooking.vehicle.brand} ${reviewBooking.vehicle.model}`
+              : 'Véhicule'
+          }
+          agencyName={reviewBooking.agency?.name || ''}
+          vehicleImage={reviewBooking.vehicle?.images?.[0] ?? null}
+          onClose={() => setReviewBooking(null)}
+          onSuccess={() => {
+            setReviewedBookingIds((prev) => new Set(prev).add(reviewBooking.id));
+            setReviewBooking(null);
+          }}
+        />
+      )}
     </div>
   );
 }

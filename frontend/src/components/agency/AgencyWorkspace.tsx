@@ -477,7 +477,7 @@ export function AgencyWorkspace({
 
         <main
           id="agency-content"
-          className="mx-auto max-w-[1400px] space-y-6 px-4 py-6 sm:px-6 lg:px-10 lg:py-8"
+          className="mx-auto max-w-350 space-y-6 px-4 py-6 sm:px-6 lg:px-10 lg:py-8"
         >
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>

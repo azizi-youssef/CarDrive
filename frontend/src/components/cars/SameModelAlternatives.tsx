@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { Vehicle } from '@/types';
 import { PriceDisplay } from '@/components/ui/PriceDisplay';
 import { Badge } from '@/components/ui/Badge';
-import { CheckCircle2, ShieldCheck, Star, ArrowRight, CarFront, Building2 } from 'lucide-react';
+import { CheckCircle2, ShieldCheck, Star, ArrowRight, Sparkles, Building2 } from 'lucide-react';
 
 interface SameModelAlternativesProps {
   currentVehicle: Vehicle;
@@ -20,10 +20,10 @@ export function SameModelAlternatives({
   if (alternatives.length === 0) return null;
 
   return (
-    <div className="bg-gradient-to-br from-blue-50/80 via-white to-blue-50/50 rounded-2xl border border-blue-200/80 p-5 sm:p-6 my-8 shadow-sm">
+    <div className="bg-linear-to-br from-blue-50/80 via-white to-blue-50/50 rounded-2xl border border-blue-200/80 p-5 sm:p-6 my-8 shadow-sm">
       <div className="flex items-start gap-3 mb-5">
         <div className="w-10 h-10 rounded-xl bg-[#02306B] text-white flex items-center justify-center shrink-0 shadow-md shadow-blue-900/10">
-          <CarFront className="w-5 h-5" />
+          <Sparkles className="w-5 h-5" />
         </div>
         <div>
           <div className="flex items-center gap-2">

@@ -24,7 +24,7 @@ import {
   Plane,
   Search,
   ShieldCheck,
-  SlidersHorizontal,
+  Sparkles,
   Star,
   Users,
   Zap,
@@ -37,8 +37,9 @@ export default function HomePage() {
   const load = useCallback(async () => {
     try {
       const [vRes, aRes] = await Promise.all([
-        fetch('/api/vehicles', { cache: 'no-store' }).then((r) => r.json()),
-        fetch('/api/agencies', { cache: 'no-store' }).then((r) => r.json()),
+        // Cache 60 s côté navigateur; la subscription realtime maintient la fraîcheur
+        fetch('/api/vehicles', { next: { revalidate: 60 } } as RequestInit).then((r) => r.json()),
+        fetch('/api/agencies', { next: { revalidate: 60 } } as RequestInit).then((r) => r.json()),
       ]);
       if (vRes.success && Array.isArray(vRes.data)) setVehicles(vRes.data);
       if (aRes.success && Array.isArray(aRes.data)) setAgencies(aRes.data);
@@ -55,7 +56,7 @@ export default function HomePage() {
   useRealtimeRefresh({
     tables: ['vehicles', 'agencies', 'bookings'],
     onRefresh: load,
-    pollingIntervalMs: 20_000,
+    pollingIntervalMs: 60_000, // ↑ 20s → 60s : réduit la charge serveur
   });
 
   const featuredVehicles = vehicles;
@@ -191,7 +192,7 @@ export default function HomePage() {
       title: 'Comparez',
       description:
         'Comparez les véhicules, prix, équipements et agences partenaires en toute transparence.',
-      icon: SlidersHorizontal,
+      icon: Sparkles,
     },
     {
       number: '03',
@@ -207,7 +208,7 @@ export default function HomePage() {
       {/* ================================================================
           HERO
       ================================================================= */}
-      <section className="relative min-h-[720px] overflow-hidden bg-[#070B12] text-white lg:min-h-[760px]">
+      <section className="relative min-h-180 overflow-hidden bg-[#070B12] text-white lg:min-h-190">
         {/* Background */}
         <div className="absolute inset-0">
           <Image
@@ -221,16 +222,16 @@ export default function HomePage() {
 
           <div className="absolute inset-0 bg-[#05080D]/35" />
 
-          <div className="absolute inset-0 bg-gradient-to-r from-[#05080D]/75 via-[#05080D]/40 to-[#05080D]/15" />
+          <div className="absolute inset-0 bg-linear-to-r from-[#05080D]/75 via-[#05080D]/40 to-[#05080D]/15" />
 
-          <div className="absolute inset-0 bg-gradient-to-t from-[#05080D]/80 via-transparent to-[#05080D]/20" />
+          <div className="absolute inset-0 bg-linear-to-t from-[#05080D]/80 via-transparent to-[#05080D]/20" />
 
           {/* Decorative glow */}
-          <div className="absolute -right-40 top-20 h-[500px] w-[500px] rounded-full bg-[#E63946]/10 blur-[120px]" />
+          <div className="absolute -right-40 top-20 h-125 w-125 rounded-full bg-[#E63946]/10 blur-[120px]" />
         </div>
 
         {/* Content */}
-        <div className="relative z-10 mx-auto flex min-h-[720px] max-w-7xl flex-col justify-center px-4 pb-16 pt-28 sm:px-6 lg:min-h-[760px] lg:px-8">
+        <div className="relative z-10 mx-auto flex min-h-180 max-w-7xl flex-col justify-center px-4 pb-16 pt-28 sm:px-6 lg:min-h-190 lg:px-8">
           <div className="max-w-4xl">
             {/* Eyebrow */}
             <div className="mb-7 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3.5 py-2 text-xs font-semibold text-white/90 backdrop-blur-xl">
@@ -389,7 +390,7 @@ export default function HomePage() {
                 className="object-cover transition duration-700 group-hover:scale-110"
               />
 
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent" />
+              <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/15 to-transparent" />
 
               <div className="absolute inset-x-0 bottom-0 p-4">
                 <div className="mb-1 text-sm font-bold text-white">
@@ -476,15 +477,15 @@ export default function HomePage() {
           CARDRIVE DIFFERENTIATOR
       ================================================================= */}
       <section className="relative overflow-hidden bg-[#080D16] py-20 text-white sm:py-28">
-        <div className="absolute -left-40 top-1/2 h-[500px] w-[500px] -translate-y-1/2 rounded-full bg-[#E63946]/10 blur-[120px]" />
+        <div className="absolute -left-40 top-1/2 h-125 w-125 -translate-y-1/2 rounded-full bg-[#E63946]/10 blur-[120px]" />
 
         <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid items-center gap-14 lg:grid-cols-[0.9fr_1.1fr]">
             {/* Copy */}
             <div>
               <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#E63946]/25 bg-[#E63946]/10 px-3 py-1.5 text-xs font-bold text-[#FF6B75]">
-                <Search className="h-3.5 w-3.5" />
-                Réseau multi-agences à Nador
+                <Sparkles className="h-3.5 w-3.5" />
+                Une recherche plus intelligente
               </div>
 
               <h2 className="max-w-xl text-4xl font-black leading-[1.05] tracking-tight sm:text-5xl">
@@ -531,25 +532,26 @@ export default function HomePage() {
 
             {/* Simulation */}
             <div className="relative">
-              <div className="absolute -inset-5 rounded-[2rem] bg-[#E63946]/5 blur-2xl" />
+              <div className="absolute -inset-5 rounded-4xl bg-[#E63946]/5 blur-2xl" />
 
               <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-[#111827] shadow-2xl">
                 {/* Header */}
                 <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
                   <div>
-                    <p className="font-mono text-[10px] uppercase tracking-wider text-slate-400">
-                      Réseau partenaires CarDrive
+                    <p className="font-mono text-[10px] uppercase tracking-wider text-slate-500">
+                      CarDrive Search
                     </p>
 
-                    <p className="mt-1 text-xs font-semibold text-white">
-                      Disponibilité multi-agences
+                    <p className="mt-1 text-xs font-semibold text-slate-300">
+                      Résultats intelligents
                     </p>
                   </div>
 
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[11px] font-semibold">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                    En direct
-                  </span>
+                  <div className="flex gap-1.5">
+                    <span className="h-2 w-2 rounded-full bg-red-400" />
+                    <span className="h-2 w-2 rounded-full bg-amber-400" />
+                    <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                  </div>
                 </div>
 
                 <div className="space-y-4 p-5 sm:p-6">
@@ -573,8 +575,8 @@ export default function HomePage() {
 
                   {/* Alternative */}
                   <div className="flex items-center gap-2 text-xs font-bold text-emerald-400">
-                    <CheckCircle2 className="h-4 w-4" />
-                    3 alternatives disponibles
+                    <Sparkles className="h-4 w-4" />
+                    3 alternatives trouvées
                   </div>
 
                   {[
@@ -596,7 +598,7 @@ export default function HomePage() {
                   ].map((alternative, index) => (
                     <div
                       key={alternative.agency}
-                      className="group flex items-center justify-between gap-4 rounded-xl border border-white/5 bg-white/[0.03] p-3.5 transition hover:border-emerald-500/20 hover:bg-white/[0.05]"
+                      className="group flex items-center justify-between gap-4 rounded-xl border border-white/5 bg-white/3 p-3.5 transition hover:border-emerald-500/20 hover:bg-white/5"
                     >
                       <div className="flex min-w-0 items-center gap-3">
                         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-800 text-xs font-bold text-slate-400">
@@ -677,7 +679,7 @@ export default function HomePage() {
                   className="object-cover transition duration-700 group-hover:scale-105"
                 />
 
-                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
+                <div className="absolute inset-0 bg-linear-to-t from-black/75 via-black/20 to-transparent" />
 
                 <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-5">
                   <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-full bg-white/15 backdrop-blur-md">
@@ -802,7 +804,7 @@ export default function HomePage() {
           B2B CTA
       ================================================================= */}
       <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 sm:pb-24 lg:px-8">
-        <div className="relative overflow-hidden rounded-[2rem] bg-[#0B1220] px-6 py-12 text-white sm:px-10 sm:py-14 lg:px-14">
+        <div className="relative overflow-hidden rounded-4xl bg-[#0B1220] px-6 py-12 text-white sm:px-10 sm:py-14 lg:px-14">
           <div className="absolute -right-24 -top-24 h-80 w-80 rounded-full bg-[#E63946]/15 blur-3xl" />
           <div className="absolute -bottom-32 left-1/3 h-64 w-64 rounded-full bg-blue-500/5 blur-3xl" />
 

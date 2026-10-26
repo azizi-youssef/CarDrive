@@ -6,6 +6,7 @@ import {
   Building2,
   ShieldCheck,
   CheckCircle2,
+  Sparkles,
   ArrowRight,
   TrendingUp,
   MessageSquare,
@@ -32,7 +33,7 @@ export default function AgencyJoinPage() {
         {/* Header */}
         <div className="text-center max-w-2xl mx-auto mb-12">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-[#02306B] text-xs font-semibold mb-3">
-            <Building2 className="w-3.5 h-3.5" />
+            <Sparkles className="w-3.5 h-3.5" />
             <span>Programme Partenaires Nador</span>
           </div>
 

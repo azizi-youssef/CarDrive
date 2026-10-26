@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "npx tsx src/tests/booking-engine.test.ts && npx tsx src/tests/agency-access-validation.test.ts && npx tsx src/tests/date-only.test.ts && npx tsx src/tests/agency-credentials.test.ts && npx tsx src/tests/agency-management.test.ts && npx tsx src/tests/availability.test.ts && npx tsx src/tests/whatsapp-delivery.test.ts"
+    "test": "npx tsx src/tests/booking-engine.test.ts && npx tsx src/tests/subscription-engine.test.ts && npx tsx src/tests/agency-access-validation.test.ts && npx tsx src/tests/date-only.test.ts && npx tsx src/tests/agency-credentials.test.ts && npx tsx src/tests/agency-management.test.ts && npx tsx src/tests/availability.test.ts && npx tsx src/tests/whatsapp-delivery.test.ts"
   },
   "dependencies": {
     "@cardrive/shared": "1.0.0",

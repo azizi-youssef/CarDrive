@@ -2,11 +2,11 @@
  * CarDrive Centralized Financial Engine
  * Calculates booking prices, commission amounts, and agency payouts.
  * 
- * Rules:
- * - All critical calculations are computed or re-verified server-side.
- * - Commission rate is a percentage (e.g. 15.00 for 15%).
+ * Rules (Modèle Abonnement Mensuel par Capacité) :
+ * - Le modèle économique repose sur un abonnement mensuel fixe selon la flotte.
+ * - Le taux de commission par défaut sur les réservations est de 0% (les agences conservent 100%).
  * - subtotal = daily_price * number_of_days
- * - commission_amount = round(subtotal * commission_rate / 100)
+ * - commission_amount = round(subtotal * commission_rate / 100) (0 DH par défaut)
  * - agency_amount = subtotal - commission_amount
  */
 
@@ -23,11 +23,11 @@ export interface BookingPriceCalculation {
 export function calculateBookingPrice(
   daily_price: number,
   number_of_days: number,
-  commission_rate: number = 15.00
+  commission_rate: number = 0.00
 ): BookingPriceCalculation {
   const safeDailyPrice = Math.max(0, Number(daily_price) || 0);
   const safeDays = Math.max(1, Math.round(Number(number_of_days) || 1));
-  const safeRate = Math.max(0, Math.min(100, Number(commission_rate) || 15.00));
+  const safeRate = Math.max(0, Math.min(100, Number(commission_rate) || 0.00));
 
   const subtotal = Math.round(safeDailyPrice * safeDays);
   // Arrondi au Dirham supérieur ou le plus proche pour une précision financière nette

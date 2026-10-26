@@ -204,8 +204,8 @@ export function AdminBookingsClient() {
                     </Td>
                     <Td>
                       <div>
-                        <p className="text-sm font-medium text-slate-900 truncate max-w-[140px]">{b.customer_name}</p>
-                        <p className="text-xs text-slate-500 truncate max-w-[140px]">{b.customer_email}</p>
+                        <p className="text-sm font-medium text-slate-900 truncate max-w-35">{b.customer_name}</p>
+                        <p className="text-xs text-slate-500 truncate max-w-35">{b.customer_email}</p>
                       </div>
                     </Td>
                     <Td className="hidden md:table-cell">
@@ -214,7 +214,7 @@ export function AdminBookingsClient() {
                       </span>
                     </Td>
                     <Td className="hidden lg:table-cell">
-                      <span className="text-sm text-slate-700 truncate max-w-[120px] block">{b.agency?.name ?? '—'}</span>
+                      <span className="text-sm text-slate-700 truncate max-w-30 block">{b.agency?.name ?? '—'}</span>
                     </Td>
                     <Td className="hidden xl:table-cell">
                       <span className="text-xs text-slate-500 whitespace-nowrap">

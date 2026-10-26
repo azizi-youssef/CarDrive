@@ -22,6 +22,7 @@ import {
   Webhook,
   Play,
   HelpCircle,
+  Bot,
   Zap,
 } from 'lucide-react';
 import {
@@ -434,7 +435,7 @@ export function AdminNotificationsClient() {
                           </p>
                         </Td>
                         <Td>
-                          <span className="font-mono text-[11px] text-slate-400 truncate max-w-[110px] block" title={item.messageId}>
+                          <span className="font-mono text-[11px] text-slate-400 truncate max-w-27.5 block" title={item.messageId}>
                             {item.messageId}
                           </span>
                         </Td>
@@ -831,7 +832,7 @@ export function AdminNotificationsClient() {
                       </p>
                       {simResult.replySent && (
                         <div>
-                          <strong className="text-slate-700 block mb-1">Réponse automatique WhatsApp :</strong>
+                          <strong className="text-slate-700 block mb-1">Réponse WhatsApp générée :</strong>
                           <pre className="p-2 bg-white rounded-lg border border-emerald-100 text-[11px] whitespace-pre-wrap font-sans text-slate-600">
                             {simResult.replySent}
                           </pre>

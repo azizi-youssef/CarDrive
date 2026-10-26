@@ -115,16 +115,57 @@ const jsonLd = {
   '@context': 'https://schema.org',
   '@graph': [
     {
-      '@type': 'Organization',
+      '@type': ['Organization', 'LocalBusiness'],
       '@id': `${SITE_URL}/#organization`,
       name: SITE_NAME,
       url: SITE_URL,
-      logo: `${SITE_URL}/icon_logo.png`,
-      areaServed: {
-        '@type': 'City',
-        name: 'Nador',
-        containedInPlace: { '@type': 'Country', name: 'Maroc' },
+      logo: {
+        '@type': 'ImageObject',
+        url: `${SITE_URL}/icon_logo.png`,
+        width: 512,
+        height: 512,
       },
+      image: `${SITE_URL}/og-cardrive.png`,
+      description: SITE_DESCRIPTION,
+      address: {
+        '@type': 'PostalAddress',
+        addressLocality: 'Nador',
+        addressRegion: 'Oriental',
+        addressCountry: 'MA',
+      },
+      geo: {
+        '@type': 'GeoCoordinates',
+        latitude: 35.1681,
+        longitude: -2.9283,
+      },
+      areaServed: [
+        { '@type': 'City', name: 'Nador', containedInPlace: { '@type': 'Country', name: 'Maroc' } },
+        { '@type': 'Place', name: 'Aéroport Nador-Al Aroui' },
+        { '@type': 'Place', name: 'Port Beni Ansar' },
+        { '@type': 'Place', name: 'Marchica' },
+      ],
+      contactPoint: {
+        '@type': 'ContactPoint',
+        contactType: 'customer support',
+        email: 'contact@cardrive.ma',
+        availableLanguage: ['French', 'Arabic'],
+      },
+      priceRange: '$$',
+      openingHoursSpecification: [
+        {
+          '@type': 'OpeningHoursSpecification',
+          dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+          opens: '09:00',
+          closes: '18:00',
+        },
+        {
+          '@type': 'OpeningHoursSpecification',
+          dayOfWeek: ['Saturday'],
+          opens: '09:00',
+          closes: '13:00',
+        },
+      ],
+      sameAs: [`${SITE_URL}`],
     },
     {
       '@type': 'WebSite',
@@ -134,6 +175,14 @@ const jsonLd = {
       description: SITE_DESCRIPTION,
       inLanguage: 'fr-MA',
       publisher: { '@id': `${SITE_URL}/#organization` },
+      potentialAction: {
+        '@type': 'SearchAction',
+        target: {
+          '@type': 'EntryPoint',
+          urlTemplate: `${SITE_URL}/search?q={search_term_string}`,
+        },
+        'query-input': 'required name=search_term_string',
+      },
     },
   ],
 };

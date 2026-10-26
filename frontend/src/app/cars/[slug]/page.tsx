@@ -33,6 +33,7 @@ import {
   ArrowRight,
   Heart,
   Share2,
+  Sparkles,
   BadgeCheck,
 } from 'lucide-react';
 

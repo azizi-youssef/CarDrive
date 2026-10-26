@@ -270,7 +270,7 @@ export function AdminAuditClient() {
                           <span className="text-xs font-semibold uppercase text-slate-700 tracking-wider">
                             {log.entity_type}
                           </span>
-                          <span className="font-mono text-[11px] text-slate-400 truncate max-w-[180px]">
+                          <span className="font-mono text-[11px] text-slate-400 truncate max-w-45">
                             {log.entity_id}
                           </span>
                         </div>

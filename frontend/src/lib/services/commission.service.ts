@@ -1,8 +1,8 @@
 import { createClient } from '@/lib/supabase/server';
 import { PlatformSettings } from '@/types';
 
-/** Taux par défaut utilisé uniquement si `platform_settings` est vide */
-const DEFAULT_COMMISSION_RATE = 15.0;
+/** Taux par défaut utilisé si `platform_settings` n'est pas configuré (0% dans le modèle abonnement) */
+const DEFAULT_COMMISSION_RATE = 0.0;
 
 class CommissionService {
   private cachedRate: number = DEFAULT_COMMISSION_RATE;

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAgencyPermissionApi } from '@/lib/auth/access-api';
 import { createAdminClient } from '@/lib/supabase/server';
 import { commissionService } from '@/lib/services/commission.service';
+import { subscriptionService } from '@/lib/services/subscription.service';
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -67,11 +68,13 @@ export async function GET(request: NextRequest, context: RouteContext) {
   }
 
   const pendingNet = agencyNet - settledNet;
+  const subscription = await subscriptionService.getAgencySubscription(agencyId);
 
   return NextResponse.json({
     success: true,
     data: {
       platformRate,
+      subscription,
       kpis: {
         grossRevenue,
         platformCommission,

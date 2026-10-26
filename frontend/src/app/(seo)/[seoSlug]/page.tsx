@@ -12,6 +12,7 @@ import {
   CheckCircle2,
   MapPin,
   Calendar,
+  Sparkles,
   HelpCircle,
   Car,
   ChevronRight,
@@ -148,7 +149,7 @@ export default async function SeoLandingPage({ params }: PageProps) {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <div className="max-w-3xl">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold mb-4">
-                <ShieldCheck className="w-3.5 h-3.5" />
+                <Sparkles className="w-3.5 h-3.5" />
                 <span>Comparateur n°1 à Nador • Zéro frais cachés</span>
               </div>
 

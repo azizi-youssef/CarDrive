@@ -46,7 +46,7 @@ const NAV_GROUPS = [
   {
     label: 'Finance',
     items: [
-      { href: '/admin/finance', label: 'Commissions', icon: DollarSign },
+      { href: '/admin/finance', label: 'Abonnements', icon: DollarSign },
       { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
     ],
   },
@@ -69,7 +69,7 @@ function SidebarLogo({ collapsed }: { collapsed: boolean }) {
       href="/admin"
       className="flex items-center gap-2.5 transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E63946]/60 rounded-md"
     >
-      <div className={cn('relative shrink-0', collapsed ? 'h-7 w-7' : 'h-8 w-[120px]')}>
+      <div className={cn('relative shrink-0', collapsed ? 'h-7 w-7' : 'h-8 w-30')}>
         <Image
           src="/Logo-CarDrive2.png"
           alt="CarDrive"
@@ -116,7 +116,7 @@ function NavItem({
         aria-hidden="true"
         className={cn(
           'shrink-0 transition-colors',
-          collapsed ? 'h-5 w-5' : 'h-[18px] w-[18px]',
+          collapsed ? 'h-5 w-5' : 'h-4.5 w-4.5',
           active ? 'text-[#E63946]' : 'group-hover:text-white'
         )}
       />
@@ -291,7 +291,7 @@ export function AdminMobileDrawer({
                           : 'text-slate-400 hover:bg-white/5 hover:text-white'
                       )}
                     >
-                      <item.icon aria-hidden="true" className="h-[18px] w-[18px] shrink-0" />
+                      <item.icon aria-hidden="true" className="h-4.5 w-4.5 shrink-0" />
                       {item.label}
                     </Link>
                   </li>
@@ -386,7 +386,7 @@ export function AdminTopBar({
   const roleCode = userProfile?.role || 'SUPER_ADMIN';
 
   return (
-    <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/90 h-16 sm:h-[70px] flex items-center px-4 sm:px-6 lg:px-8 gap-3 sm:gap-4 transition-all shadow-2xs">
+    <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/90 h-16 sm:h-17.5 flex items-center px-4 sm:px-6 lg:px-8 gap-3 sm:gap-4 transition-all shadow-2xs">
       {/* Mobile menu button */}
       <button
         type="button"
@@ -473,14 +473,14 @@ export function AdminTopBar({
           </div>
           <div className="hidden sm:block text-left">
             <p className="text-xs font-bold text-slate-900 leading-tight flex items-center gap-1">
-              <span className="max-w-[120px] truncate">{displayName}</span>
+              <span className="max-w-30 truncate">{displayName}</span>
               <ChevronDown
                 className={`h-3 w-3 text-slate-400 transition-transform duration-200 ${
                   profileMenuOpen ? 'rotate-180 text-slate-700' : ''
                 }`}
               />
             </p>
-            <p className="text-[11px] text-slate-500 font-mono max-w-[140px] truncate">{email}</p>
+            <p className="text-[11px] text-slate-500 font-mono max-w-35 truncate">{email}</p>
           </div>
         </button>
 
@@ -612,7 +612,7 @@ export function AdminShell({
           loggingOut={loggingOut}
         />
         <main className="flex-1 overflow-y-auto">
-          <div className="mx-auto max-w-[1440px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+          <div className="mx-auto max-w-360 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
             {children}
           </div>
         </main>

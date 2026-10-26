@@ -371,14 +371,14 @@ export function AdminAgenciesClient() {
                     {/* Agence & Email */}
                     <Td>
                       <div className="flex items-center gap-3">
-                        <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-red-500 to-rose-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-xs border border-red-400/20">
+                        <div className="h-9 w-9 rounded-xl bg-linear-to-br from-red-500 to-rose-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-xs border border-red-400/20">
                           {initials}
                         </div>
                         <div className="min-w-0">
                           <p className="text-sm font-semibold text-slate-900 truncate">
                             {agency.name}
                           </p>
-                          <p className="text-xs font-mono text-slate-500 truncate max-w-[200px]">
+                          <p className="text-xs font-mono text-slate-500 truncate max-w-50">
                             {agency.email}
                           </p>
                         </div>

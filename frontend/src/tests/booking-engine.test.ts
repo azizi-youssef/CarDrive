@@ -34,12 +34,19 @@ function runTests() {
 
   // --- 1. FINANCIAL PRICING & COMMISSION TESTS ---
   console.log('--- 1. Calcul Financier & Commission ---');
+  // Modèle Abonnement (défaut 0.00% commission)
+  const defaultPrice = calculateBookingPrice(360, 5);
+  assert(defaultPrice.subtotal === 1800, 'Sous-total 360 DH x 5 jours = 1 800 DH');
+  assert(defaultPrice.commission_rate === 0.00, 'Taux de commission par défaut = 0% (Modèle Abonnement)');
+  assert(defaultPrice.commission_amount === 0, 'Commission CarDrive = 0 DH (100% conservé par agence)');
+  assert(defaultPrice.agency_amount === 1800, 'Net agence 100% = 1 800 DH');
+  assert(defaultPrice.total === 1800, 'Total facturé = 1 800 DH');
+
+  // Test avec taux explicite (ex: 15% rétroactif)
   const price1 = calculateBookingPrice(360, 5, 15.00);
-  assert(price1.subtotal === 1800, 'Sous-total 360 DH x 5 jours = 1 800 DH');
-  assert(price1.commission_rate === 15.00, 'Taux de commission = 15%');
+  assert(price1.commission_rate === 15.00, 'Taux de commission historique = 15%');
   assert(price1.commission_amount === 270, 'Commission CarDrive 15% de 1800 = 270 DH');
   assert(price1.agency_amount === 1530, 'Montant agence = 1800 - 270 = 1 530 DH');
-  assert(price1.total === 1800, 'Total facturé = 1 800 DH');
 
   // Test avec taux dynamique différent (ex: 20%)
   const price2 = calculateBookingPrice(400, 3, 20.00);

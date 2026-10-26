@@ -21,10 +21,14 @@ import {
   EyeOff,
   Fuel,
   Gauge,
+  Sparkles,
   Camera,
 } from 'lucide-react';
 import { cn, formatPrice } from '@/lib/utils';
 import { VehicleFormModal, type EditableVehicle } from './VehicleFormModal';
+import { FleetCapacityCard } from '../subscription/FleetCapacityCard';
+import { AgencySubscriptionModal } from '../subscription/AgencySubscriptionModal';
+import type { AgencySubscription, SubscriptionPlan } from '@/types';
 
 export type VehicleRow = {
   id: string;
@@ -83,6 +87,35 @@ export function AgencyFleetPanel({
   const [blockingError, setBlockingError] = useState<string | null>(null);
   const [uploadingVehicleId, setUploadingVehicleId] = useState<string | null>(null);
 
+  // Subscription state
+  const [subscription, setSubscription] = useState<AgencySubscription | null>(null);
+  const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
+  const [subLoading, setSubLoading] = useState(true);
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+
+  const loadSubscription = useCallback(async () => {
+    try {
+      setSubLoading(true);
+      const [subRes, plansRes] = await Promise.all([
+        fetch(`/api/agencies/${agencyId}/subscription`),
+        fetch('/api/subscriptions/plans'),
+      ]);
+      const subJson = await subRes.json();
+      const plansJson = await plansRes.json();
+
+      if (subJson.success && subJson.data) {
+        setSubscription(subJson.data);
+      }
+      if (plansJson.success && plansJson.data) {
+        setPlans(plansJson.data);
+      }
+    } catch (err) {
+      console.warn('Could not load subscription data:', err);
+    } finally {
+      setSubLoading(false);
+    }
+  }, [agencyId]);
+
   const handleDirectPhotoUpload = async (vehicleId: string, file: File | null) => {
     if (!file) return;
     setUploadingVehicleId(vehicleId);
@@ -137,7 +170,8 @@ export function AgencyFleetPanel({
 
   useEffect(() => {
     void loadVehicles();
-  }, [loadVehicles]);
+    void loadSubscription();
+  }, [loadVehicles, loadSubscription]);
 
   const togglePublish = async (vehicle: VehicleRow) => {
     if (!canManage) return;
@@ -218,18 +252,41 @@ export function AgencyFleetPanel({
         {canManage && (
           <button
             type="button"
-            onClick={() => setEditingVehicle('new')}
-            className="flex items-center gap-2 rounded-xl bg-[#E63946] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-red-700"
+            onClick={() => {
+              if (subscription?.is_at_capacity) {
+                setUpgradeModalOpen(true);
+              } else {
+                setEditingVehicle('new');
+              }
+            }}
+            className={cn(
+              'flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold shadow-sm transition',
+              subscription?.is_at_capacity
+                ? 'bg-amber-600 hover:bg-amber-700 text-white'
+                : 'bg-[#E63946] hover:bg-red-700 text-white'
+            )}
+            title={
+              subscription?.is_at_capacity
+                ? 'Capacité maximale atteinte pour votre forfait'
+                : 'Ajouter un véhicule'
+            }
           >
             <Plus className="h-4 w-4" />
-            Ajouter un véhicule
+            {subscription?.is_at_capacity ? 'Augmenter le forfait' : 'Ajouter un véhicule'}
           </button>
         )}
       </div>
 
+      {/* Subscription Fleet Capacity Card */}
+      <FleetCapacityCard
+        subscription={subscription}
+        loading={subLoading}
+        onOpenUpgradeModal={() => setUpgradeModalOpen(true)}
+      />
+
       {/* Filter and Search Bar */}
       <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-xs">
-        <div className="relative min-w-[240px] flex-1">
+        <div className="relative min-w-60 flex-1">
           <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
           <input
             type="text"
@@ -347,7 +404,7 @@ export function AgencyFleetPanel({
                 className="group relative flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs transition hover:shadow-md"
               >
                 {/* Image & Badges Header */}
-                <div className="relative aspect-[16/10] w-full overflow-hidden bg-slate-100">
+                <div className="relative aspect-16/10 w-full overflow-hidden bg-slate-100">
                   {mainImg ? (
                     <Image
                       src={mainImg}
@@ -562,6 +619,22 @@ export function AgencyFleetPanel({
           onClose={() => setEditingVehicle(null)}
           onSuccess={() => {
             setEditingVehicle(null);
+            void loadVehicles();
+            void loadSubscription();
+          }}
+        />
+      )}
+
+      {/* Subscription Upgrade Modal */}
+      {subscription && (
+        <AgencySubscriptionModal
+          agencyId={agencyId}
+          subscription={subscription}
+          plans={plans}
+          isOpen={upgradeModalOpen}
+          onClose={() => setUpgradeModalOpen(false)}
+          onSuccess={(updatedSub) => {
+            setSubscription(updatedSub);
             void loadVehicles();
           }}
         />
