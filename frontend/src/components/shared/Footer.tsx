@@ -1,7 +1,11 @@
 
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useTranslation } from '@/lib/i18n/LanguageContext';
+import { LanguageSelector } from '@/components/shared/LanguageSelector';
 import {
   ShieldCheck,
   MapPin,
@@ -148,6 +152,7 @@ function LocationItem({
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
+  const { t } = useTranslation();
 
   return (
     <footer className="relative overflow-hidden border-t border-slate-800/70 bg-[#0B1220] text-slate-300">
@@ -185,18 +190,16 @@ export function Footer() {
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
                     <h2 className="text-sm font-bold text-white">
-                      Vous êtes une agence de location ?
+                      {t.footer.agencyBoxTitle}
                     </h2>
 
                     <span className="rounded-full border border-[#E63946]/20 bg-[#E63946]/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[#E63946]">
-                      Partenaire
+                      CarDrive Partner
                     </span>
                   </div>
 
                   <p className="mt-1 max-w-xl text-xs leading-relaxed text-slate-400">
-                    Rejoignez CarDrive et présentez vos véhicules à des
-                    clients recherchant une location à Nador et dans la
-                    région de l'Oriental.
+                    {t.footer.agencyBoxDesc}
                   </p>
                 </div>
               </div>
@@ -504,8 +507,8 @@ export function Footer() {
 
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
 
-            {/* Copyright */}
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-[11px] text-slate-500">
+            {/* Copyright & Language Selector */}
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] text-slate-500">
               <span>© {currentYear} CarDrive</span>
 
               <span className="hidden text-slate-700 sm:inline">
@@ -521,10 +524,8 @@ export function Footer() {
                 •
               </span>
 
-              <span className="flex items-center gap-1.5">
-                <CarFront className="h-3 w-3" />
-                Mobilité simplifiée
-              </span>
+              {/* Language Selector */}
+              <LanguageSelector variant="footer" />
             </div>
 
             {/* Legal */}
@@ -536,28 +537,28 @@ export function Footer() {
                 href="/cgv"
                 className="transition-colors hover:text-slate-300"
               >
-                CGV
+                {t.footer.legalCgv}
               </Link>
 
               <Link
                 href="/confidentialite"
                 className="transition-colors hover:text-slate-300"
               >
-                Confidentialité
+                {t.footer.legalPrivacy}
               </Link>
 
               <Link
                 href="/mentions-legales"
                 className="transition-colors hover:text-slate-300"
               >
-                Mentions légales
+                {t.footer.legalMentions}
               </Link>
 
               <Link
                 href="/contact"
                 className="transition-colors hover:text-slate-300"
               >
-                Contact
+                {t.nav.contact}
               </Link>
 
               <Link

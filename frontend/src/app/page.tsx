@@ -9,6 +9,7 @@ import { AgencyCard } from '@/components/agencies/AgencyCard';
 import { loginUrl } from '@/lib/auth/login-portals';
 import { useRealtimeRefresh } from '@/lib/supabase/realtime';
 import type { Vehicle, Agency } from '@/types';
+import { useTranslation } from '@/lib/i18n/LanguageContext';
 
 import {
   ArrowRight,
@@ -31,6 +32,7 @@ import {
 } from 'lucide-react';
 
 export default function HomePage() {
+  const { t, isRTL } = useTranslation();
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [agencies, setAgencies] = useState<Agency[]>([]);
 
@@ -236,7 +238,7 @@ export default function HomePage() {
             {/* Eyebrow */}
             <div className="mb-7 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3.5 py-2 text-xs font-semibold text-white/90 backdrop-blur-xl">
               <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.8)]" />
-              <span>Location de voitures à Nador</span>
+              <span>{t.hero.eyebrow}</span>
               <ChevronRight className="h-3.5 w-3.5 text-white/50" />
             </div>
 
@@ -250,8 +252,7 @@ export default function HomePage() {
             </h1>
 
             <p className="mt-7 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg">
-              Comparez les voitures disponibles auprès des agences locales et
-              trouvez simplement le véhicule adapté à votre voyage.
+              {t.hero.subtitle}
             </p>
 
             {/* Search */}
@@ -279,14 +280,14 @@ export default function HomePage() {
             <div className="mt-9 flex flex-wrap items-center gap-x-8 gap-y-4 text-sm">
               <div className="flex items-center gap-2">
                 <span className="font-bold text-white">{totalVehicles}+</span>
-                <span className="text-slate-400">véhicules</span>
+                <span className="text-slate-400">{t.stats.vehicles}</span>
               </div>
 
               <div className="h-4 w-px bg-white/20" />
 
               <div className="flex items-center gap-2">
                 <span className="font-bold text-white">{totalAgencies}+</span>
-                <span className="text-slate-400">agences</span>
+                <span className="text-slate-400">{t.stats.agencies}</span>
               </div>
 
               <div className="h-4 w-px bg-white/20" />
@@ -485,29 +486,27 @@ export default function HomePage() {
             <div>
               <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#E63946]/25 bg-[#E63946]/10 px-3 py-1.5 text-xs font-bold text-[#FF6B75]">
                 <Sparkles className="h-3.5 w-3.5" />
-                Une recherche plus intelligente
+                {t.differentiator.badge}
               </div>
 
               <h2 className="max-w-xl text-4xl font-black leading-[1.05] tracking-tight sm:text-5xl">
-                Une voiture n'est pas disponible ?
+                {t.differentiator.title}
                 <br />
                 <span className="text-[#E63946]">
-                  Trouvez une alternative.
+                  {t.differentiator.titleAccent}
                 </span>
               </h2>
 
               <p className="mt-6 max-w-xl text-base leading-7 text-slate-400">
-                Avec CarDrive, vous n'avez plus besoin de contacter plusieurs
-                agences une par une. Comparez les alternatives disponibles
-                auprès de différents partenaires.
+                {t.differentiator.desc}
               </p>
 
               <div className="mt-8 space-y-4">
                 {[
-                  'Recherche centralisée',
-                  'Alternatives entre plusieurs agences',
-                  'Prix et informations comparables',
-                  'Contact direct avec le partenaire',
+                  t.differentiator.point1,
+                  t.differentiator.point2,
+                  t.differentiator.point3,
+                  t.differentiator.point4,
                 ].map((item) => (
                   <div key={item} className="flex items-center gap-3">
                     <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500/15">
@@ -525,7 +524,7 @@ export default function HomePage() {
                 href="/search"
                 className="mt-9 inline-flex items-center gap-2 rounded-xl bg-[#E63946] px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-red-950/40 transition hover:bg-[#C92F3B] hover:shadow-xl"
               >
-                Rechercher une voiture
+                {t.differentiator.cta}
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
@@ -816,12 +815,11 @@ export default function HomePage() {
               </div>
 
               <h2 className="text-3xl font-black tracking-tight sm:text-4xl">
-                Vous êtes une agence de location ?
+                {t.footer.agencyBoxTitle}
               </h2>
 
               <p className="mt-4 max-w-xl text-sm leading-6 text-slate-400 sm:text-base">
-                Présentez votre flotte, recevez des demandes de réservation et
-                développez votre visibilité auprès des voyageurs à Nador.
+                {t.footer.agencyBoxDesc}
               </p>
 
               <div className="mt-6 flex flex-wrap gap-4 text-xs text-slate-400">

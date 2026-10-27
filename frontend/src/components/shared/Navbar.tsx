@@ -35,6 +35,8 @@ import {
   signOutEverywhere,
   type ClientAuthProfile,
 } from '@/lib/auth/client';
+import { useTranslation } from '@/lib/i18n/LanguageContext';
+import { LanguageSelector } from '@/components/shared/LanguageSelector';
 
 function accountHref(profile: ClientAuthProfile): string {
   if (profile.canAccessAdmin) return '/admin';
@@ -174,6 +176,7 @@ const navLinks = [
 export function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
+  const { t, isRTL } = useTranslation();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [destinationsOpen, setDestinationsOpen] = useState(false);
@@ -273,10 +276,15 @@ export function Navbar() {
   /* Close menus when route changes                                    */
   /* ------------------------------------------------------------------ */
 
+  const prevPathnameRef = useRef(pathname);
+
   useEffect(() => {
-    setMobileMenuOpen(false);
-    setDestinationsOpen(false);
-    setAccountMenuOpen(false);
+    if (prevPathnameRef.current !== pathname) {
+      prevPathnameRef.current = pathname;
+      setMobileMenuOpen(false);
+      setDestinationsOpen(false);
+      setAccountMenuOpen(false);
+    }
   }, [pathname]);
 
   const handleSignOut = async () => {
@@ -457,7 +465,7 @@ export function Navbar() {
               'flex items-center justify-between gap-4 transition-all duration-300',
               scrolled
                 ? 'h-14'
-                : 'h-16 sm:h-[68px]'
+                : 'h-16 sm:h-17'
             )}
           >
 
@@ -488,8 +496,8 @@ export function Navbar() {
                 className={cn(
                   'relative hidden transition-all duration-300 sm:block',
                   scrolled
-                    ? 'h-9 w-[150px]'
-                    : 'h-10 w-[165px]'
+                    ? 'h-9 w-37.5'
+                    : 'h-10 w-41.25'
                 )}
               >
                 <Image
@@ -513,7 +521,13 @@ export function Navbar() {
             >
 
               {/* Main links */}
-              {navLinks.map((link) => {
+              {[
+                { href: '/', label: t.nav.home },
+                { href: '/search', label: t.nav.cars },
+                { href: '/agencies', label: t.nav.agencies },
+                { href: '/about', label: t.nav.about },
+                { href: '/faq', label: t.nav.faq },
+              ].map((link) => {
                 const active = isNavActive(link.href);
 
                 return (
@@ -558,7 +572,7 @@ export function Navbar() {
                       : 'text-slate-600 hover:bg-slate-50 hover:text-[#0B1220]'
                   )}
                 >
-                  Destinations
+                  {t.nav.destinations}
 
                   <ChevronDown
                     className={cn(
@@ -574,7 +588,7 @@ export function Navbar() {
                     onMouseLeave={() =>
                       setDestinationsOpen(false)
                     }
-                    className="absolute left-1/2 top-full z-50 mt-2 w-[350px] -translate-x-1/2 overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-[0_20px_50px_rgba(15,23,42,0.14)]"
+                    className="absolute left-1/2 top-full z-50 mt-2 w-87.5 -translate-x-1/2 overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-[0_20px_50px_rgba(15,23,42,0.14)]"
                     style={{
                       animation:
                         'carDriveDropdown 160ms ease-out',
@@ -587,11 +601,11 @@ export function Navbar() {
 
                         <div>
                           <p className="text-xs font-bold text-slate-900">
-                            Explorer par destination
+                            {t.nav.exploreDestinations}
                           </p>
 
                           <p className="mt-0.5 text-[10px] text-slate-500">
-                            Trouvez une voiture selon votre point d'arrivée.
+                            {t.nav.destinationsSubtitle}
                           </p>
                         </div>
 
@@ -710,7 +724,7 @@ export function Navbar() {
                     aria-expanded={accountMenuOpen}
                     aria-haspopup="menu"
                     onClick={() => setAccountMenuOpen((open) => !open)}
-                    className="inline-flex max-w-64 items-center gap-2 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-left shadow-sm transition hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#02306B]"
+                    className="inline-flex max-w-64 items-center gap-2 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-left shadow-sm transition hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-[#02306B]"
                   >
                     <AccountAvatar profile={authProfile} />
                     <span className="min-w-0">
@@ -784,6 +798,9 @@ export function Navbar() {
                 </>
               )}
 
+              {/* Language Selector */}
+              <LanguageSelector variant="navbar" />
+
               {/* Search CTA */}
               <Link
                 href="/search"
@@ -793,11 +810,11 @@ export function Navbar() {
                 <Search className="h-3.5 w-3.5" />
 
                 <span className="hidden xl:inline">
-                  Trouver un véhicule
+                  {t.nav.findCar}
                 </span>
 
                 <span className="xl:hidden">
-                  Rechercher
+                  {t.nav.search}
                 </span>
 
                 <ArrowRight className="h-3 w-3 opacity-70 transition-transform group-hover:translate-x-0.5" />
@@ -853,6 +870,9 @@ export function Navbar() {
                 <Search className="h-4 w-4" />
               </Link>
 
+              {/* Language selector on mobile header */}
+              <LanguageSelector variant="navbar" className="sm:hidden" />
+
               <button
                 type="button"
                 aria-label={
@@ -883,9 +903,14 @@ export function Navbar() {
       {/* ================================================================ */}
 
       {mobileMenuOpen && (
-        <div className="fixed inset-x-0 bottom-0 top-[56px] z-40 overflow-y-auto border-b border-slate-200 bg-white shadow-2xl lg:hidden">
+        <div className="fixed inset-x-0 bottom-0 top-14 z-40 overflow-y-auto border-b border-slate-200 bg-white shadow-2xl lg:hidden">
 
           <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6">
+
+            {/* Language Selector Mobile Drawer */}
+            <div className="mb-4">
+              <LanguageSelector variant="mobile" />
+            </div>
 
             {/* Main CTA */}
             <Link

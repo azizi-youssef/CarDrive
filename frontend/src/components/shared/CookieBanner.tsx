@@ -3,12 +3,14 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Cookie, X, Check, Settings } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n/LanguageContext';
 
 const STORAGE_KEY = 'cardrive_cookie_consent';
 
 type ConsentState = 'accepted' | 'declined' | null;
 
 export function CookieBanner() {
+  const { t, isRTL } = useTranslation();
   const [consent, setConsent] = useState<ConsentState>(null);
   const [showDetails, setShowDetails] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -31,26 +33,26 @@ export function CookieBanner() {
     setConsent('declined');
   }
 
-  // Don't render until mounted (avoid hydration mismatch)
   if (!mounted || consent !== null) return null;
 
   return (
     <div
       role="dialog"
       aria-modal="false"
-      aria-label="Consentement aux cookies"
+      aria-label={t.cookie.title}
       className="fixed bottom-4 left-4 right-4 z-100 md:bottom-6 md:left-auto md:right-6 md:max-w-md"
+      dir={isRTL ? 'rtl' : 'ltr'}
     >
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-900/15">
         {/* Header */}
         <div className="flex items-start justify-between gap-3 bg-[#0B1220] px-5 py-4">
           <div className="flex items-center gap-2.5">
             <Cookie className="h-5 w-5 text-amber-400 shrink-0" />
-            <p className="text-sm font-bold text-white">Paramètres des cookies</p>
+            <p className="text-sm font-bold text-white">{t.cookie.title}</p>
           </div>
           <button
             onClick={decline}
-            aria-label="Refuser et fermer"
+            aria-label="Fermer"
             className="rounded-full p-1 text-white/60 transition hover:bg-white/10 hover:text-white"
           >
             <X className="h-4 w-4" />
@@ -60,14 +62,13 @@ export function CookieBanner() {
         {/* Body */}
         <div className="px-5 py-4">
           <p className="text-sm text-slate-600 leading-relaxed">
-            Nous utilisons des cookies essentiels au fonctionnement du site et, avec votre
-            accord, des cookies analytiques pour améliorer votre expérience.
+            {t.cookie.desc}
           </p>
 
           {showDetails && (
             <div className="mt-3 space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
               {[
-                { name: '🔒 Cookies essentiels', desc: 'Session, authentification. Toujours actifs.', always: true },
+                { name: '🔒 Cookies essentiels', desc: 'Session, authentification, langue. Toujours actifs.', always: true },
                 { name: '📊 Cookies analytiques', desc: 'Mesure d\'audience anonymisée pour améliorer le service.', always: false },
               ].map(({ name, desc, always }) => (
                 <div key={name} className="flex items-start justify-between gap-3">
@@ -100,14 +101,14 @@ export function CookieBanner() {
             className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-[#0B1220] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800"
           >
             <Check className="h-4 w-4" />
-            Accepter
+            {t.cookie.accept}
           </button>
           <button
             id="cookie-decline"
             onClick={decline}
             className="flex-1 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:bg-slate-50"
           >
-            Refuser
+            {t.cookie.decline}
           </button>
         </div>
 
@@ -117,14 +118,14 @@ export function CookieBanner() {
             href="/confidentialite"
             className="text-[11px] text-slate-400 hover:text-slate-600 hover:underline transition"
           >
-            Politique de Confidentialité
+            {t.cookie.privacy}
           </Link>
           {' · '}
           <Link
             href="/mentions-legales"
             className="text-[11px] text-slate-400 hover:text-slate-600 hover:underline transition"
           >
-            Mentions Légales
+            {t.cookie.mentions}
           </Link>
         </div>
       </div>

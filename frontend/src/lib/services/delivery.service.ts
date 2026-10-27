@@ -1,6 +1,6 @@
 import { Booking, BookingStatus, VehicleStatus } from '@/types';
 import { createAdminClient } from '@/lib/supabase/server';
-import { getMeetingPoint, MEETING_POINTS } from '@/lib/constants/meetingPoints';
+import { getMeetingPoint } from '@/lib/constants/meetingPoints';
 import { whatsappService } from './whatsapp.service';
 
 /**

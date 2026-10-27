@@ -1,16 +1,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  normalizeAgencyLocalPart,
   generateBaseAgencyEmail,
-  generateCandidateAgencyEmails,
   resolveUniqueAgencyEmail,
   generateTemporaryPassword,
-  normalizeAgencySlug,
 } from '../lib/utils/agency-credentials';
 import {
   createAgencyWithAuthSchema,
-  agencyPatchSchema,
   resetAgencyPasswordSchema,
   agencyArchiveSchema,
 } from '../lib/validations/agency-access';

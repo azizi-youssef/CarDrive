@@ -162,7 +162,6 @@ export class WhatsAppService {
     options: WhatsAppSendOptions = {}
   ): Promise<WhatsAppMessageResult> {
     const normalized = this.normalizePhoneNumber(recipientPhone);
-    const timestamp = new Date().toISOString();
 
     if (!this.isValidPhoneNumber(normalized)) {
       return this.recordFailure(

@@ -10,6 +10,7 @@ import {
   getEffectiveRentalDates,
   isValidDateOnly,
 } from '@/lib/utils/date-only';
+import { useTranslation } from '@/lib/i18n/LanguageContext';
 
 interface SearchBarProps {
   initialLocation?: string;
@@ -73,6 +74,7 @@ export function SearchBar({
 }: SearchBarProps) {
   const router = useRouter();
   const uid = useId();
+  const { t } = useTranslation();
 
   const today = useSyncExternalStore(
     subscribeToLocalDateChange,
@@ -150,7 +152,7 @@ export function SearchBar({
       className={`w-full ${isCompact ? '' : 'mx-auto max-w-5xl'}`}
     >
       <div className="grid gap-1 rounded-2xl border border-slate-200/80 bg-white p-1.5 sm:grid-cols-2 lg:grid-cols-[1.3fr_1fr_1fr_1.1fr_1.1fr_auto]">
-        <Field id={`${uid}-location`} label="Lieu de départ" icon={MapPin}>
+        <Field id={`${uid}-location`} label={t.searchBar.pickupLocation} icon={MapPin}>
           <select
             id={`${uid}-location`}
             value={location}
@@ -165,7 +167,7 @@ export function SearchBar({
           </select>
         </Field>
 
-        <Field id={`${uid}-start`} label="Date de départ" icon={Calendar}>
+        <Field id={`${uid}-start`} label={t.searchBar.pickupDate} icon={Calendar}>
           <input
             id={`${uid}-start`}
             type="date"
@@ -178,7 +180,7 @@ export function SearchBar({
           />
         </Field>
 
-        <Field id={`${uid}-end`} label="Date de retour" icon={Calendar}>
+        <Field id={`${uid}-end`} label={t.searchBar.dropoffDate} icon={Calendar}>
           <input
             id={`${uid}-end`}
             type="date"
@@ -224,10 +226,10 @@ export function SearchBar({
         <button
           type="submit"
           disabled={!today}
-          className="flex items-center justify-center gap-2 rounded-xl bg-[#E63946] px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-[#C92F3B] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0B1220] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 sm:col-span-2 lg:col-span-1"
+          className="flex items-center justify-center gap-2 rounded-xl bg-[#E63946] px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-[#C92F3B] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0B1220] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 sm:col-span-2 lg:col-span-1"
         >
           <Search className="h-4 w-4" aria-hidden="true" />
-          Rechercher
+          {t.searchBar.searchBtn}
         </button>
       </div>
       {dateError && (

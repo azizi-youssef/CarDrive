@@ -100,11 +100,13 @@ export function useRealtimeRefresh({
   const [lastRefreshAt, setLastRefreshAt] = useState<Date | null>(null);
 
   const refreshRef = useRef(onRefresh);
-  refreshRef.current = onRefresh;
-
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const tablesRef = useRef(tables);
-  tablesRef.current = tables;
+
+  useEffect(() => {
+    refreshRef.current = onRefresh;
+    tablesRef.current = tables;
+  }, [onRefresh, tables]);
 
   // Déclenchement protégé par debounce
   const triggerRefresh = useCallback(() => {

@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { Navbar } from '@/components/shared/Navbar';
 import { Footer } from '@/components/shared/Footer';
 import { CookieBanner } from '@/components/shared/CookieBanner';
+import { LanguageProvider } from '@/lib/i18n/LanguageContext';
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -14,29 +15,32 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     pathname?.startsWith('/admin') ||
     pathname?.startsWith('/agency');
 
-  if (isAdminOrAgency) {
-    return <>{children}</>;
-  }
-
   return (
-    <>
-      <a
-        href="#contenu"
-        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-100 focus:rounded-xl focus:bg-[#0B1220] focus:px-4 focus:py-3 focus:text-sm focus:font-semibold focus:text-white"
-      >
-        Aller au contenu principal
-      </a>
+    <LanguageProvider>
+      {isAdminOrAgency ? (
+        children
+      ) : (
+        <>
+          <a
+            href="#contenu"
+            className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-100 focus:rounded-xl focus:bg-[#0B1220] focus:px-4 focus:py-3 focus:text-sm focus:font-semibold focus:text-white"
+          >
+            Aller au contenu principal
+          </a>
 
-      <Navbar />
+          <Navbar />
 
-      <main id="contenu" className="flex-1">
-        {children}
-      </main>
+          <main id="contenu" className="flex-1">
+            {children}
+          </main>
 
-      <Footer />
+          <Footer />
 
-      {/* Bandeau de consentement cookies — CNDP / RGPD */}
-      <CookieBanner />
-    </>
+          {/* Bandeau de consentement cookies — CNDP / RGPD */}
+          <CookieBanner />
+        </>
+      )}
+    </LanguageProvider>
   );
 }
+

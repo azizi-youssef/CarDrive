@@ -6,7 +6,6 @@ import { bookingRequestSchema, BookingRequestInput } from '@/lib/validations/boo
 import { calculateBookingPrice, calculateRentalDays } from '@/lib/utils/pricing';
 import { generateBookingReference } from '@/lib/utils/reference';
 import { commissionService } from './commission.service';
-import { notificationService } from './notification.service';
 import { vehiclesService } from './vehicles.service';
 
 /* -------------------------------------------------------------------------- */

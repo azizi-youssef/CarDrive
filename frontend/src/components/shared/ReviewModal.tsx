@@ -94,15 +94,15 @@ export function ReviewModal({
       });
 
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error((data as any).error || 'Erreur lors de l\'envoi.');
+        const data = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(data.error || 'Erreur lors de l\'envoi.');
       }
 
       setState('success');
       onSuccess?.();
-    } catch (err: any) {
+    } catch (err: unknown) {
       setState('error');
-      setError(err.message || 'Une erreur est survenue.');
+      setError(err instanceof Error ? err.message : 'Une erreur est survenue.');
     }
   }
 

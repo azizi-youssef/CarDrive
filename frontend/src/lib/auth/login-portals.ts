@@ -35,7 +35,6 @@ export const PORTAL_DEFAULT_REDIRECT: Record<LoginPortal, string> = {
 
 export function isSafeRedirect(value: string | null | undefined): value is string {
   if (!value || !value.startsWith('/') || value.startsWith('//')) return false;
-  // eslint-disable-next-line no-control-regex
   if (/[\\\u0000-\u001F\u007F]/.test(value)) return false;
   try {
     return new URL(value, INTERNAL_ORIGIN).origin === INTERNAL_ORIGIN;

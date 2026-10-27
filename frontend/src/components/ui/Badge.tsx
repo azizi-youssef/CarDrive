@@ -1,6 +1,6 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
-import { CheckCircle2, AlertCircle, Clock, ShieldCheck } from 'lucide-react';
+import { AlertCircle, Clock, ShieldCheck } from 'lucide-react';
 
 interface BadgeProps {
   variant?: 'verified' | 'available' | 'rented' | 'pending' | 'outline' | 'accent';
