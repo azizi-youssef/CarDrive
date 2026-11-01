@@ -133,7 +133,7 @@ export default function CommissionSettingsPage() {
 
         {/* Titre */}
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-[#02306B] text-xs font-bold mb-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-[#0B1220] text-xs font-bold mb-2">
             <Sparkles className="w-3.5 h-3.5 text-amber-500" />
             <span>Nouveau Modèle de Monétisation</span>
           </div>
@@ -194,7 +194,7 @@ export default function CommissionSettingsPage() {
                 <div>
                   <h3 className="text-lg font-extrabold text-slate-900">{plan.name}</h3>
                   <div className="mt-2 mb-3">
-                    <span className="text-3xl font-black text-[#02306B]">
+                    <span className="text-3xl font-black text-[#0B1220]">
                       {formatPrice(plan.price_monthly)}
                     </span>
                     <span className="text-xs font-semibold text-slate-500"> / mois</span>
@@ -227,7 +227,7 @@ export default function CommissionSettingsPage() {
         {/* Section 2: Simulateur de concession */}
         <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-6">
           <div className="flex items-center gap-3 pb-4 border-b border-slate-100">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-[#02306B]">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-[#0B1220]">
               <TrendingUp className="h-5 w-5" />
             </div>
             <div>
@@ -246,7 +246,7 @@ export default function CommissionSettingsPage() {
                 <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
                   Nombre de véhicules de la concession
                 </label>
-                <span className="text-2xl font-black text-[#02306B]">
+                <span className="text-2xl font-black text-[#0B1220]">
                   {simulatedVehicleCount} véhicules
                 </span>
               </div>
@@ -257,7 +257,7 @@ export default function CommissionSettingsPage() {
                 max="50"
                 value={simulatedVehicleCount}
                 onChange={(e) => setSimulatedVehicleCount(Number(e.target.value))}
-                className="w-full h-2.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-[#02306B]"
+                className="w-full h-2.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-[#0B1220]"
               />
 
               <div className="flex justify-between text-[11px] text-slate-400 font-semibold">
@@ -273,7 +273,7 @@ export default function CommissionSettingsPage() {
                 <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700">
                   Palier Assigné Automatiquement
                 </span>
-                <p className="text-xl font-extrabold text-[#02306B]">
+                <p className="text-xl font-extrabold text-[#0B1220]">
                   Formule {recommendedPlan.name}
                 </p>
                 <p className="text-2xl font-black text-slate-900">
@@ -314,7 +314,7 @@ export default function CommissionSettingsPage() {
                   max="100"
                   value={newRateInput}
                   onChange={(e) => setNewRateInput(e.target.value)}
-                  className="w-full pl-4 pr-10 py-2.5 rounded-xl border border-slate-300 font-extrabold text-base text-slate-900 outline-none focus:border-[#02306B] focus:ring-2 focus:ring-[#02306B]/20"
+                  className="w-full pl-4 pr-10 py-2.5 rounded-xl border border-slate-300 font-extrabold text-base text-slate-900 outline-none focus:border-[#0B1220] focus:ring-2 focus:ring-[#0B1220]/20"
                 />
                 <span className="absolute right-4 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-sm">
                   %
@@ -324,7 +324,7 @@ export default function CommissionSettingsPage() {
               <button
                 type="submit"
                 disabled={saving}
-                className="px-5 py-2.5 rounded-xl bg-[#02306B] hover:bg-[#064181] disabled:opacity-50 text-white text-xs font-bold flex items-center gap-2 shadow-xs transition cursor-pointer"
+                className="px-5 py-2.5 rounded-xl bg-[#0B1220] hover:bg-slate-800 disabled:opacity-50 text-white text-xs font-bold flex items-center gap-2 shadow-xs transition cursor-pointer"
               >
                 <Save className="w-4 h-4" />
                 <span>{saving ? 'Enregistrement...' : 'Mettre à jour le taux'}</span>

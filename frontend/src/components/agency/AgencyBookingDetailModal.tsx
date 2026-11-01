@@ -137,7 +137,7 @@ export function AgencyBookingDetailModal({
       <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col max-h-[92vh]">
         
         {/* Header */}
-        <div className="bg-[#02306B] text-white px-6 py-4 flex items-center justify-between shrink-0">
+        <div className="bg-[#0B1220] text-white px-6 py-4 flex items-center justify-between shrink-0">
           <div>
             <div className="flex items-center gap-2 text-xs font-semibold text-blue-200">
               <span className="font-mono">{booking.reference || booking.booking_ref}</span>
@@ -157,7 +157,7 @@ export function AgencyBookingDetailModal({
               className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs flex items-center gap-1.5 transition-colors border border-white/20"
               title="Télécharger la fiche PDF officielle"
             >
-              <Download className="w-3.5 h-3.5 text-[#FF7300]" />
+              <Download className="w-3.5 h-3.5 text-[#E63946]" />
               <span className="hidden sm:inline">Télécharger PDF</span>
             </a>
 
@@ -176,7 +176,7 @@ export function AgencyBookingDetailModal({
           {/* Section 1 : Client */}
           <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
             <h3 className="font-bold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2 border-b border-slate-200/70 pb-1.5">
-              <User className="w-4 h-4 text-[#02306B]" />
+              <User className="w-4 h-4 text-[#0B1220]" />
               <span>Coordonnées Client</span>
             </h3>
             <div className="grid grid-cols-2 gap-3 text-slate-700">
@@ -202,7 +202,7 @@ export function AgencyBookingDetailModal({
           {/* Section 2 : Véhicule & Location */}
           <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
             <h3 className="font-bold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2 border-b border-slate-200/70 pb-1.5">
-              <CarFront className="w-4 h-4 text-[#02306B]" />
+              <CarFront className="w-4 h-4 text-[#0B1220]" />
               <span>Véhicule & Période</span>
             </h3>
             <div className="grid grid-cols-2 gap-3 text-slate-700">
@@ -212,7 +212,7 @@ export function AgencyBookingDetailModal({
               </div>
               <div>
                 <span className="text-[10px] text-slate-400 block">Durée</span>
-                <span className="font-bold text-[#02306B]">{booking.total_days} jour(s)</span>
+                <span className="font-bold text-[#0B1220]">{booking.total_days} jour(s)</span>
               </div>
               <div>
                 <span className="text-[10px] text-slate-400 block">Prise en charge</span>
@@ -246,7 +246,7 @@ export function AgencyBookingDetailModal({
 
           {/* Section 3 : Finances & Commission CarDrive */}
           <div className="p-4 rounded-2xl bg-blue-50/60 border border-blue-200 space-y-2">
-            <h3 className="font-bold text-[#02306B] text-xs uppercase tracking-wider border-b border-blue-200 pb-1.5">
+            <h3 className="font-bold text-[#0B1220] text-xs uppercase tracking-wider border-b border-blue-200 pb-1.5">
               Ventilation Financière
             </h3>
             <div className="grid grid-cols-3 gap-2 text-center pt-1">
@@ -260,7 +260,7 @@ export function AgencyBookingDetailModal({
               </div>
               <div className="p-2 bg-white rounded-xl border border-blue-100">
                 <span className="text-[10px] text-blue-600 font-semibold block">Com. CarDrive ({booking.commission_rate}%)</span>
-                <span className="font-bold text-[#02306B] text-sm">{formatPrice(booking.commission_amount)}</span>
+                <span className="font-bold text-[#0B1220] text-sm">{formatPrice(booking.commission_amount)}</span>
               </div>
             </div>
             <p className="text-[10px] text-slate-500 text-center pt-1">
@@ -271,7 +271,7 @@ export function AgencyBookingDetailModal({
           {/* PDF Téléchargeable */}
           <div className="flex items-center justify-between p-3.5 rounded-xl border border-slate-200 bg-slate-50">
             <div className="flex items-center gap-2">
-              <FileText className="w-5 h-5 text-[#02306B]" />
+              <FileText className="w-5 h-5 text-[#0B1220]" />
               <div>
                 <span className="font-bold text-slate-900 block">PDF Officiel de la demande</span>
                 <span className="text-[10px] text-slate-500">Document A4 prêt à imprimer pour la remise des clés</span>
@@ -354,7 +354,7 @@ export function AgencyBookingDetailModal({
                   type="button"
                   disabled={isProcessing}
                   onClick={handleProposeAlternative}
-                  className="px-4 py-1.5 rounded-lg bg-[#02306B] text-white font-bold"
+                  className="px-4 py-1.5 rounded-lg bg-[#0B1220] text-white font-bold"
                 >
                   Proposer au client
                 </button>

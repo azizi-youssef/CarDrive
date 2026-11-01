@@ -153,7 +153,7 @@ export function LanguageSelector({ variant = 'navbar', className }: LanguageSele
         className={cn(
           'inline-flex items-center gap-1.5 rounded-xl border px-2.5 py-1.5 text-xs font-semibold transition-all duration-200',
           isOpen
-            ? 'border-[#02306B] bg-slate-100 text-slate-900 shadow-xs'
+            ? 'border-[#0B1220] bg-slate-100 text-slate-900 shadow-xs'
             : 'border-slate-200/80 bg-white/80 text-slate-700 hover:border-slate-300 hover:bg-slate-50'
         )}
       >

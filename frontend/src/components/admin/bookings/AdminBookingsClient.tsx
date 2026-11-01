@@ -38,7 +38,7 @@ const STATUS_OPTIONS = [
 ];
 
 function csvExport(rows: Booking[]) {
-  const header = ['Dossier', 'Client', 'Email', 'Téléphone', 'Véhicule', 'Agence', 'Début', 'Fin', 'Jours', 'Montant', 'Commission', 'Net agence', 'Statut', 'Créé le'];
+  const header = ['Dossier', 'Client', 'Email', 'Téléphone', 'Véhicule', 'Agence', 'Début', 'Fin', 'Jours', 'Montant (100% agence)', 'Commission CarDrive', 'Statut', 'Créé le'];
   const lines = rows.map((b) =>
     [
       b.booking_ref ?? b.reference ?? '',
@@ -51,8 +51,7 @@ function csvExport(rows: Booking[]) {
       b.end_date,
       b.total_days,
       b.total_price,
-      b.commission_amount,
-      b.agency_amount,
+      '0 DH (0%)',
       b.status,
       b.created_at?.slice(0, 10) ?? '',
     ].map((v) => {
@@ -131,8 +130,8 @@ export function AdminBookingsClient() {
         <div className="grid gap-3 sm:grid-cols-3">
           {[
             { label: 'Réservations filtrées', value: filtered.length.toString() },
-            { label: 'Volume filtré', value: formatPrice(totalVolume) },
-            { label: 'Commission filtrée', value: formatPrice(totalCommission) },
+            { label: 'Volume brut (100% agences)', value: formatPrice(totalVolume) },
+            { label: 'Commission plateforme', value: '0 DH (0%)' },
           ].map(({ label, value }) => (
             <div key={label} className="rounded-xl border border-slate-200 bg-white px-5 py-3.5">
               <p className="text-xs text-slate-500">{label}</p>

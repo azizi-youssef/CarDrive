@@ -72,10 +72,10 @@ export interface AgencyDashboardProps {
 const NO_CONTRACTS: DashboardContracts = {};
 const NOOP = () => undefined;
 const primaryBase = 'inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-50';
-const primary = `${primaryBase} bg-[#02306B] hover:bg-[#064181] focus-visible:outline-[#02306B]`;
+const primary = `${primaryBase} bg-[#0B1220] hover:bg-slate-800 focus-visible:outline-[#0B1220]`;
 const danger = `${primaryBase} bg-red-700 hover:bg-red-800 focus-visible:outline-red-700`;
-const secondary = 'inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#02306B] disabled:cursor-not-allowed disabled:opacity-50';
-const inputClass = 'w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-[#02306B] focus:ring-2 focus:ring-blue-100 disabled:bg-slate-100 disabled:text-slate-500';
+const secondary = 'inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0B1220] disabled:cursor-not-allowed disabled:opacity-50';
+const inputClass = 'w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-[#0B1220] focus:ring-2 focus:ring-blue-100 disabled:bg-slate-100 disabled:text-slate-500';
 
 function errorMessage(error: unknown): string {
   if (error instanceof DashboardError) return error.message;
@@ -248,9 +248,9 @@ function AgencyPortal({ agencies, profile, mode, contracts, demoData, onAccessLo
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
           <div className="flex min-w-0 items-center gap-3">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#02306B] text-white"><Building2 className="h-5 w-5" aria-hidden="true" /></div>
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#0B1220] text-white"><Building2 className="h-5 w-5" aria-hidden="true" /></div>
             <div className="min-w-0">
-              <p className="text-xs font-semibold uppercase tracking-widest text-[#02306B]">CarDrive · Portail agence</p>
+              <p className="text-xs font-semibold uppercase tracking-widest text-[#0B1220]">CarDrive · Portail agence</p>
               <div className="mt-1 flex flex-wrap items-center gap-2">
                 <h1 className="truncate text-lg font-bold sm:text-xl">{agency.name}</h1>
                 {agency.verified ? <Badge variant="verified" icon>Vérifiée</Badge>
@@ -539,7 +539,7 @@ function AgencyWorkspace({ agency, profile, mode, contracts, demoSnapshot, onAcc
             if (!nextTab) return;
             setActiveTab(nextTab.value);
             tabsRef.current?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[next]?.focus();
-          }} className={`whitespace-nowrap rounded-xl px-3 py-2.5 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#02306B] ${activeTab === tab.value ? 'bg-[#02306B] text-white shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'}`}>
+          }} className={`whitespace-nowrap rounded-xl px-3 py-2.5 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#0B1220] ${activeTab === tab.value ? 'bg-[#0B1220] text-white shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'}`}>
           {tab.label}
         </button>)}
       </div>
@@ -548,7 +548,7 @@ function AgencyWorkspace({ agency, profile, mode, contracts, demoSnapshot, onAcc
       </button>
     </div>
     {mode === 'production' && !contracts.serverAuthorizationReviewed && <div className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-600">
-      <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-[#02306B]" aria-hidden="true" /><p>Accès en lecture seule. La gestion et les exports ne sont pas activés pour ce portail.</p>
+      <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-[#0B1220]" aria-hidden="true" /><p>Accès en lecture seule. La gestion et les exports ne sont pas activés pour ce portail.</p>
     </div>}
     <section className="space-y-2" aria-label="Notifications">
       {notices.map((notice) => <div key={notice.id} role={notice.kind === 'error' ? 'alert' : 'status'} className={`flex items-start gap-3 rounded-xl border p-3 text-sm ${notice.kind === 'success' ? 'border-emerald-200 bg-emerald-50 text-emerald-900' : 'border-red-200 bg-red-50 text-red-800'}`}>
@@ -556,13 +556,12 @@ function AgencyWorkspace({ agency, profile, mode, contracts, demoSnapshot, onAcc
         <span className="min-w-0 flex-1">{notice.message}</span><button type="button" aria-label="Fermer la notification" className="rounded p-0.5 focus-visible:outline focus-visible:outline-2" onClick={() => setNotices((previous) => previous.filter((entry) => entry.id !== notice.id))}><X className="h-4 w-4" aria-hidden="true" /></button>
       </div>)}
     </section>
-    <section id={`${tabId}-panel`} role="tabpanel" aria-labelledby={`${tabId}-${activeTab}`} tabIndex={0} className="space-y-5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#02306B]">
+    <section id={`${tabId}-panel`} role="tabpanel" aria-labelledby={`${tabId}-${activeTab}`} tabIndex={0} className="space-y-5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#0B1220]">
       {activeTab === 'overview' && <>
         <ResourceFeedback label="Statistiques" resource={stats} onRetry={() => refresh('stats')} />
-        <OverviewCards stats={stats} bookings={bookings} />
         <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-base font-bold">Demandes en attente</h2><p className="mt-1 text-xs text-slate-500">Triées par début de location</p></div>
-            <button type="button" className="rounded-lg px-2 py-1 text-sm font-semibold text-[#02306B] focus-visible:outline focus-visible:outline-2" onClick={() => setActiveTab('bookings')}>Toutes les réservations</button>
+            <button type="button" className="rounded-lg px-2 py-1 text-sm font-semibold text-[#0B1220] focus-visible:outline focus-visible:outline-2" onClick={() => setActiveTab('bookings')}>Toutes les réservations</button>
           </div>
           <ResourceFeedback label="Réservations" resource={bookings} onRetry={() => refresh('bookings')} />
           {bookings.data ? <BookingTable bookings={bookingRows.filter((entry: BookingView) => entry.status === 'PENDING').sort((a: BookingView, b: BookingView) => a.start_date.localeCompare(b.start_date)).slice(0, 5)}
@@ -601,7 +600,7 @@ function AgencyWorkspace({ agency, profile, mode, contracts, demoSnapshot, onAcc
 
 function PortalSkeleton({ label }: { label: string }) {
   return <div className="min-h-screen bg-[#F8FAFC] p-4 text-slate-600 sm:p-8" role="status" aria-busy="true">
-    <div className="mx-auto max-w-7xl space-y-6"><p className="flex items-center gap-2 text-sm"><Loader2 className="h-4 w-4 animate-spin text-[#02306B]" aria-hidden="true" />{label}</p>
+    <div className="mx-auto max-w-7xl space-y-6"><p className="flex items-center gap-2 text-sm"><Loader2 className="h-4 w-4 animate-spin text-[#0B1220]" aria-hidden="true" />{label}</p>
       <div aria-hidden="true" className="h-20 animate-pulse rounded-2xl bg-slate-200/70" />
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4" aria-hidden="true">{[0, 1, 2, 3].map((index) => <div key={index} className="h-32 animate-pulse rounded-2xl bg-slate-200/70" />)}</div>
       <TableSkeleton />
@@ -612,7 +611,7 @@ function PortalSkeleton({ label }: { label: string }) {
 function PortalBlocked({ message, onRetry, onSignOut }: { message: string; onRetry?: () => void; onSignOut?: () => void }) {
   return <main className="flex min-h-screen items-center justify-center bg-[#F8FAFC] p-4 text-slate-900">
     <div className="w-full max-w-lg rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-      <Building2 className="mb-4 h-9 w-9 text-[#02306B]" aria-hidden="true" /><h1 className="text-xl font-bold">Portail agence CarDrive</h1>
+      <Building2 className="mb-4 h-9 w-9 text-[#0B1220]" aria-hidden="true" /><h1 className="text-xl font-bold">Portail agence CarDrive</h1>
       <p role="alert" className="mt-3 text-sm text-slate-600">{message}</p>
       <div className="mt-6 flex flex-wrap gap-3"><Link href="/login?portal=agency" className={primary}>Se connecter</Link>
         {onRetry && <button type="button" onClick={onRetry} className={secondary}>Réessayer</button>}
@@ -652,7 +651,7 @@ function formatDate(value: string): string {
 
 function KpiCard({ label, value, detail, icon, loading }: { label: string; value: ReactNode; detail: ReactNode; icon: ReactNode; loading: boolean }) {
   return <article aria-busy={loading} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
-    <div className="flex items-center justify-between gap-2"><h3 className="text-xs font-semibold text-slate-500">{label}</h3><span className="text-[#02306B]" aria-hidden="true">{icon}</span></div>
+    <div className="flex items-center justify-between gap-2"><h3 className="text-xs font-semibold text-slate-500">{label}</h3><span className="text-[#0B1220]" aria-hidden="true">{icon}</span></div>
     {loading ? <><div className="my-3 h-9 w-24 animate-pulse rounded-lg bg-slate-100" aria-hidden="true" /><span className="sr-only">Chargement de {label}</span></> : <p className="mt-3 break-words text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">{value}</p>}
     <div className="mt-2 text-xs leading-relaxed text-slate-500">{detail}</div>
   </article>;
@@ -761,7 +760,7 @@ function FleetPanel({ vehicles, canEdit, canDelete, canChangeStatus, transitions
       status={status} onStatus={(value) => { setStatus(value); setPage(1); }} statuses={[...new Set(vehicles.map((vehicle) => vehicle.status))].sort()}
       sort={sort} onSort={(value) => { setSort(value); setPage(1); }} sorts={[{ value: 'name', label: 'Nom du véhicule' }, { value: 'price-asc', label: 'Prix croissant' }, { value: 'price-desc', label: 'Prix décroissant' }, { value: 'year', label: 'Année décroissante' }]} />
     {pagination.total === 0 ? <EmptyState message={vehicles.length ? 'Aucun véhicule ne correspond à vos filtres.' : 'Aucun véhicule dans la flotte chargée.'} />
-      : <div className="relative w-full min-w-0 max-w-full overflow-x-auto focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#02306B]" role="region" aria-label="Tableau de la flotte, défilement horizontal possible" tabIndex={0}>
+      : <div className="relative w-full min-w-0 max-w-full overflow-x-auto focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#0B1220]" role="region" aria-label="Tableau de la flotte, défilement horizontal possible" tabIndex={0}>
         <table className="w-full min-w-[820px] text-left text-sm"><caption className="sr-only">Véhicules de l’agence active</caption>
           <thead className="border-b border-slate-200 bg-slate-50 text-xs text-slate-500"><tr>{['Véhicule', 'Unité / Immatriculation', 'Catégorie / Carburant', 'Tarif / jour', 'Statut', 'Actions'].map((label) => <th key={label} scope="col" className="px-4 py-3 font-semibold">{label}</th>)}</tr></thead>
           <tbody className="divide-y divide-slate-100">{pagination.entries.map((vehicle: VehicleView) => {
@@ -771,8 +770,8 @@ function FleetPanel({ vehicles, canEdit, canDelete, canChangeStatus, transitions
               <td className="px-4 py-4"><div className="flex items-center gap-3"><VehicleThumbnail vehicle={vehicle} /><div><p className="font-semibold">{vehicle.brand} {vehicle.model}</p><p className="mt-1 text-xs text-slate-500">{vehicle.year} · {vehicle.transmission}{vehicle.published === false && ' · Non publié'}</p></div></div></td>
               <td className="px-4 py-4"><p className="font-mono text-xs font-semibold">{vehicle.unit_number || 'Non transmis'}</p><p className="mt-1 text-xs text-slate-500">{vehicle.license_plate || 'Non transmise'}</p></td>
               <td className="px-4 py-4"><p>{vehicle.category}</p><p className="mt-1 text-xs text-slate-500">{vehicle.fuel ?? 'Carburant non transmis'}</p></td>
-              <td className="px-4 py-4 font-semibold text-[#02306B]">{money(vehicle.daily_price)}</td>
-              <td className="px-4 py-4"><StatusBadge status={vehicle.status} />{next.map((transition) => <button key={`${transition.from}:${transition.to}`} type="button" disabled={busy} className="mt-2 block rounded px-1 text-xs font-medium text-[#02306B] underline disabled:opacity-50" onClick={() => onStatus(vehicle, transition)}>{transition.label}</button>)}</td>
+              <td className="px-4 py-4 font-semibold text-[#0B1220]">{money(vehicle.daily_price)}</td>
+              <td className="px-4 py-4"><StatusBadge status={vehicle.status} />{next.map((transition) => <button key={`${transition.from}:${transition.to}`} type="button" disabled={busy} className="mt-2 block rounded px-1 text-xs font-medium text-[#0B1220] underline disabled:opacity-50" onClick={() => onStatus(vehicle, transition)}>{transition.label}</button>)}</td>
               <td className="px-4 py-4"><div className="flex items-center justify-end gap-2">
                 {busy && <Loader2 className="h-4 w-4 animate-spin text-slate-500" aria-label="Opération en cours" />}
                 {canEdit && <button type="button" className={secondary} disabled={busy} aria-label={`Modifier ${vehicle.brand} ${vehicle.model}, ${vehicle.unit_number}`} onClick={() => onEdit(vehicle)}><Edit className="h-4 w-4" aria-hidden="true" /></button>}
@@ -807,14 +806,14 @@ function BookingActions({ booking, busy, bookingAllowed, onDetail, onAction, can
 
 function BookingTable({ bookings, busyKeys, emptyMessage = 'Aucune réservation dans la liste chargée.', ...actions }: BookingTableProps) {
   if (!bookings.length) return <EmptyState message={emptyMessage} />;
-  return <div className="relative w-full min-w-0 max-w-full overflow-x-auto focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#02306B]" role="region" aria-label="Tableau des réservations, défilement horizontal possible" tabIndex={0}>
+  return <div className="relative w-full min-w-0 max-w-full overflow-x-auto focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#0B1220]" role="region" aria-label="Tableau des réservations, défilement horizontal possible" tabIndex={0}>
     <table className="w-full min-w-[1160px] text-left text-sm"><caption className="sr-only">Réservations de l’agence active</caption>
       <thead className="border-b border-slate-200 bg-slate-50 text-xs text-slate-500"><tr>{['Dossier / Client', 'Véhicule / Point de retrait', 'Période', 'Total', 'Commission', 'Net agence', 'Statut', 'Actions'].map((label) => <th key={label} scope="col" className="px-4 py-3 font-semibold">{label}</th>)}</tr></thead>
       <tbody className="divide-y divide-slate-100">{bookings.map((booking) => {
         const amounts = resolveAmounts(booking.total_price, booking.commission_amount, booking.agency_amount);
         const busy = busyKeys.has(`booking:${booking.id}`);
         return <tr key={booking.id} className="hover:bg-slate-50/70" aria-busy={busy}>
-          <td className="px-4 py-4"><p className="font-mono text-xs font-semibold text-[#02306B]">{bookingReference(booking)}</p><p className="mt-1 font-medium">{booking.customer_name}</p>{booking.customer_phone && <p className="mt-1 text-xs text-slate-500">{booking.customer_phone}</p>}</td>
+          <td className="px-4 py-4"><p className="font-mono text-xs font-semibold text-[#0B1220]">{bookingReference(booking)}</p><p className="mt-1 font-medium">{booking.customer_name}</p>{booking.customer_phone && <p className="mt-1 text-xs text-slate-500">{booking.customer_phone}</p>}</td>
           <td className="px-4 py-4"><p>{booking.vehicle ? `${booking.vehicle.brand} ${booking.vehicle.model}` : 'Véhicule non transmis'}</p><div className="mt-2">{booking.pickup_location ? <MeetingPointBadge location={booking.pickup_location} size="sm" /> : <span className="text-xs text-slate-500">Point de retrait non transmis</span>}</div></td>
           <td className="px-4 py-4 text-xs text-slate-600"><p>{formatDate(booking.start_date)}</p><p className="mt-1">→ {formatDate(booking.end_date)}</p>{booking.total_days !== null && <p className="mt-1 text-slate-500">{booking.total_days} jour(s)</p>}</td>
           <td className="px-4 py-4 font-semibold">{money(amounts.gross)}</td>
@@ -960,7 +959,7 @@ function VehicleEditor({ vehicle, options, fleet, busy, notice, onClose, onSave 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">{field('brand', 'Marque')}{field('model', 'Modèle')}{field('unit_number', 'Numéro d’unité')}{field('license_plate', 'Immatriculation')}</div>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">{field('year', 'Année', 'number')}{select('category', 'Catégorie', options.categories)}{select('transmission', 'Transmission', options.transmissions)}{select('fuel', 'Carburant', options.fuels)}</div>
         <div className="grid grid-cols-2 gap-3">{field('seats', 'Places', 'number', !vehicle)}{field('doors', 'Portes', 'number', !vehicle)}{field('mileage', 'Kilométrage', 'number', !vehicle)}{field('min_rental_days', 'Durée minimum (jours)', 'number', !vehicle)}</div>
-        <label htmlFor={`${id}-ac`} className="flex items-center gap-2 text-sm"><input id={`${id}-ac`} type="checkbox" checked={form.air_conditioning} onChange={(event) => setField('air_conditioning', event.target.checked)} className="h-4 w-4 accent-[#02306B]" />Climatisation</label>
+        <label htmlFor={`${id}-ac`} className="flex items-center gap-2 text-sm"><input id={`${id}-ac`} type="checkbox" checked={form.air_conditioning} onChange={(event) => setField('air_conditioning', event.target.checked)} className="h-4 w-4 accent-[#0B1220]" />Climatisation</label>
       </fieldset>
       <fieldset disabled={busy}><legend className="mb-3 text-sm font-semibold">Tarification</legend><div className="grid grid-cols-1 gap-3 sm:grid-cols-2">{field('daily_price', 'Prix par jour (DH)', 'number')}{field('deposit', 'Caution (DH)', 'number', !vehicle)}</div></fieldset>
       <fieldset disabled={busy} className="space-y-3"><legend className="mb-3 text-sm font-semibold">Images et équipements</legend>

@@ -59,7 +59,7 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
     return (
       <div className="bg-[#F8FAFC] min-h-screen py-16 flex items-center justify-center">
         <div className="text-center space-y-3">
-          <div className="w-10 h-10 border-3 border-[#02306B] border-t-transparent rounded-full animate-spin mx-auto" />
+          <div className="w-10 h-10 border-3 border-[#0B1220] border-t-transparent rounded-full animate-spin mx-auto" />
           <p className="text-xs font-semibold text-slate-500">Chargement de votre dossier...</p>
         </div>
       </div>
@@ -79,7 +79,7 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
           </p>
           <Link
             href="/account"
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#02306B] text-white text-xs font-semibold"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#0B1220] text-white text-xs font-semibold"
           >
             <ArrowLeft className="w-4 h-4" />
             Retour à mon compte
@@ -154,7 +154,7 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-6">
             <div>
               <div className="flex items-center gap-2 mb-1.5">
-                <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-[#02306B]">
+                <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-800">
                   Dossier CarDrive
                 </span>
                 {booking.status === 'APPROVED' || booking.status === 'CONFIRMED' ? (
@@ -188,7 +188,7 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
                 rel="noopener noreferrer"
                 className="px-4 py-2.5 rounded-xl bg-white border border-slate-300 hover:border-slate-400 text-slate-800 font-bold text-xs flex items-center gap-2 shadow-sm transition-all"
               >
-                <Download className="w-4 h-4 text-[#02306B]" />
+                <Download className="w-4 h-4 text-[#0B1220]" />
                 <span>PDF Demande</span>
               </a>
 
@@ -199,7 +199,7 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
                 className={`px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 shadow-sm transition-all ${
                   isConfirmed 
                     ? 'bg-emerald-600 hover:bg-emerald-700 text-white' 
-                    : 'bg-[#02306B] hover:bg-[#064181] text-white'
+                    : 'bg-[#0B1220] hover:bg-slate-800 text-white'
                 }`}
               >
                 <MessageSquare className="w-4 h-4" />
@@ -223,7 +223,7 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
                       step.done
                         ? 'bg-emerald-50/70 border-emerald-200 text-emerald-950'
                         : step.current
-                        ? 'bg-blue-50/80 border-blue-300 text-[#02306B] shadow-sm ring-2 ring-blue-500/20'
+                        ? 'bg-blue-50/80 border-blue-300 text-[#0B1220] shadow-sm ring-2 ring-blue-500/20'
                         : 'bg-slate-50 border-slate-200 text-slate-400'
                     }`}
                   >
@@ -233,7 +233,7 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
                           step.done
                             ? 'bg-emerald-600 text-white'
                             : step.current
-                            ? 'bg-[#02306B] text-white animate-pulse'
+                            ? 'bg-[#0B1220] text-white animate-pulse'
                             : 'bg-slate-200 text-slate-500'
                         }`}
                       >
@@ -260,7 +260,7 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
             {/* Modalités de Location */}
             <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-4 shadow-sm">
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 border-b border-slate-100 pb-2 flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-[#02306B]" />
+                <Calendar className="w-4 h-4 text-[#0B1220]" />
                 <span>Modalités de la location</span>
               </h3>
 
@@ -346,7 +346,7 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
                 <span className="font-semibold text-slate-900">{formatPrice(booking.total_price)}</span>
               </div>
 
-              <div className="pt-2 border-t border-slate-100 flex justify-between text-sm font-extrabold text-[#02306B]">
+              <div className="pt-2 border-t border-slate-100 flex justify-between text-sm font-extrabold text-[#0B1220]">
                 <span>Total location</span>
                 <span>{formatPrice(booking.total_price)}</span>
               </div>
@@ -367,7 +367,7 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
             {booking.agency && (
               <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-3 text-xs">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 border-b border-slate-100 pb-2 flex items-center gap-2">
-                  <Building2 className="w-4 h-4 text-[#02306B]" />
+                  <Building2 className="w-4 h-4 text-[#0B1220]" />
                   <span>Agence partenaire</span>
                 </h3>
 
@@ -406,9 +406,9 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
                       href={conciergeUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-full py-2.5 px-3 rounded-xl bg-[#02306B] text-white font-bold flex items-center justify-center gap-2 hover:bg-[#064181] transition-colors"
+                      className="w-full py-2.5 px-3 rounded-xl bg-[#0B1220] text-white font-bold flex items-center justify-center gap-2 hover:bg-slate-800 transition-colors"
                     >
-                      <MessageSquare className="w-4 h-4 text-[#FF7300]" />
+                      <MessageSquare className="w-4 h-4 text-[#E63946]" />
                       <span>Conciergerie CarDrive (Suivi)</span>
                     </a>
                   </>

@@ -151,7 +151,7 @@ export function AccountProfileSettings() {
 
       {loading ? (
         <div className="flex min-h-32 items-center justify-center gap-2 text-sm text-slate-500">
-          <Loader2 className="h-5 w-5 animate-spin text-[#02306B]" aria-hidden="true" />
+          <Loader2 className="h-5 w-5 animate-spin text-[#0B1220]" aria-hidden="true" />
           Chargement du profil…
         </div>
       ) : (
@@ -179,7 +179,7 @@ export function AccountProfileSettings() {
                 <button
                   type="button"
                   onClick={() => fileInput.current?.click()}
-                  className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#02306B]"
+                  className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B1220]"
                 >
                   {currentAvatar ? <Camera className="h-4 w-4" /> : <ImagePlus className="h-4 w-4" />}
                   {currentAvatar ? 'Changer la photo' : 'Ajouter une photo'}
@@ -198,7 +198,7 @@ export function AccountProfileSettings() {
                   <button
                     type="button"
                     onClick={clearSelectedPhoto}
-                    className="rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#02306B]"
+                    className="rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B1220]"
                   >
                     Annuler la photo
                   </button>
@@ -222,7 +222,7 @@ export function AccountProfileSettings() {
                 autoComplete="name"
                 value={name}
                 onChange={(event) => setName(event.target.value)}
-                className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm outline-none transition focus:border-[#02306B] focus:ring-2 focus:ring-[#02306B]/10"
+                className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm outline-none transition focus:border-[#0B1220] focus:ring-2 focus:ring-[#0B1220]/10"
               />
             </div>
             <div>
@@ -252,7 +252,7 @@ export function AccountProfileSettings() {
             <button
               type="submit"
               disabled={saving || !name.trim()}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#02306B] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#064181] disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-xl bg-[#0B1220] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               {saving ? 'Enregistrement…' : 'Enregistrer le profil'}

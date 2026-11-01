@@ -25,6 +25,7 @@ import { signOutEverywhere } from '@/lib/auth/client';
 import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton';
 import { loginUrl } from '@/lib/auth/login-portals';
 import { ReviewModal } from '@/components/shared/ReviewModal';
+import { Magnet, GsapReveal } from '@/components/ui/react-bits';
 
 export default function AccountPage() {
   const router = useRouter();
@@ -255,11 +256,11 @@ export default function AccountPage() {
 
                 {loadingBookings ? (
                   <div className="flex items-center justify-center py-12 text-slate-400 gap-2">
-                    <Loader2 className="w-5 h-5 animate-spin text-[#02306B]" />
+                    <Loader2 className="w-5 h-5 animate-spin text-[#E63946]" />
                     <span className="text-xs">Chargement de vos réservations...</span>
                   </div>
                 ) : bookings.length > 0 ? (
-                  <div className="space-y-3">
+                  <GsapReveal stagger={0.06} className="space-y-3">
                     {bookings.map((booking) => (
                       <div
                         key={booking.id}
@@ -332,7 +333,7 @@ export default function AccountPage() {
                             )}
                             <Link
                               href={`/account/bookings/${encodeURIComponent(booking.reference || booking.booking_ref || '')}`}
-                              className="px-3 py-1.5 rounded-lg bg-[#02306B] text-white text-xs font-semibold hover:bg-[#064181] transition shadow-sm"
+                              className="px-3 py-1.5 rounded-lg bg-[#0B1220] text-white text-xs font-bold hover:bg-slate-800 transition shadow-2xs"
                             >
                               Suivre
                             </Link>
@@ -340,21 +341,27 @@ export default function AccountPage() {
                         </div>
                       </div>
                     ))}
-                  </div>
+                  </GsapReveal>
                 ) : (
-                  <div className="text-center py-10 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
-                    <Car className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-                    <p className="text-xs font-semibold text-slate-700">Aucune réservation trouvée</p>
-                    <p className="text-[11px] text-slate-400 mt-1 max-w-xs mx-auto">
-                      Vos dossiers de location validés apparaîtront ici dès que vous effectuerez une réservation.
-                    </p>
-                    <div className="mt-4">
-                      <Link
-                        href="/search"
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#02306B] hover:bg-[#064181] text-white text-xs font-semibold transition shadow-sm"
-                      >
-                        Explorer les voitures disponibles
-                      </Link>
+                  <div className="text-center py-12 bg-slate-50/70 rounded-2xl border border-dashed border-slate-200 p-6 space-y-3">
+                    <div className="w-12 h-12 rounded-2xl bg-white border border-slate-200/80 text-slate-500 flex items-center justify-center mx-auto shadow-2xs">
+                      <Car className="w-6 h-6 text-[#E63946]" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-[#0B1220]">Aucune réservation en cours</p>
+                      <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+                        Vos dossiers de location validés apparaîtront ici dès que vous effectuerez une réservation auprès d'une agence locale à Nador.
+                      </p>
+                    </div>
+                    <div className="pt-2 flex justify-center">
+                      <Magnet strength={0.2}>
+                        <Link
+                          href="/search"
+                          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#E63946] hover:bg-[#C92F3B] text-white text-xs font-bold shadow-xs hover:shadow-[0_4px_16px_rgba(230,57,70,0.3)] transition-all"
+                        >
+                          Explorer les voitures disponibles
+                        </Link>
+                      </Magnet>
                     </div>
                   </div>
                 )}

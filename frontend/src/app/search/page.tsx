@@ -10,6 +10,7 @@ import { formatLocalDate, getEffectiveRentalDates } from '@/lib/utils/date-only'
 import { useRealtimeRefresh } from '@/lib/supabase/realtime';
 import type { Vehicle, Agency } from '@/types';
 import { Filter, SlidersHorizontal, ArrowUpDown, X, Car, CarFront, RefreshCw, Check, Search } from 'lucide-react';
+import { GsapReveal } from '@/components/ui/react-bits';
 
 function SearchPageContent() {
   const searchParams = useSearchParams();
@@ -227,7 +228,7 @@ function SearchPageContent() {
               onClick={() => setMobileFilterOpen(true)}
               className="lg:hidden px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-2 shadow-sm"
             >
-              <SlidersHorizontal className="w-4 h-4 text-[#02306B]" />
+              <SlidersHorizontal className="w-4 h-4 text-[#0B1220]" />
               <span>Filtres</span>
             </button>
 
@@ -257,13 +258,13 @@ function SearchPageContent() {
           {/* DESKTOP FILTERS SIDEBAR */}
           <aside className="hidden lg:block bg-white rounded-2xl border border-slate-200/90 p-5 shadow-sm space-y-6 sticky top-24">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <div className="flex items-center gap-2 font-bold text-sm text-slate-900">
-                <SlidersHorizontal className="w-4 h-4 text-[#02306B]" />
+              <div className="flex items-center gap-2 font-bold text-sm text-[#0B1220]">
+                <SlidersHorizontal className="w-4 h-4 text-[#E63946]" />
                 <span>Filtres de recherche</span>
               </div>
               <button
                 onClick={resetFilters}
-                className="text-[11px] font-semibold text-blue-600 hover:text-blue-700 hover:underline flex items-center gap-1"
+                className="text-[11px] font-semibold text-slate-500 hover:text-[#E63946] flex items-center gap-1 transition-colors"
               >
                 <RefreshCw className="w-3 h-3" />
                 Effacer
@@ -274,7 +275,7 @@ function SearchPageContent() {
             <div>
               <div className="flex justify-between items-center text-xs font-semibold text-slate-700 mb-2">
                 <span>Budget max / jour</span>
-                <span className="text-[#02306B] font-bold">
+                <span className="text-[#E63946] font-bold">
                   {maxPrice >= 5000 ? 'Tous les prix' : `${maxPrice} DH`}
                 </span>
               </div>
@@ -285,7 +286,7 @@ function SearchPageContent() {
                 step="50"
                 value={maxPrice}
                 onChange={(e) => setMaxPrice(Number(e.target.value))}
-                className="w-full accent-[#02306B] cursor-pointer"
+                className="w-full accent-[#E63946] cursor-pointer"
               />
               <div className="flex justify-between text-[10px] text-slate-400 mt-1">
                 <span>200 DH</span>
@@ -295,7 +296,7 @@ function SearchPageContent() {
 
             {/* Catégories */}
             <div>
-              <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-2">
+              <h4 className="text-xs font-bold text-[#0B1220] uppercase tracking-wider mb-2">
                 Catégorie
               </h4>
               <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
@@ -309,7 +310,7 @@ function SearchPageContent() {
                       name="cat_radio"
                       checked={selectedCategory === cat}
                       onChange={() => setSelectedCategory(cat)}
-                      className="accent-[#02306B]"
+                      className="accent-[#E63946]"
                     />
                     <span>{cat}</span>
                   </label>
@@ -319,7 +320,7 @@ function SearchPageContent() {
 
             {/* Transmission */}
             <div>
-              <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-2">
+              <h4 className="text-xs font-bold text-[#0B1220] uppercase tracking-wider mb-2">
                 Boîte de vitesse
               </h4>
               <div className="grid grid-cols-2 gap-2 text-xs">
@@ -328,7 +329,7 @@ function SearchPageContent() {
                   onClick={() => setSelectedTransmission('ALL')}
                   className={`py-1.5 px-2 rounded-lg font-medium border text-center transition-colors ${
                     selectedTransmission === 'ALL'
-                      ? 'bg-blue-50 border-teal-300 text-[#02306B] font-semibold'
+                      ? 'bg-[#0B1220] border-[#0B1220] text-white font-bold shadow-2xs'
                       : 'border-slate-200 text-slate-600 hover:bg-slate-50'
                   }`}
                 >
@@ -339,7 +340,7 @@ function SearchPageContent() {
                   onClick={() => setSelectedTransmission('AUTOMATIC')}
                   className={`py-1.5 px-2 rounded-lg font-medium border text-center transition-colors ${
                     selectedTransmission === 'AUTOMATIC'
-                      ? 'bg-blue-50 border-teal-300 text-[#02306B] font-semibold'
+                      ? 'bg-[#0B1220] border-[#0B1220] text-white font-bold shadow-2xs'
                       : 'border-slate-200 text-slate-600 hover:bg-slate-50'
                   }`}
                 >
@@ -350,7 +351,7 @@ function SearchPageContent() {
                   onClick={() => setSelectedTransmission('MANUAL')}
                   className={`py-1.5 px-2 rounded-lg font-medium border text-center transition-colors col-span-2 ${
                     selectedTransmission === 'MANUAL'
-                      ? 'bg-blue-50 border-teal-300 text-[#02306B] font-semibold'
+                      ? 'bg-[#0B1220] border-[#0B1220] text-white font-bold shadow-2xs'
                       : 'border-slate-200 text-slate-600 hover:bg-slate-50'
                   }`}
                 >
@@ -488,7 +489,7 @@ function SearchPageContent() {
                 Vérification des disponibilités…
               </div>
             ) : filteredVehicles.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              <GsapReveal stagger={0.05} className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {filteredVehicles.map((car, index) => (
                   <VehicleCard
                     key={car.id}
@@ -497,11 +498,11 @@ function SearchPageContent() {
                     availabilityChecked={Boolean(initialStartDate && initialEndDate)}
                   />
                 ))}
-              </div>
+              </GsapReveal>
             ) : (
               /* EMPTY STATE */
               <div className="bg-white rounded-2xl border border-slate-200 p-8 sm:p-12 text-center max-w-xl mx-auto space-y-4">
-                <div className="w-16 h-16 rounded-2xl bg-blue-50 text-[#02306B] flex items-center justify-center mx-auto">
+                <div className="w-16 h-16 rounded-2xl bg-slate-100 text-[#0B1220] flex items-center justify-center mx-auto">
                   <Car className="w-8 h-8" />
                 </div>
                 <div>
@@ -515,7 +516,7 @@ function SearchPageContent() {
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
                   <button
                     onClick={resetFilters}
-                    className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-[#02306B] hover:bg-[#064181] text-white text-xs font-semibold shadow-sm transition-colors"
+                    className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-[#0B1220] hover:bg-slate-800 text-white text-xs font-bold shadow-xs transition-colors"
                   >
                     Réinitialiser les filtres
                   </button>
@@ -553,7 +554,7 @@ function SearchPageContent() {
               <div>
                 <div className="flex justify-between items-center text-xs font-semibold text-slate-700 mb-2">
                   <span>Budget max / jour</span>
-                  <span className="text-[#02306B] font-bold">
+                  <span className="text-[#E63946] font-bold">
                     {maxPrice >= 5000 ? 'Tous les prix' : `${maxPrice} DH`}
                   </span>
                 </div>
@@ -564,13 +565,13 @@ function SearchPageContent() {
                   step="50"
                   value={maxPrice}
                   onChange={(e) => setMaxPrice(Number(e.target.value))}
-                  className="w-full accent-[#02306B]"
+                  className="w-full accent-[#E63946]"
                 />
               </div>
 
               {/* Catégories */}
               <div>
-                <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-2">
+                <h4 className="text-xs font-bold text-[#0B1220] uppercase tracking-wider mb-2">
                   Catégorie
                 </h4>
                 <div className="grid grid-cols-2 gap-1.5 text-xs">
@@ -578,10 +579,10 @@ function SearchPageContent() {
                     <button
                       key={cat}
                       onClick={() => setSelectedCategory(cat)}
-                      className={`p-2 rounded-lg text-left border ${
+                      className={`p-2 rounded-lg text-left border transition-colors ${
                         selectedCategory === cat
-                          ? 'border-blue-500 bg-blue-50 font-bold text-[#02306B]'
-                          : 'border-slate-200 text-slate-700'
+                          ? 'border-[#0B1220] bg-slate-900 font-bold text-white shadow-2xs'
+                          : 'border-slate-200 text-slate-700 hover:bg-slate-50'
                       }`}
                     >
                       {cat}
@@ -593,7 +594,7 @@ function SearchPageContent() {
               {/* Marque */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                  <h4 className="text-xs font-bold text-[#0B1220] uppercase tracking-wider">
                     Marque
                   </h4>
                   {(selectedBrand !== 'ALL' || brandSearchInput) && (
@@ -602,7 +603,7 @@ function SearchPageContent() {
                         setSelectedBrand('ALL');
                         setBrandSearchInput('');
                       }}
-                      className="text-[10px] text-red-600 hover:underline"
+                      className="text-[10px] text-[#E63946] hover:underline"
                     >
                       Effacer
                     </button>
@@ -644,7 +645,7 @@ function SearchPageContent() {
 
               {/* Transmission */}
               <div>
-                <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-2">
+                <h4 className="text-xs font-bold text-[#0B1220] uppercase tracking-wider mb-2">
                   Boîte de vitesse
                 </h4>
                 <div className="grid grid-cols-3 gap-1.5 text-xs">
@@ -652,10 +653,10 @@ function SearchPageContent() {
                     <button
                       key={mode}
                       onClick={() => setSelectedTransmission(mode)}
-                      className={`p-2 rounded-lg text-center border ${
+                      className={`p-2 rounded-lg text-center border transition-colors ${
                         selectedTransmission === mode
-                          ? 'border-blue-500 bg-blue-50 font-bold text-[#02306B]'
-                          : 'border-slate-200 text-slate-700'
+                          ? 'border-[#0B1220] bg-slate-900 font-bold text-white shadow-2xs'
+                          : 'border-slate-200 text-slate-700 hover:bg-slate-50'
                       }`}
                     >
                       {mode === 'ALL' ? 'Toutes' : mode === 'AUTOMATIC' ? 'Auto' : 'Manuelle'}
@@ -668,13 +669,13 @@ function SearchPageContent() {
             <div className="pt-4 border-t border-slate-100 flex gap-2">
               <button
                 onClick={resetFilters}
-                className="flex-1 py-3 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700"
+                className="flex-1 py-3 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
               >
                 Réinitialiser
               </button>
               <button
                 onClick={() => setMobileFilterOpen(false)}
-                className="flex-1 py-3 rounded-xl bg-[#02306B] text-white text-xs font-semibold shadow"
+                className="flex-1 py-3 rounded-xl bg-[#E63946] hover:bg-[#C92F3B] text-white text-xs font-bold shadow-xs hover:shadow-[0_4px_16px_rgba(230,57,70,0.3)] transition-all"
               >
                 Appliquer ({filteredVehicles.length})
               </button>

@@ -38,6 +38,9 @@ import { AgencyFinancesPanel } from '@/components/agency/finances/AgencyFinances
 import { AgencyCustomersPanel } from '@/components/agency/customers/AgencyCustomersPanel';
 import { AgencySettingsPanel } from '@/components/agency/settings/AgencySettingsPanel';
 import AgencyAccessPanel from '@/components/agency/AgencyAccessPanel';
+import { FleetCapacityCard } from '@/components/agency/subscription/FleetCapacityCard';
+import { AgencySubscriptionPanel } from '@/components/agency/subscription/AgencySubscriptionPanel';
+import type { AgencySubscription } from '@/types';
 import { AGENCY_SECTIONS } from '@/components/agency/shell/Sidebar';
 
 export type AgencyIdentity = {
@@ -126,6 +129,30 @@ export function AgencyWorkspace({
   const [currentLogoUrl, setCurrentLogoUrl] = useState<string | null>(
     () => agency.logoUrl || profile?.avatarUrl || null
   );
+
+  const [subscription, setSubscription] = useState<AgencySubscription | null>(null);
+  const [subscriptionLoading, setSubscriptionLoading] = useState(false);
+
+  const loadSubscription = useCallback(async () => {
+    setSubscriptionLoading(true);
+    try {
+      const res = await fetch(`/api/agencies/${encodeURIComponent(agency.id)}/subscription`, {
+        cache: 'no-store',
+      });
+      const json = await res.json();
+      if (res.ok && json.success) {
+        setSubscription(json.data);
+      }
+    } catch {
+      // Silently continue
+    } finally {
+      setSubscriptionLoading(false);
+    }
+  }, [agency.id]);
+
+  useEffect(() => {
+    void loadSubscription();
+  }, [loadSubscription]);
 
   useEffect(() => {
     const handleUpdate = () => {
@@ -526,12 +553,22 @@ export function AgencyWorkspace({
           </section>
 
           {section === 'overview' && (
-            <OverviewPanel
-              stats={stats}
-              agenda={agenda}
-              onRetry={() => void loadOverview(resolveRange(rangePreset))}
-              onOpenBookings={() => setSection('bookings')}
-            />
+            <div className="space-y-6">
+              <FleetCapacityCard
+                subscription={subscription}
+                loading={subscriptionLoading}
+                onOpenUpgradeModal={() => setSection('subscription')}
+              />
+              <OverviewPanel
+                stats={stats}
+                agenda={agenda}
+                onRetry={() => void loadOverview(resolveRange(rangePreset))}
+                onOpenBookings={() => setSection('bookings')}
+                onOpenFleet={() => setSection('fleet')}
+                onOpenCalendar={() => setSection('calendar')}
+                onOpenSubscription={() => setSection('subscription')}
+              />
+            </div>
           )}
 
           {section === 'bookings' && (
@@ -549,11 +586,22 @@ export function AgencyWorkspace({
           )}
 
           {section === 'fleet' && (
-            <AgencyFleetPanel
-              agencyId={agency.id}
-              canManage={canEditFleet(profile?.role)}
-              onOpenCalendar={() => setSection('calendar')}
-            />
+            <div className="space-y-6">
+              <FleetCapacityCard
+                subscription={subscription}
+                loading={subscriptionLoading}
+                onOpenUpgradeModal={() => setSection('subscription')}
+              />
+              <AgencyFleetPanel
+                agencyId={agency.id}
+                canManage={canEditFleet(profile?.role)}
+                onOpenCalendar={() => setSection('calendar')}
+              />
+            </div>
+          )}
+
+          {section === 'subscription' && (
+            <AgencySubscriptionPanel agencyId={agency.id} />
           )}
 
           {section === 'add_vehicle' && (

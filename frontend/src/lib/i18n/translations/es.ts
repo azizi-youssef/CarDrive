@@ -58,7 +58,7 @@ export const es: Translations = {
   hero: {
     eyebrow: 'Alquiler de coches en Nador',
     title: 'Compara y reserva tu coche en Nador al mejor precio',
-    subtitle: 'Las mejores agencias locales reunidas en una sola plataforma con el mejor precio garantizado.',
+    subtitle: 'Compara las ofertas de agencias asociadas en Nador, consulta condiciones transparentes y envía tu solicitud sin compromiso inmediato.',
     ctaSearch: 'Buscar un coche',
     ctaAgency: '¿Es usted una agencia?',
     reassuranceBadge1: 'Agencias verificadas',

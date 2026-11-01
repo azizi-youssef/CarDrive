@@ -21,8 +21,9 @@ import {
   Copy,
   Check,
   UserCheck,
+  Sparkles,
 } from 'lucide-react';
-import type { Agency } from '@/types';
+import type { Agency, AgencySubscription } from '@/types';
 import {
   AdminCard,
   TableWrapper,
@@ -73,6 +74,7 @@ const CITY_OPTIONS = [
 
 export function AdminAgenciesClient() {
   const [agencies, setAgencies] = useState<AdminAgency[]>([]);
+  const [subscriptionsMap, setSubscriptionsMap] = useState<Record<string, AgencySubscription>>({});
   const [totalAgencies, setTotalAgencies] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
@@ -122,18 +124,29 @@ export function AdminAgenciesClient() {
       setError(null);
 
       try {
-        const res = await fetchAdminAgenciesPaged({
-          page: page + 1,
-          pageSize: PAGE_SIZE,
-          q: search.trim() || undefined,
-          status: statusFilter !== 'ALL' ? statusFilter : undefined,
-          city: cityFilter !== 'ALL' ? cityFilter : undefined,
-        });
+        const [res, subRes] = await Promise.all([
+          fetchAdminAgenciesPaged({
+            page: page + 1,
+            pageSize: PAGE_SIZE,
+            q: search.trim() || undefined,
+            status: statusFilter !== 'ALL' ? statusFilter : undefined,
+            city: cityFilter !== 'ALL' ? cityFilter : undefined,
+          }),
+          fetch('/api/admin/subscriptions').then((r) => r.json()).catch(() => null),
+        ]);
 
         if (!ctrl.signal.aborted) {
           setAgencies(res.agencies);
           setTotalAgencies(res.total);
           setTotalPages(res.totalPages);
+
+          if (subRes?.success && Array.isArray(subRes.data?.subscriptions)) {
+            const map: Record<string, AgencySubscription> = {};
+            for (const s of subRes.data.subscriptions) {
+              map[s.agency_id] = s;
+            }
+            setSubscriptionsMap(map);
+          }
         }
       } catch (err) {
         if (!ctrl.signal.aborted) {
@@ -312,6 +325,7 @@ export function AdminAgenciesClient() {
               <Th className="hidden sm:table-cell">Ville & Région</Th>
               <Th className="hidden md:table-cell">Contact</Th>
               <Th className="hidden lg:table-cell text-center">Flotte</Th>
+              <Th className="hidden md:table-cell">Forfait</Th>
               <Th className="hidden xl:table-cell">Créée le</Th>
               <Th>Statut</Th>
               <Th className="text-right">Actions</Th>
@@ -319,10 +333,10 @@ export function AdminAgenciesClient() {
           </thead>
           <tbody className="divide-y divide-slate-100 bg-white">
             {loading ? (
-              <TableSkeletonRows cols={7} rows={8} />
+              <TableSkeletonRows cols={8} rows={8} />
             ) : agencies.length === 0 ? (
               <tr>
-                <td colSpan={7} className="py-0">
+                <td colSpan={8} className="py-0">
                   <EmptyState
                     icon={Building2}
                     title="Aucune agence trouvée"
@@ -415,6 +429,22 @@ export function AdminAgenciesClient() {
                         <Car className="h-3 w-3" />
                         <span>{agency.vehicle_count == null ? 'Non transmis' : agency.vehicle_count}</span>
                       </span>
+                    </Td>
+
+                    {/* Forfait Abonnements */}
+                    <Td className="hidden md:table-cell whitespace-nowrap">
+                      {(() => {
+                        const sub = subscriptionsMap[agency.id];
+                        if (!sub) {
+                          return <span className="text-xs text-slate-400">Non abonné</span>;
+                        }
+                        return (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-bold text-[#0B1220] border border-blue-200">
+                            <Sparkles className="h-3 w-3 text-amber-500" />
+                            {sub.plan.name}
+                          </span>
+                        );
+                      })()}
                     </Td>
 
                     {/* Créée le */}

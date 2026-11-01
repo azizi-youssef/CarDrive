@@ -17,6 +17,7 @@ import {
   PanelLeftOpen,
   Home,
   LogOut,
+  Sparkles,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -37,6 +38,7 @@ export const AGENCY_SECTIONS: readonly {
     | 'bookings'
     | 'rentals'
     | 'customers'
+    | 'subscription'
     | 'finances'
     | 'access'
     | 'settings';
@@ -46,11 +48,12 @@ export const AGENCY_SECTIONS: readonly {
   { id: 'overview', label: "Vue d'ensemble", icon: LayoutDashboard },
   { id: 'fleet', label: 'Flotte de véhicules', icon: Car },
   { id: 'add_vehicle', label: 'Ajouter un véhicule', icon: PlusCircle },
+  { id: 'subscription', label: 'Forfait & Capacité', icon: Sparkles },
   { id: 'calendar', label: 'Calendrier & Dispos', icon: CalendarDays },
   { id: 'bookings', label: 'Réservations', icon: ClipboardList },
   { id: 'rentals', label: 'Départs & Retours', icon: KeyRound },
   { id: 'customers', label: 'Clients', icon: Users },
-  { id: 'finances', label: 'Revenus & Commissions', icon: CircleDollarSign },
+  { id: 'finances', label: 'Revenus locatifs', icon: CircleDollarSign },
   { id: 'access', label: 'Équipe & Permissions', icon: ShieldCheck },
   { id: 'settings', label: 'Paramètres agence', icon: Settings },
 ] as const;
@@ -83,7 +86,7 @@ export function Sidebar({
       aria-label="Navigation du portail agence"
       className={cn(
         'hidden shrink-0 flex-col border-r border-white/10 bg-[#0B1220] transition-[width] duration-200 lg:sticky lg:top-0 lg:flex lg:h-screen',
-        collapsed ? 'w-[76px]' : 'w-64'
+        collapsed ? 'w-19' : 'w-64'
       )}
     >
       <div className="flex h-16 items-center gap-3 border-b border-white/10 px-4">
@@ -129,7 +132,7 @@ export function Sidebar({
                     collapsed && 'justify-center px-0'
                   )}
                 >
-                  <Icon aria-hidden="true" className="h-[18px] w-[18px] shrink-0" />
+                  <Icon aria-hidden="true" className="h-4.5 w-4.5 shrink-0" />
                   {!collapsed && (
                     <>
                       <span className="min-w-0 flex-1 text-left">{section.label}</span>
@@ -162,7 +165,7 @@ export function Sidebar({
           )}
           title={collapsed ? "Retour à l'accueil" : undefined}
         >
-          <Home aria-hidden="true" className="h-[18px] w-[18px] shrink-0" />
+          <Home aria-hidden="true" className="h-4.5 w-4.5 shrink-0" />
           {!collapsed && <span>Retour à l&apos;accueil</span>}
         </Link>
         {onSignOut && (
@@ -176,7 +179,7 @@ export function Sidebar({
             )}
             title={collapsed ? 'Déconnexion' : undefined}
           >
-            <LogOut aria-hidden="true" className="h-[18px] w-[18px] shrink-0" />
+            <LogOut aria-hidden="true" className="h-4.5 w-4.5 shrink-0" />
             {!collapsed && <span>{signingOut ? 'Déconnexion…' : 'Déconnexion'}</span>}
           </button>
         )}
@@ -190,10 +193,10 @@ export function Sidebar({
           )}
         >
           {collapsed ? (
-            <PanelLeftOpen aria-hidden="true" className="h-[18px] w-[18px]" />
+            <PanelLeftOpen aria-hidden="true" className="h-4.5 w-4.5" />
           ) : (
             <>
-              <PanelLeftClose aria-hidden="true" className="h-[18px] w-[18px]" />
+              <PanelLeftClose aria-hidden="true" className="h-4.5 w-4.5" />
               <span>Réduire</span>
             </>
           )}

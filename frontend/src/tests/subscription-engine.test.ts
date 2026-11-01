@@ -22,31 +22,31 @@ export function runSubscriptionEngineTests() {
 
   const starter = DEFAULT_SUBSCRIPTION_PLANS.find((p) => p.slug === 'starter');
   assert(starter !== undefined, 'Forfait Starter existe');
-  assert(starter?.max_vehicles === 5, 'Starter max 5 véhicules');
-  assert(starter?.price_monthly === 490, 'Starter 490 MAD / mois');
+  assert(starter?.max_vehicles === 15, 'Starter max 15 véhicules');
+  assert(starter?.price_monthly === 300, 'Starter 300 MAD / mois');
 
   const pro = DEFAULT_SUBSCRIPTION_PLANS.find((p) => p.slug === 'pro');
-  assert(pro?.max_vehicles === 15, 'Pro max 15 véhicules');
-  assert(pro?.price_monthly === 990, 'Pro 990 MAD / mois');
+  assert(pro?.max_vehicles === 25, 'Pro max 25 véhicules');
+  assert(pro?.price_monthly === 400, 'Pro 400 MAD / mois');
 
   const business = DEFAULT_SUBSCRIPTION_PLANS.find((p) => p.slug === 'business');
-  assert(business?.max_vehicles === 30, 'Business max 30 véhicules');
-  assert(business?.price_monthly === 1790, 'Business 1 790 MAD / mois');
+  assert(business?.max_vehicles === 35, 'Business max 35 véhicules');
+  assert(business?.price_monthly === 500, 'Business 500 MAD / mois');
 
   const unlimited = DEFAULT_SUBSCRIPTION_PLANS.find((p) => p.slug === 'unlimited');
-  assert(unlimited?.max_vehicles === null, 'Illimité pas de plafond (null)');
-  assert(unlimited?.price_monthly === 2990, 'Illimité 2 990 MAD / mois');
+  assert(unlimited?.max_vehicles === 45, 'Premium max 45 véhicules');
+  assert(unlimited?.price_monthly === 600, 'Premium 600 MAD / mois');
 
   // --- 2. AUTOMATIC TIER DETERMINATION ---
   console.log('\n--- 2. Attribution Automatique de Palier ---');
-  assert(subscriptionService.findPlanForCount(3).slug === 'starter', '3 véhicules -> Starter');
   assert(subscriptionService.findPlanForCount(5).slug === 'starter', '5 véhicules -> Starter');
-  assert(subscriptionService.findPlanForCount(6).slug === 'pro', '6 véhicules -> Pro');
-  assert(subscriptionService.findPlanForCount(15).slug === 'pro', '15 véhicules -> Pro');
-  assert(subscriptionService.findPlanForCount(16).slug === 'business', '16 véhicules -> Business');
-  assert(subscriptionService.findPlanForCount(30).slug === 'business', '30 véhicules -> Business');
-  assert(subscriptionService.findPlanForCount(31).slug === 'unlimited', '31 véhicules -> Unlimited');
-  assert(subscriptionService.findPlanForCount(100).slug === 'unlimited', '100 véhicules -> Unlimited');
+  assert(subscriptionService.findPlanForCount(15).slug === 'starter', '15 véhicules -> Starter');
+  assert(subscriptionService.findPlanForCount(16).slug === 'pro', '16 véhicules -> Pro');
+  assert(subscriptionService.findPlanForCount(25).slug === 'pro', '25 véhicules -> Pro');
+  assert(subscriptionService.findPlanForCount(26).slug === 'business', '26 véhicules -> Business');
+  assert(subscriptionService.findPlanForCount(35).slug === 'business', '35 véhicules -> Business');
+  assert(subscriptionService.findPlanForCount(36).slug === 'unlimited', '36 véhicules -> Premium');
+  assert(subscriptionService.findPlanForCount(45).slug === 'unlimited', '45 véhicules -> Premium');
 
   console.log(`\n========================================`);
   console.log(`RÉSULTAT: ${passed} passés, ${failed} échoués`);

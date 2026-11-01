@@ -12,16 +12,16 @@ export const DEFAULT_SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     id: 'plan-starter',
     name: 'Starter',
     slug: 'starter',
-    min_vehicles: 1,
-    max_vehicles: 5,
-    price_monthly: 490,
+    min_vehicles: 5,
+    max_vehicles: 15,
+    price_monthly: 300,
     currency: 'MAD',
     badge: 'Petite flotte',
     is_popular: false,
     is_active: true,
     sort_order: 1,
     features: [
-      "Jusqu'à 5 véhicules actifs au catalogue",
+      'De 5 à 15 véhicules actifs au catalogue',
       '0% de commission sur toutes les réservations',
       '100% des revenus locatifs conservés par la concession',
       'Gestion en direct du calendrier & des indisponibilités',
@@ -32,19 +32,19 @@ export const DEFAULT_SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     id: 'plan-pro',
     name: 'Pro',
     slug: 'pro',
-    min_vehicles: 6,
-    max_vehicles: 15,
-    price_monthly: 990,
+    min_vehicles: 15,
+    max_vehicles: 25,
+    price_monthly: 400,
     currency: 'MAD',
     badge: 'Le plus populaire',
     is_popular: true,
     is_active: true,
     sort_order: 2,
     features: [
-      "Jusqu'à 15 véhicules actifs au catalogue",
+      'De 15 à 25 véhicules actifs au catalogue',
       '0% de commission sur toutes les réservations',
       'Mise en avant prioritaire sur le moteur de recherche CarDrive',
-      "Tableau de bord financier & rapports d'activité",
+      "Suivi opérationnel simple de la flotte",
       'Gestion multi-utilisateurs (propriétaire & collaborateurs)',
       'Support prioritaire 7j/7',
     ],
@@ -53,16 +53,16 @@ export const DEFAULT_SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     id: 'plan-business',
     name: 'Flotte Business',
     slug: 'business',
-    min_vehicles: 16,
-    max_vehicles: 30,
-    price_monthly: 1790,
+    min_vehicles: 25,
+    max_vehicles: 35,
+    price_monthly: 500,
     currency: 'MAD',
     badge: 'Grande flotte',
     is_popular: false,
     is_active: true,
     sort_order: 3,
     features: [
-      "Jusqu'à 30 véhicules actifs au catalogue",
+      'De 25 à 35 véhicules actifs au catalogue',
       '0% de commission sur toutes les réservations',
       'Badge Concessionnaire Officiel Vérifié',
       'Export comptable automatisé et facturation proforma',
@@ -72,18 +72,18 @@ export const DEFAULT_SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
   },
   {
     id: 'plan-unlimited',
-    name: 'Concession Illimitée',
+    name: 'Concession Premium',
     slug: 'unlimited',
-    min_vehicles: 31,
-    max_vehicles: null,
-    price_monthly: 2990,
+    min_vehicles: 35,
+    max_vehicles: 45,
+    price_monthly: 600,
     currency: 'MAD',
-    badge: 'Sur-mesure',
+    badge: 'Flotte étendue',
     is_popular: false,
     is_active: true,
     sort_order: 4,
     features: [
-      'Nombre de véhicules illimité au catalogue',
+      "De 35 à 45 véhicules actifs au catalogue",
       '0% de commission sur toutes les réservations',
       'Gestion multi-agences et succursales régionales',
       'Accès API pour synchronisation flotte & ERP',
@@ -135,9 +135,9 @@ class SubscriptionService {
    * Trouver un plan adapté selon un nombre de véhicules.
    */
   findPlanForCount(count: number, plans: SubscriptionPlan[] = DEFAULT_SUBSCRIPTION_PLANS): SubscriptionPlan {
-    if (count <= 5) return plans.find((p) => p.slug === 'starter') || plans[0];
-    if (count <= 15) return plans.find((p) => p.slug === 'pro') || plans[1] || plans[0];
-    if (count <= 30) return plans.find((p) => p.slug === 'business') || plans[2] || plans[0];
+    if (count <= 15) return plans.find((p) => p.slug === 'starter') || plans[0];
+    if (count <= 25) return plans.find((p) => p.slug === 'pro') || plans[1] || plans[0];
+    if (count <= 35) return plans.find((p) => p.slug === 'business') || plans[2] || plans[0];
     return plans.find((p) => p.slug === 'unlimited') || plans[3] || plans[0];
   }
 

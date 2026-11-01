@@ -27,6 +27,7 @@ import {
   Globe,
   ExternalLink,
   ShieldCheck,
+  Sparkles,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { fetchClientAuthProfile, type ClientAuthProfile } from '@/lib/auth/client';
@@ -46,7 +47,7 @@ const NAV_GROUPS = [
   {
     label: 'Finance',
     items: [
-      { href: '/admin/finance', label: 'Abonnements', icon: DollarSign },
+      { href: '/admin/finance', label: 'Abonnements & MRR', icon: Sparkles },
       { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
     ],
   },

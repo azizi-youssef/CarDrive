@@ -5,30 +5,37 @@ import Link from 'next/link';
 import { Vehicle } from '@/types';
 import { PriceDisplay } from '@/components/ui/PriceDisplay';
 import { Badge } from '@/components/ui/Badge';
-import { calculateDaysBetween, generateBookingRef, generateWhatsAppLink, formatPrice } from '@/lib/utils';
+import { calculateDaysBetween, formatPrice } from '@/lib/utils';
 import { LOCATIONS_NADOR } from '@/lib/constants/catalog';
 import { addDateDays } from '@/lib/utils/date-only';
-import { Calendar, MapPin, MessageSquare, Check, ShieldCheck, Phone, CheckCircle2, Clock } from 'lucide-react';
+import { Calendar, MapPin, MessageSquare, Check, ShieldCheck, CheckCircle2, Clock } from 'lucide-react';
 import { BookingRequestModal } from './BookingRequestModal';
+import { Magnet } from '@/components/ui/react-bits';
 
 interface BookingCardProps {
   vehicle: Vehicle;
 }
 
-export function BookingCard({ vehicle }: BookingCardProps) {
-  const today = new Date().toISOString().split('T')[0];
-  const inThreeDays = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+function getInitialDates() {
+  const now = new Date();
+  const today = now.toISOString().split('T')[0];
+  const later = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
+  const inThreeDays = later.toISOString().split('T')[0];
+  return { today, inThreeDays };
+}
 
-  const [startDate, setStartDate] = useState(today);
-  const [endDate, setEndDate] = useState(inThreeDays);
+export function BookingCard({ vehicle }: BookingCardProps) {
+  const [initialDates] = useState(getInitialDates);
+  const today = initialDates.today;
+
+  const [startDate, setStartDate] = useState(initialDates.today);
+  const [endDate, setEndDate] = useState(initialDates.inThreeDays);
   const [location, setLocation] = useState('Aéroport Nador Al-Aroui (NDR)');
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState('');
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [bookingSuccessRef, setBookingSuccessRef] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [availability, setAvailability] = useState<'checking' | 'available' | 'unavailable' | 'error'>('checking');
 
   useEffect(() => {
@@ -74,17 +81,8 @@ export function BookingCard({ vehicle }: BookingCardProps) {
     setIsModalOpen(true);
   };
 
-  const whatsappUrl = generateWhatsAppLink({
-    phone: vehicle.agency?.whatsapp || '+212661234567',
-    vehicleName: `${vehicle.brand} ${vehicle.model} (${vehicle.year})`,
-    agencyName: vehicle.agency?.name || 'l’agence',
-    startDate,
-    endDate,
-    totalPrice,
-  });
-
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xl shadow-blue-950/5 p-5 sm:p-6 sticky top-24">
+    <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xl shadow-slate-900/5 p-5 sm:p-6 sticky top-24">
       {/* Price Header */}
       <div className="flex items-baseline justify-between mb-4 pb-4 border-b border-slate-100">
         <div>
@@ -117,7 +115,7 @@ export function BookingCard({ vehicle }: BookingCardProps) {
             <h4 className="text-lg font-bold text-slate-900">Demande enregistrée !</h4>
             <p className="text-xs text-slate-600 mt-1">
               Référence du dossier :{' '}
-              <strong className="text-[#02306B] font-mono text-sm">{bookingSuccessRef}</strong>
+              <strong className="text-[#0B1220] font-mono text-sm">{bookingSuccessRef}</strong>
             </p>
             <p className="text-xs text-slate-500 mt-2">
               L’agence <strong>{vehicle.agency?.name}</strong> a bien reçu votre demande et vous contactera dans les plus brefs délais.
@@ -126,9 +124,9 @@ export function BookingCard({ vehicle }: BookingCardProps) {
 
           <Link
             href={`/account/bookings/${bookingSuccessRef}`}
-            className="w-full py-3 px-4 rounded-xl bg-[#02306B] hover:bg-[#064181] text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm transition-colors"
+            className="w-full py-3 px-4 rounded-xl bg-[#0B1220] hover:bg-slate-800 text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xs transition-colors"
           >
-            <Clock className="w-4 h-4 text-[#FF7300]" />
+            <Clock className="w-4 h-4 text-[#E63946]" />
             Suivre ma demande en direct
           </Link>
 
@@ -206,7 +204,7 @@ export function BookingCard({ vehicle }: BookingCardProps) {
               Prise en charge à Nador
             </label>
             <div className="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 bg-white text-xs">
-              <MapPin className="w-4 h-4 text-[#02306B] shrink-0" />
+              <MapPin className="w-4 h-4 text-[#0B1220] shrink-0" />
               <select
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
@@ -233,7 +231,7 @@ export function BookingCard({ vehicle }: BookingCardProps) {
                 placeholder="Ex: Youssef El Amrani"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:border-[#02306B] focus:ring-1 focus:ring-[#02306B] outline-none"
+                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:border-[#0B1220] focus:ring-1 focus:ring-[#0B1220]/20 outline-none transition-all"
               />
             </div>
 
@@ -247,12 +245,12 @@ export function BookingCard({ vehicle }: BookingCardProps) {
                 placeholder="+212 6..."
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:border-[#02306B] focus:ring-1 focus:ring-[#02306B] outline-none"
+                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:border-[#0B1220] focus:ring-1 focus:ring-[#0B1220]/20 outline-none transition-all"
               />
             </div>
           </div>
 
-          {/* Pricing Summary */}
+          {/* Pricing Summary & Transparency */}
           <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200/80 space-y-2 text-xs">
             <div className="flex justify-between text-slate-600">
               <span>Durée estimée</span>
@@ -262,35 +260,53 @@ export function BookingCard({ vehicle }: BookingCardProps) {
               <span>Tarif journalier</span>
               <span className="font-semibold text-slate-900">{formatPrice(vehicle.daily_price)}</span>
             </div>
+            <div className="flex justify-between text-slate-600">
+              <span>Frais de service CarDrive</span>
+              <span className="font-semibold text-emerald-700">0 DH (Gratuit)</span>
+            </div>
 
             <div className="pt-2 border-t border-slate-200 flex justify-between text-sm font-extrabold text-[#0B1220]">
-              <span>Total location</span>
+              <span>Total location estimé</span>
               <span>{formatPrice(totalPrice)}</span>
             </div>
 
             {/* Modalité de règlement & caution */}
-            <div className="mt-2 pt-2 border-t border-dashed border-slate-200 space-y-1 text-[11px]">
-              <div className="flex justify-between text-slate-600 font-medium">
+            <div className="mt-2 pt-2 border-t border-dashed border-slate-200 space-y-1.5 text-[11px]">
+              <div className="flex justify-between text-slate-700 font-medium">
                 <span>Caution remboursable</span>
-                <span className="font-bold text-slate-800">{formatPrice(vehicle.deposit)}</span>
+                <span className="font-bold text-slate-900">{formatPrice(vehicle.deposit)}</span>
+              </div>
+              <div className="flex justify-between text-slate-500 text-[10px]">
+                <span>Assurance de base</span>
+                <span className="text-emerald-700 font-semibold">Incluse (RC tiers)</span>
+              </div>
+              <div className="flex justify-between text-slate-500 text-[10px]">
+                <span>Kilométrage</span>
+                <span className="text-slate-700 font-medium">Inclus (dès 3 jours)</span>
+              </div>
+              <div className="flex justify-between text-slate-500 text-[10px]">
+                <span>Annulation</span>
+                <span className="text-slate-700 font-medium">Gratuite avant confirmation</span>
               </div>
               <div className="flex justify-between text-slate-500 text-[10px]">
                 <span>Paiement</span>
-                <span>À la remise des clés en agence</span>
+                <span className="text-slate-700 font-medium">À l&apos;agence à la remise des clés</span>
               </div>
             </div>
           </div>
 
           {/* Action 1: Envoi de la demande de réservation (Modale 5 étapes) */}
-          <button
-            type="button"
-            onClick={() => setIsModalOpen(true)}
-            disabled={availability !== 'available'}
-            className="w-full py-3.5 px-4 rounded-xl bg-[#02306B] hover:bg-[#064181] disabled:bg-slate-400 disabled:shadow-none text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-900/15 hover:shadow-xl transition-all cursor-pointer disabled:cursor-not-allowed"
-          >
-            <Calendar className="w-4 h-4 text-[#FF7300]" />
-            <span>Demander cette voiture</span>
-          </button>
+          <Magnet strength={0.2} className="w-full">
+            <button
+              type="button"
+              onClick={() => setIsModalOpen(true)}
+              disabled={availability !== 'available'}
+              className="w-full py-3.5 px-4 rounded-xl bg-[#E63946] hover:bg-[#C92F3B] disabled:bg-slate-300 disabled:shadow-none text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xs hover:shadow-[0_4px_16px_rgba(230,57,70,0.3)] transition-all cursor-pointer disabled:cursor-not-allowed"
+            >
+              <Calendar className="w-4 h-4 text-white" />
+              <span>Demander cette voiture</span>
+            </button>
+          </Magnet>
 
           {/* Conciergerie CarDrive (assistance plateforme) */}
           <div className="pt-1 flex items-center justify-center">
@@ -298,7 +314,7 @@ export function BookingCard({ vehicle }: BookingCardProps) {
               href={`https://wa.me/212661987654?text=${encodeURIComponent(`Bonjour CarDrive, j'ai une question sur le véhicule ${vehicle.brand} ${vehicle.model} (${vehicle.year}) avant d'envoyer ma demande.`)}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[11px] text-slate-500 hover:text-[#02306B] font-medium flex items-center gap-1.5 transition-colors py-1"
+              className="text-[11px] text-slate-500 hover:text-[#0B1220] font-medium flex items-center gap-1.5 transition-colors py-1"
             >
               <MessageSquare className="w-3.5 h-3.5 text-emerald-600" />
               <span>Besoin d'aide ? Conciergerie CarDrive</span>
@@ -308,11 +324,11 @@ export function BookingCard({ vehicle }: BookingCardProps) {
           {/* Reassurance */}
           <div className="pt-3 text-[11px] text-slate-500 space-y-1">
             <div className="flex items-center gap-1.5">
-              <ShieldCheck className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
               <span>Contrat officiel établi directement par l’agence</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <Check className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+              <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
               <span>Demande sans paiement immédiat</span>
             </div>
           </div>
@@ -329,18 +345,19 @@ export function BookingCard({ vehicle }: BookingCardProps) {
         defaultLocation={location}
       />
 
-      {/* Sticky Mobile Bar CTA */}
-      <div className="fixed bottom-0 left-0 right-0 p-3 bg-white/95 backdrop-blur-md border-t border-slate-200 shadow-2xl z-40 sm:hidden flex items-center justify-between gap-3">
-        <div>
-          <span className="text-[10px] text-slate-500 block">Total estimé ({totalDays}j)</span>
-          <span className="text-sm font-extrabold text-[#02306B]">{formatPrice(totalPrice)}</span>
+      {/* Sticky Mobile/Tablet Bar CTA (visible under 1024px lg) */}
+      <div className="fixed bottom-0 left-0 right-0 p-3.5 bg-white/98 backdrop-blur-xl border-t border-slate-200/90 shadow-[0_-8px_30px_rgba(11,18,32,0.12)] z-40 lg:hidden flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <span className="text-[10px] font-semibold text-slate-500 block">Total estimé ({totalDays}j)</span>
+          <span className="text-base font-extrabold text-[#0B1220]">{formatPrice(totalPrice)}</span>
         </div>
         <button
           type="button"
           onClick={() => setIsModalOpen(true)}
           disabled={availability !== 'available'}
-          className="flex-1 py-3 px-4 rounded-xl bg-[#02306B] disabled:bg-slate-400 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md disabled:cursor-not-allowed"
+          className="flex-1 max-w-xs py-3 px-4 rounded-xl bg-[#E63946] hover:bg-[#C92F3B] disabled:bg-slate-300 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-xs hover:shadow-[0_4px_16px_rgba(230,57,70,0.3)] disabled:cursor-not-allowed transition-all active:scale-[0.99]"
         >
+          <Calendar className="w-4 h-4 text-white" />
           <span>Demander cette voiture</span>
         </button>
       </div>

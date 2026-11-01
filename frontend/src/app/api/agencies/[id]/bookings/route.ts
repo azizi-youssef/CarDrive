@@ -38,6 +38,8 @@ export async function GET(request: NextRequest, context: RouteContext) {
   const supabase = await createClient();
   if (!supabase) return failure('Service de données indisponible.', 503);
 
+  await supabase.rpc('expire_completed_bookings');
+
   // Le RLS garantit l'isolation locative ; le filtre agency_id est explicite
   // afin de ne jamais dependre implicitement des policies.
   let query = supabase

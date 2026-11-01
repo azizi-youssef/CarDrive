@@ -15,7 +15,7 @@ export async function GET(
     }
 
     const auth = await getServerAuth();
-    let booking = await bookingsService.getBookingByReference(reference, true);
+    const booking = await bookingsService.getBookingByReference(reference, true);
     if (!booking) {
       return new NextResponse('Demande de réservation introuvable', { status: 404 });
     }

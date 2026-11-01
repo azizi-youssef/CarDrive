@@ -536,7 +536,7 @@ function BrandLogo({ mobile = false }: { mobile?: boolean }) {
   return (
     <div className={`cd-logo${mobile ? ' cd-mobile-brand' : ''}`}>
       <Image
-        src="/Logo-CarDrive.png"
+        src="/logo-12.png"
         alt="CarDrive"
         width={200}
         height={200}
@@ -698,13 +698,13 @@ function PortalLoginForm() {
 
       const authResult = isRegistration
         ? await supabase.auth.signUp({
-            email: normalizedEmail,
-            password,
-            options: {
-              data: { full_name: fullName.trim() },
-              emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent('/account')}`,
-            },
-          })
+          email: normalizedEmail,
+          password,
+          options: {
+            data: { full_name: fullName.trim() },
+            emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent('/account')}`,
+          },
+        })
         : await supabase.auth.signInWithPassword({ email: normalizedEmail, password });
       const { data, error: signInError } = authResult;
 

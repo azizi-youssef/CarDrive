@@ -234,6 +234,8 @@ SECURITY DEFINER
 SET search_path = public, pg_temp
 AS $$
 BEGIN
+    PERFORM public.expire_completed_bookings();
+
     IF p_start_date IS NULL OR p_end_date IS NULL OR p_end_date <= p_start_date THEN
         RAISE EXCEPTION 'A valid rental date range is required'
             USING ERRCODE = '22007';

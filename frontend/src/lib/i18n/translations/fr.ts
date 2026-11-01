@@ -56,7 +56,7 @@ export const fr = {
   hero: {
     eyebrow: 'Location de voitures à Nador',
     title: 'Comparez & réservez votre voiture à Nador',
-    subtitle: 'Toutes les agences de confiance réunies sur une seule plateforme au meilleur prix garanti.',
+    subtitle: 'Comparez les véhicules des agences partenaires à Nador, consultez les conditions en toute clarté et envoyez votre demande sans engagement immédiat.',
     ctaSearch: 'Trouver une voiture',
     ctaAgency: 'Vous êtes une agence ?',
     reassuranceBadge1: 'Agences vérifiées',

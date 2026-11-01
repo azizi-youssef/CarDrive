@@ -207,7 +207,7 @@ export function AdminPermissionsClient() {
           onClick={() => setActiveTab('matrix')}
           className={`py-3 px-5 text-sm font-semibold border-b-2 transition-colors ${
             activeTab === 'matrix'
-              ? 'border-[#02306B] text-[#02306B]'
+              ? 'border-[#0B1220] text-[#0B1220]'
               : 'border-transparent text-slate-500 hover:text-slate-800'
           }`}
         >
@@ -217,7 +217,7 @@ export function AdminPermissionsClient() {
           onClick={() => setActiveTab('users')}
           className={`py-3 px-5 text-sm font-semibold border-b-2 transition-colors ${
             activeTab === 'users'
-              ? 'border-[#02306B] text-[#02306B]'
+              ? 'border-[#0B1220] text-[#0B1220]'
               : 'border-transparent text-slate-500 hover:text-slate-800'
           }`}
         >
@@ -227,7 +227,7 @@ export function AdminPermissionsClient() {
           onClick={() => setActiveTab('security')}
           className={`py-3 px-5 text-sm font-semibold border-b-2 transition-colors ${
             activeTab === 'security'
-              ? 'border-[#02306B] text-[#02306B]'
+              ? 'border-[#0B1220] text-[#0B1220]'
               : 'border-transparent text-slate-500 hover:text-slate-800'
           }`}
         >
@@ -368,7 +368,7 @@ export function AdminPermissionsClient() {
                       <tr key={u.id} className="hover:bg-slate-50/70 transition-colors">
                         <Td>
                           <div className="flex items-center gap-2.5">
-                            <div className="h-8 w-8 rounded-full bg-slate-100 text-[#02306B] font-bold text-xs flex items-center justify-center">
+                            <div className="h-8 w-8 rounded-full bg-slate-100 text-[#0B1220] font-bold text-xs flex items-center justify-center">
                               {u.fullName.slice(0, 2).toUpperCase()}
                             </div>
                             <span className="font-semibold text-slate-900">{u.fullName}</span>

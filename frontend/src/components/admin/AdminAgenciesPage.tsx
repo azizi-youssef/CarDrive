@@ -56,7 +56,7 @@ const EMPTY_FORM: FormValues = {
 const statusLabel: Record<string, string> = {
   PENDING: 'En attente', ACTIVE: 'Active', SUSPENDED: 'Suspendue', REJECTED: 'Refusée', ARCHIVED: 'Archivée',
 };
-const inputClass = 'w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-[#02306B] focus:ring-2 focus:ring-blue-100';
+const inputClass = 'w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-[#0B1220] focus:ring-2 focus:ring-blue-100';
 const actionsLabel: Record<string, string> = {
   'agency.created': 'Agence créée',
   'agency.archived': 'Agence archivée',
@@ -274,7 +274,7 @@ export default function AdminAgenciesPage() {
       <div className="mx-auto max-w-7xl space-y-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <Link href="/admin" className="inline-flex items-center gap-2 text-sm font-semibold text-[#02306B]"><ArrowLeft className="h-4 w-4" />Retour à l’administration</Link>
+            <Link href="/admin" className="inline-flex items-center gap-2 text-sm font-semibold text-[#0B1220]"><ArrowLeft className="h-4 w-4" />Retour à l’administration</Link>
             <h1 className="mt-3 flex items-center gap-2 text-2xl font-bold"><Building2 className="h-6 w-6" />Gestion centralisée des agences</h1>
             <p className="mt-1 text-sm text-slate-500">Validation, coordonnées, accès, activité et archivage non destructif.</p>
           </div>
@@ -283,7 +283,7 @@ export default function AdminAgenciesPage() {
               {syncingLogos ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImageUp className="h-4 w-4" />}
               Enregistrer les logos disponibles
             </button>
-            <button type="button" onClick={openCreate} className="inline-flex items-center gap-2 rounded-xl bg-[#02306B] px-4 py-3 text-sm font-semibold text-white"><Plus className="h-4 w-4" />Créer une agence</button>
+            <button type="button" onClick={openCreate} className="inline-flex items-center gap-2 rounded-xl bg-[#0B1220] px-4 py-3 text-sm font-semibold text-white"><Plus className="h-4 w-4" />Créer une agence</button>
           </div>
         </div>
         {notice && <div role={notice.kind === 'error' ? 'alert' : 'status'} className={`rounded-xl border p-3 text-sm ${notice.kind === 'error' ? 'border-red-200 bg-red-50 text-red-800' : 'border-emerald-200 bg-emerald-50 text-emerald-800'}`}>{notice.message}</div>}
@@ -292,7 +292,7 @@ export default function AdminAgenciesPage() {
           <div className="sm:col-span-2"><label htmlFor="agency-search" className="mb-1 block text-xs font-semibold">Recherche</label><div className="relative"><Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" /><input id="agency-search" className={`${inputClass} pl-9`} value={queryInput} onChange={(event) => setQueryInput(event.target.value)} placeholder="Nom, e-mail, téléphone, ville" maxLength={120} /></div></div>
           <div><label htmlFor="agency-status" className="mb-1 block text-xs font-semibold">Statut</label><select id="agency-status" className={inputClass} value={status} onChange={(event) => { setStatus(event.target.value); setPage(1); }}><option value="ALL">Tous les statuts</option><option value="PENDING">En attente</option><option value="ACTIVE">Active</option><option value="SUSPENDED">Suspendue</option><option value="REJECTED">Refusée</option><option value="ARCHIVED">Archivée</option></select></div>
           <div><label htmlFor="agency-sort" className="mb-1 block text-xs font-semibold">Trier par</label><select id="agency-sort" className={inputClass} value={sort} onChange={(event) => setSort(event.target.value)}><option value="created_at">Date de création</option><option value="name">Nom</option><option value="status">Statut</option></select></div>
-          <div className="flex gap-2"><button type="submit" className="flex-1 rounded-xl bg-[#02306B] px-4 py-2.5 text-sm font-semibold text-white">Rechercher</button><button type="button" className="rounded-xl border border-slate-200 px-3" aria-label="Inverser le sens du tri" onClick={() => setDirection((current) => current === 'asc' ? 'desc' : 'asc')}>{direction === 'asc' ? '↑' : '↓'}</button></div>
+          <div className="flex gap-2"><button type="submit" className="flex-1 rounded-xl bg-[#0B1220] px-4 py-2.5 text-sm font-semibold text-white">Rechercher</button><button type="button" className="rounded-xl border border-slate-200 px-3" aria-label="Inverser le sens du tri" onClick={() => setDirection((current) => current === 'asc' ? 'desc' : 'asc')}>{direction === 'asc' ? '↑' : '↓'}</button></div>
         </form>
         <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
           {loading ? <p className="flex items-center gap-2 p-8 text-sm text-slate-500"><Loader2 className="h-4 w-4 animate-spin" />Chargement des agences…</p> : rows.length === 0 ? <p className="p-8 text-sm text-slate-500">Aucune agence pour ces critères.</p> : <table className="w-full min-w-[1000px] text-left text-sm">
@@ -304,9 +304,9 @@ export default function AdminAgenciesPage() {
               <td className="px-4 py-3"><span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${agency.status === 'ACTIVE' ? 'bg-emerald-50 text-emerald-800' : agency.status === 'PENDING' ? 'bg-amber-50 text-amber-800' : 'bg-slate-100 text-slate-700'}`}>{statusLabel[agency.archived_at ? 'ARCHIVED' : agency.status] ?? agency.status}</span>{agency.verified && <span className="ml-1 inline-flex" title="Vérifiée"><ShieldCheck className="h-4 w-4 text-emerald-700" /></span>}</td>
               <td className="px-4 py-3">{agency.member_count ?? 0}</td><td className="px-4 py-3">{agency.vehicle_count ?? 0}</td><td className="px-4 py-3">{agency.booking_count ?? 0}</td><td className="px-4 py-3">{dateLabel(agency.created_at)}</td>
               <td className="px-4 py-3"><div className="flex items-center gap-1">
-                <button type="button" aria-label={`Détail ${agency.name}`} title="Détail" className="rounded-lg p-2 text-[#02306B] hover:bg-blue-50" onClick={() => void showDetail(agency)}><Eye className="h-4 w-4" /></button>
+                <button type="button" aria-label={`Détail ${agency.name}`} title="Détail" className="rounded-lg p-2 text-[#0B1220] hover:bg-blue-50" onClick={() => void showDetail(agency)}><Eye className="h-4 w-4" /></button>
                 <button type="button" aria-label={`Modifier ${agency.name}`} title="Modifier" className="rounded-lg p-2 text-slate-700 hover:bg-slate-100" onClick={() => openEdit(agency)}>✎</button>
-                {!agency.archived_at && <button type="button" disabled={busyId === agency.id} className="rounded-lg px-2 py-2 text-xs font-semibold text-[#02306B] hover:bg-blue-50 disabled:opacity-50" onClick={() => void changeStatus(agency)}>{busyId === agency.id ? '…' : agency.status === 'ACTIVE' ? 'Suspendre' : 'Activer'}</button>}
+                {!agency.archived_at && <button type="button" disabled={busyId === agency.id} className="rounded-lg px-2 py-2 text-xs font-semibold text-[#0B1220] hover:bg-blue-50 disabled:opacity-50" onClick={() => void changeStatus(agency)}>{busyId === agency.id ? '…' : agency.status === 'ACTIVE' ? 'Suspendre' : 'Activer'}</button>}
                 {!agency.archived_at && <button type="button" disabled={busyId === agency.id} className="rounded-lg px-2 py-2 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:opacity-50" onClick={() => void archiveAgency(agency)}>Archiver</button>}
               </div></td>
             </tr>)}</tbody>
@@ -326,12 +326,12 @@ export default function AdminAgenciesPage() {
           ] as const).map(([field, label, type]) => <div key={field}><label htmlFor={`agency-${field}`} className="mb-1 block text-sm font-semibold">{label}</label><input id={`agency-${field}`} type={type} required={!['latitude', 'longitude', 'logo_url', 'banner_url'].includes(field)} min={type === 'number' ? field === 'latitude' ? -90 : -180 : undefined} max={type === 'number' ? field === 'latitude' ? 90 : 180 : undefined} step={type === 'number' ? 'any' : undefined} className={inputClass} value={values[field]} onChange={(event) => setValues((current) => ({ ...current, [field]: event.target.value }))} maxLength={field === 'email' ? 254 : 240} /></div>)}
           <div className="sm:col-span-2"><label htmlFor="agency-description" className="mb-1 block text-sm font-semibold">Description</label><textarea id="agency-description" rows={3} maxLength={2000} className={inputClass} value={values.description} onChange={(event) => setValues((current) => ({ ...current, description: event.target.value }))} /></div>
           {notice?.kind === 'error' && <p role="alert" className="sm:col-span-2 text-sm text-red-700">{notice.message}</p>}
-          <div className="flex justify-end gap-2 sm:col-span-2"><button type="button" className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm" onClick={() => setFormOpen(false)}>Annuler</button><button type="submit" disabled={saving} className="inline-flex items-center gap-2 rounded-xl bg-[#02306B] px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50">{saving && <Loader2 className="h-4 w-4 animate-spin" />}{editing ? 'Enregistrer' : 'Créer en attente'}</button></div>
+          <div className="flex justify-end gap-2 sm:col-span-2"><button type="button" className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm" onClick={() => setFormOpen(false)}>Annuler</button><button type="submit" disabled={saving} className="inline-flex items-center gap-2 rounded-xl bg-[#0B1220] px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50">{saving && <Loader2 className="h-4 w-4 animate-spin" />}{editing ? 'Enregistrer' : 'Créer en attente'}</button></div>
         </form>
       </section></div>}
 
       {(detail || detailLoading) && <div className="fixed inset-0 z-50 flex justify-end bg-slate-950/50" onMouseDown={(event) => { if (event.target === event.currentTarget) setDetail(null); }}><aside role="dialog" aria-modal="true" aria-labelledby="agency-detail-title" className="h-full w-full max-w-2xl overflow-y-auto bg-white p-5 shadow-2xl sm:p-7">
-        <div className="flex items-start justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-wider text-[#02306B]">Détail de l’agence</p><h2 id="agency-detail-title" className="mt-1 text-xl font-bold">{detail?.name ?? 'Chargement…'}</h2></div><button type="button" aria-label="Fermer le détail" onClick={() => setDetail(null)} className="rounded-lg p-2 hover:bg-slate-100"><X className="h-5 w-5" /></button></div>
+        <div className="flex items-start justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-wider text-[#0B1220]">Détail de l’agence</p><h2 id="agency-detail-title" className="mt-1 text-xl font-bold">{detail?.name ?? 'Chargement…'}</h2></div><button type="button" aria-label="Fermer le détail" onClick={() => setDetail(null)} className="rounded-lg p-2 hover:bg-slate-100"><X className="h-5 w-5" /></button></div>
         {detailLoading ? <p className="py-8 text-sm text-slate-500">Chargement des indicateurs…</p> : detail && <div className="mt-5 space-y-5">
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">{[['Membres', detail.member_count], ['Véhicules', detail.vehicle_count], ['Réservations', detail.booking_count], ['Clients', detail.customer_count], ['Volume', formatPrice(detail.total_volume)], ['Commission', formatPrice(detail.platform_commission)]].map(([label, value]) => <div key={String(label)} className="rounded-xl bg-slate-50 p-3"><p className="text-xs text-slate-500">{label}</p><p className="mt-1 font-bold">{value}</p></div>)}</div>
           <p className="text-sm text-slate-500">Créée le {dateLabel(detail.created_at)} · Dernière activité {dateLabel(detail.last_activity_at)}</p>

@@ -1,4 +1,4 @@
-﻿import Link from 'next/link';
+import Link from 'next/link';
 import { Bricolage_Grotesque, Instrument_Sans } from 'next/font/google';
 import { Home, Search } from 'lucide-react';
 
@@ -17,7 +17,7 @@ const bodyFont = Instrument_Sans({
 export default function NotFound() {
   return (
     <main
-      className={`${displayFont.variable} ${bodyFont.variable} relative flex min-h-[78vh] items-center justify-center overflow-hidden bg-[#F3F5F7] px-5 py-16 font-[family-name:var(--font-body)] text-slate-900`}
+      className={`${displayFont.variable} ${bodyFont.variable} relative flex min-h-[78vh] items-center justify-center overflow-hidden bg-[#F3F5F7] px-5 py-16 font-(family-name:--font-body) text-slate-900`}
     >
       {/* Ligne de route */}
       <div
@@ -37,7 +37,7 @@ export default function NotFound() {
           aria-label="Erreur 404"
           className="inline-flex items-stretch overflow-hidden rounded-2xl bg-white text-[#0B0E13] shadow-[0_18px_50px_rgba(11,14,19,0.14)] ring-1 ring-black/15"
         >
-          <span className="m-1 flex items-center rounded-xl border-[3px] border-[#0B0E13] px-6 py-2 font-[family-name:var(--font-display)] text-7xl font-extrabold leading-none tracking-[-0.05em] sm:px-8 sm:text-8xl">
+          <span className="m-1 flex items-center rounded-xl border-[3px] border-[#0B0E13] px-6 py-2 font-(family-name:--font-display) text-7xl font-extrabold leading-none tracking-tighter sm:px-8 sm:text-8xl">
             404
           </span>
           <span className="flex items-center bg-[#E63946] px-3.5 text-xs font-semibold text-white sm:px-4 sm:text-sm">
@@ -45,7 +45,7 @@ export default function NotFound() {
           </span>
         </div>
 
-        <h1 className="mt-10 font-[family-name:var(--font-display)] text-4xl font-extrabold tracking-[-0.04em] text-[#0B0E13] sm:text-5xl">
+        <h1 className="mt-10 font-(family-name:--font-display) text-4xl font-extrabold tracking-[-0.04em] text-[#0B0E13] sm:text-5xl">
           Page introuvable
         </h1>
 

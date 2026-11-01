@@ -54,8 +54,8 @@ export class PdfService {
     const contentWidth = pageWidth - margin * 2;
 
     // --- COULEURS DU THÈME CARDRIVE ---
-    const primaryNavy = [2, 48, 107]; // #02306B
-    const accentOrange = [255, 115, 0]; // #FF7300
+    const primaryNavy = [11, 18, 32]; // #0B1220 (Ink Navy)
+    const brandRed = [230, 57, 70]; // #E63946 (CarDrive Red)
     const darkSlate = [15, 23, 42]; // #0F172A
     const mutedSlate = [100, 116, 139]; // #64748B
     const bgLight = [248, 250, 252]; // #F8FAFC
@@ -139,7 +139,7 @@ export class PdfService {
 
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(8);
-    doc.setTextColor(accentOrange[0], accentOrange[1], accentOrange[2]);
+    doc.setTextColor(brandRed[0], brandRed[1], brandRed[2]);
     const statusText = `STATUT : ${(booking.status || 'DEMANDE EN COURS').toUpperCase()}`;
     doc.text(statusText, pageWidth - margin - 6, currentY + 8, { align: 'right' });
 

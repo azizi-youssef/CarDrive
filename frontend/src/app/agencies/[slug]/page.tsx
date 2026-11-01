@@ -86,7 +86,7 @@ export default function AgencyDetailPage({ params }: AgencyDetailPageProps) {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center gap-3 text-slate-600">
-        <div className="w-8 h-8 border-4 border-[#02306B] border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-[#0B1220] border-t-transparent rounded-full animate-spin" />
         <p className="text-sm font-medium">Chargement des données de l’agence…</p>
       </div>
     );
@@ -150,7 +150,7 @@ export default function AgencyDetailPage({ params }: AgencyDetailPageProps) {
 
                 <div className="flex flex-wrap items-center gap-3 text-xs text-slate-600 mt-1">
                   <div className="flex items-center gap-1">
-                    <MapPin className="w-3.5 h-3.5 text-[#02306B]" />
+                    <MapPin className="w-3.5 h-3.5 text-[#0B1220]" />
                     <span>{agency.address} ({agency.city})</span>
                   </div>
                   <span>•</span>
@@ -167,9 +167,9 @@ export default function AgencyDetailPage({ params }: AgencyDetailPageProps) {
             <div className="flex flex-wrap items-center gap-2.5">
               <a
                 href="#agency-fleet"
-                className="px-4 py-2.5 rounded-xl bg-[#02306B] hover:bg-[#064181] text-white text-xs font-semibold flex items-center gap-2 shadow-sm transition-colors"
+                className="px-4 py-2.5 rounded-xl bg-[#0B1220] hover:bg-slate-800 text-white text-xs font-semibold flex items-center gap-2 shadow-sm transition-colors"
               >
-                <Car className="w-4 h-4 text-[#FF7300]" />
+                <Car className="w-4 h-4 text-[#E63946]" />
                 <span>Voir les voitures disponibles</span>
               </a>
 

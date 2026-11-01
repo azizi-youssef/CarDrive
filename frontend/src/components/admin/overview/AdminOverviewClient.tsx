@@ -14,6 +14,8 @@ import {
   Clock,
   Activity,
   Download,
+  Sparkles,
+  ShieldCheck,
 } from 'lucide-react';
 import type { AdminStats } from '@/lib/api/stats.api';
 import {
@@ -37,7 +39,7 @@ import {
   patchAgencyVerification,
   type HealthReport,
 } from '@/lib/api/admin-dashboard.api';
-import type { Agency, Booking } from '@/types';
+import type { Agency, Booking, SubscriptionStats } from '@/types';
 import { formatPrice } from '@/lib/utils';
 
 interface Props {
@@ -47,7 +49,7 @@ interface Props {
 }
 
 function csvExport(bookings: Booking[]) {
-  const header = ['Dossier', 'Client', 'Véhicule', 'Agence', 'Début', 'Fin', 'Montant', 'Commission', 'Net agence', 'Statut'];
+  const header = ['Dossier', 'Client', 'Véhicule', 'Agence', 'Début', 'Fin', 'Montant (100% agence)', 'Commission CarDrive', 'Statut'];
   const rows = bookings.map((b) =>
     [
       b.booking_ref ?? b.reference ?? '',
@@ -57,8 +59,7 @@ function csvExport(bookings: Booking[]) {
       b.start_date,
       b.end_date,
       b.total_price,
-      b.commission_amount,
-      b.agency_amount,
+      0,
       b.status,
     ].map((v) => {
       const s = String(v ?? '');
@@ -79,6 +80,7 @@ export function AdminOverviewClient({ initialStats, statsError, commissionRate: 
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [agencies, setAgencies] = useState<Agency[]>([]);
   const [health, setHealth] = useState<HealthReport | null>(null);
+  const [subscriptionStats, setSubscriptionStats] = useState<SubscriptionStats | null>(null);
   const [commissionRate, setCommissionRate] = useState(initialRate);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -103,18 +105,22 @@ export function AdminOverviewClient({ initialStats, statsError, commissionRate: 
     setError(null);
 
     try {
-      const [newStats, newBookings, newAgencies, ratePct, healthData] = await Promise.all([
+      const [newStats, newBookings, newAgencies, ratePct, healthData, subJson] = await Promise.all([
         fetchAdminStats(),
         fetchAdminBookings(),
         fetchAdminAgencies(),
         fetchCommissionRatePct(),
         fetchHealth(),
+        fetch('/api/admin/subscriptions').then((r) => r.json()).catch(() => null),
       ]);
       if (ctrl.signal.aborted) return;
       setStats(newStats);
       setBookings(newBookings);
       setAgencies(newAgencies);
       if (ratePct != null) setCommissionRate(ratePct);
+      if (subJson?.success && subJson.data?.stats) {
+        setSubscriptionStats(subJson.data.stats);
+      }
       setHealth(healthData);
       setLastRefresh(new Date());
     } catch (err) {
@@ -152,8 +158,6 @@ export function AdminOverviewClient({ initialStats, statsError, commissionRate: 
   const confirmedBookings = bookings.filter((b) => ['CONFIRMED', 'APPROVED', 'ACTIVE'].includes(b.status)).length;
   const completedBookings = bookings.filter((b) => b.status === 'COMPLETED').length;
   const pendingAgencies = agencies.filter((a) => a.status === 'PENDING' || !a.verified);
-  const agencyNet = stats ? (stats.agencyNet ?? Math.max(0, stats.totalVolume - stats.platformCommission)) : 0;
-  const commissionShare = stats?.totalVolume ? Math.min(100, Math.round((stats.platformCommission / stats.totalVolume) * 100)) : 0;
 
   const kpiLoading = loading;
 
@@ -204,122 +208,6 @@ export function AdminOverviewClient({ initialStats, statsError, commissionRate: 
         </div>
       </div>
 
-      {/* KPI grid */}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <KpiCard
-          label="Volume brut total"
-          value={stats ? formatPrice(stats.totalVolume) : '—'}
-          sub={`${stats?.totalBookings ?? 0} réservations`}
-          icon={DollarSign}
-          iconColor="text-[#E63946]"
-          loading={kpiLoading}
-        />
-        <KpiCard
-          label="Commission CarDrive"
-          value={stats ? formatPrice(stats.platformCommission) : '—'}
-          sub={`${commissionRate}% du volume`}
-          icon={TrendingUp}
-          iconColor="text-emerald-600"
-          loading={kpiLoading}
-        />
-        <KpiCard
-          label="Agences actives"
-          value={stats ? `${stats.verifiedAgencies} / ${stats.totalAgencies}` : '—'}
-          sub="vérifiées"
-          icon={Building2}
-          iconColor="text-blue-600"
-          loading={kpiLoading}
-        />
-        <KpiCard
-          label="Véhicules référencés"
-          value={stats?.totalVehicles ?? '—'}
-          sub="flotte marketplace"
-          icon={Car}
-          iconColor="text-violet-600"
-          loading={kpiLoading}
-        />
-      </div>
-
-      {/* Financial breakdown + Booking status */}
-      <div className="grid gap-6 xl:grid-cols-[1.5fr_1fr]">
-        {/* Financial ledger */}
-        <AdminCard>
-          <SectionHeader title="Répartition financière" subtitle="Commission CarDrive vs. revenu net agences" />
-          <div className="mt-6">
-            {/* Volume bar */}
-            <div
-              role="img"
-              aria-label={`CarDrive ${commissionRate}%, agences ${100 - commissionRate}%`}
-              className="h-3 rounded-full overflow-hidden bg-slate-100"
-            >
-              <div
-                className="h-full bg-[#E63946] transition-[width] duration-700 ease-out rounded-full"
-                style={{ width: `${commissionShare}%` }}
-              />
-            </div>
-            <dl className="mt-5 grid gap-4 sm:grid-cols-2">
-              <div className="flex items-start gap-3">
-                <span className="mt-1.5 h-3 w-3 rounded-full bg-[#E63946] shrink-0" />
-                <div>
-                  <dt className="text-sm text-slate-500">Commission CarDrive ({commissionRate}%)</dt>
-                  <dd className="text-2xl font-bold tabular-nums text-slate-900">
-                    {formatPrice(stats?.platformCommission ?? 0)}
-                  </dd>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <span className="mt-1.5 h-3 w-3 rounded-full bg-slate-800 shrink-0" />
-                <div>
-                  <dt className="text-sm text-slate-500">Net agences ({100 - commissionRate}%)</dt>
-                  <dd className="text-2xl font-bold tabular-nums text-slate-900">
-                    {formatPrice(agencyNet)}
-                  </dd>
-                </div>
-              </div>
-            </dl>
-            <div className="mt-4 pt-4 border-t border-slate-100 flex justify-between text-sm">
-              <span className="text-slate-500">Volume total</span>
-              <span className="font-bold text-slate-900">{formatPrice(stats?.totalVolume ?? 0)}</span>
-            </div>
-          </div>
-        </AdminCard>
-
-        {/* Booking status breakdown */}
-        <AdminCard>
-          <SectionHeader title="Statut des réservations" />
-          <div className="mt-5 space-y-4">
-            {[
-              { label: 'En attente', count: pendingBookings, color: 'bg-amber-400', icon: Clock },
-              { label: 'Confirmées / Actives', count: confirmedBookings, color: 'bg-emerald-500', icon: CheckCircle },
-              { label: 'Terminées', count: completedBookings, color: 'bg-slate-400', icon: Activity },
-            ].map(({ label, count, color, icon: Icon }) => {
-              const pct = bookings.length > 0 ? Math.round((count / bookings.length) * 100) : 0;
-              return (
-                <div key={label} className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Icon className="h-3.5 w-3.5 text-slate-400" aria-hidden="true" />
-                      <span className="text-sm text-slate-600">{label}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold text-slate-900 tabular-nums">{count}</span>
-                      <span className="text-xs text-slate-400">({pct}%)</span>
-                    </div>
-                  </div>
-                  <div className="h-1.5 w-full rounded-full bg-slate-100 overflow-hidden">
-                    <div className={`h-full rounded-full ${color}`} style={{ width: `${pct}%` }} />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          <div className="mt-5 pt-4 border-t border-slate-100 flex justify-between text-sm">
-            <span className="text-slate-500">Total</span>
-            <span className="font-bold text-slate-900 tabular-nums">{bookings.length}</span>
-          </div>
-        </AdminCard>
-      </div>
-
       {/* Recent bookings + Pending agencies + Health */}
       <div className="grid gap-6 xl:grid-cols-[1.5fr_1fr]">
         {/* Recent bookings */}
@@ -358,9 +246,6 @@ export function AdminOverviewClient({ initialStats, statsError, commissionRate: 
                       {b.vehicle?.brand} {b.vehicle?.model} · {b.agency?.name}
                     </p>
                   </div>
-                  <span className="hidden tabular-nums text-sm font-semibold text-slate-900 sm:block">
-                    {formatPrice(b.total_price)}
-                  </span>
                   <BookingStatusBadge status={b.status} />
                 </li>
               ))}

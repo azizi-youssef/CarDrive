@@ -34,6 +34,8 @@ export async function GET(request: NextRequest, context: RouteContext) {
   const supabase = await createAdminClient();
   if (!supabase) return failure('Service de base de données indisponible.', 503);
 
+  await supabase.rpc('expire_completed_bookings');
+
   // 1. Récupérer les véhicules de l'agence
   let vehiclesQuery = supabase
     .from('vehicles')
@@ -58,6 +60,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
   }
 
   // 2. Récupérer les réservations
+  const todayIso = new Date().toISOString().split('T')[0]!;
   const bookingsQuery = supabase
     .from('bookings')
     .select(
@@ -66,7 +69,8 @@ export async function GET(request: NextRequest, context: RouteContext) {
     .eq('agency_id', agencyId)
     .in('vehicle_id', vehicleIds)
     .lte('start_date', endDate)
-    .gte('end_date', startDate);
+    .gte('end_date', startDate)
+    .gte('end_date', todayIso);
 
   const { data: bookings, error: bErr } = await bookingsQuery;
   if (bErr) {
@@ -88,7 +92,9 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
   // Assembler les événements calendaires avec types uniformes
   const events = [
-    ...(bookings ?? []).map((b) => ({
+    ...(bookings ?? [])
+      .filter((b) => b.end_date >= todayIso && isBlockingBookingStatus(b.status))
+      .map((b) => ({
       id: b.id,
       vehicleId: b.vehicle_id,
       type: 'BOOKING' as const,

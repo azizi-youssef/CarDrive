@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { Vehicle } from '@/types';
 import { PriceDisplay } from '@/components/ui/PriceDisplay';
 import { Badge } from '@/components/ui/Badge';
-import { CheckCircle2, ShieldCheck, Star, ArrowRight, Sparkles, Building2 } from 'lucide-react';
+import { Star, ArrowRight, Sparkles, Building2 } from 'lucide-react';
 
 interface SameModelAlternativesProps {
   currentVehicle: Vehicle;
@@ -20,9 +20,9 @@ export function SameModelAlternatives({
   if (alternatives.length === 0) return null;
 
   return (
-    <div className="bg-linear-to-br from-blue-50/80 via-white to-blue-50/50 rounded-2xl border border-blue-200/80 p-5 sm:p-6 my-8 shadow-sm">
+    <div className="bg-slate-50/70 rounded-2xl border border-slate-200 p-5 sm:p-6 my-8 shadow-sm">
       <div className="flex items-start gap-3 mb-5">
-        <div className="w-10 h-10 rounded-xl bg-[#02306B] text-white flex items-center justify-center shrink-0 shadow-md shadow-blue-900/10">
+        <div className="w-10 h-10 rounded-xl bg-[#0B1220] text-white flex items-center justify-center shrink-0 shadow-sm">
           <Sparkles className="w-5 h-5" />
         </div>
         <div>
@@ -30,7 +30,7 @@ export function SameModelAlternatives({
             <h3 className="text-base sm:text-lg font-bold text-slate-900">
               Autres offres similaires à Nador
             </h3>
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-[#02306B]">
+            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-red-50 text-[#E63946]">
               {alternatives.length} offre{alternatives.length > 1 ? 's' : ''}
             </span>
           </div>
@@ -54,7 +54,7 @@ export function SameModelAlternatives({
                 {/* Agency Header */}
                 <div className="flex items-center justify-between gap-2 mb-3 pb-2 border-b border-slate-100 text-xs">
                   <div className="flex items-center gap-1.5 truncate">
-                    <Building2 className="w-3.5 h-3.5 text-[#02306B]" />
+                    <Building2 className="w-3.5 h-3.5 text-[#0B1220]" />
                     <span className="font-semibold text-slate-800 truncate">
                       {alt.agency?.name}
                     </span>
@@ -107,7 +107,7 @@ export function SameModelAlternatives({
 
                 <Link
                   href={`/cars/${alt.slug}`}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#02306B] hover:bg-[#064181] text-white shadow-sm transition-colors"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#0B1220] hover:bg-slate-800 text-white shadow-sm transition-colors"
                 >
                   <span>Voir cette offre</span>
                   <ArrowRight className="w-3.5 h-3.5" />

@@ -188,12 +188,12 @@ export function AdminFinanceClient({ commissionRate }: Props) {
       <div className="rounded-2xl border border-blue-200 bg-linear-to-r from-blue-50/90 via-white to-slate-50 px-6 py-5 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-start gap-4">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#02306B] text-white shadow-xs">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#0B1220] text-white shadow-xs">
               <Sparkles className="h-5 w-5 text-amber-300" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-[#02306B]">
+                <span className="text-xs font-bold uppercase tracking-wider text-[#0B1220]">
                   Modèle Économique Actif
                 </span>
                 <span className="rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2.5 py-0.5">
@@ -211,48 +211,12 @@ export function AdminFinanceClient({ commissionRate }: Props) {
 
           <Link
             href="/admin/settings/commission"
-            className="flex items-center gap-2 whitespace-nowrap self-start sm:self-center rounded-xl bg-white border border-blue-200 px-4 py-2.5 text-xs font-bold text-[#02306B] hover:bg-blue-50 shadow-xs transition"
+            className="flex items-center gap-2 whitespace-nowrap self-start sm:self-center rounded-xl bg-white border border-blue-200 px-4 py-2.5 text-xs font-bold text-[#0B1220] hover:bg-blue-50 shadow-xs transition"
           >
             <Settings className="h-4 w-4" />
             <span>Configurer les forfaits</span>
           </Link>
         </div>
-      </div>
-
-      {/* Primary Financial KPIs */}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <KpiCard
-          label="MRR (Revenus Récurrents)"
-          value={loading ? '—' : formatPrice(stats?.monthlyRecurringRevenue ?? 0)}
-          sub="Revenu mensuel des abonnements"
-          icon={TrendingUp}
-          iconColor="text-emerald-600"
-          loading={loading}
-        />
-        <KpiCard
-          label="Concessions Abonnées"
-          value={loading ? '—' : `${stats?.activeSubscribers ?? subscriptions.length} actives`}
-          sub="Partenaires avec forfait en cours"
-          icon={Building2}
-          iconColor="text-[#02306B]"
-          loading={loading}
-        />
-        <KpiCard
-          label="Parc Véhicules Sous Quota"
-          value={loading ? '—' : `${stats?.fleetCapacityTotal ?? 0} véhicules`}
-          sub="Véhicules gérés au catalogue"
-          icon={Car}
-          iconColor="text-[#FF7300]"
-          loading={loading}
-        />
-        <KpiCard
-          label="Volume Total Réservations"
-          value={loading ? '—' : formatPrice(totalVolume)}
-          sub="100% conservé par les concessions"
-          icon={DollarSign}
-          iconColor="text-slate-600"
-          loading={loading}
-        />
       </div>
 
       {/* Section 1: Agency Subscriptions Table */}
@@ -311,8 +275,8 @@ export function AdminFinanceClient({ commissionRate }: Props) {
 
                     <Td>
                       <div className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1 border border-blue-200">
-                        <Sparkles className="h-3 w-3 text-[#02306B]" />
-                        <span className="text-xs font-bold text-[#02306B]">
+                        <Sparkles className="h-3 w-3 text-[#0B1220]" />
+                        <span className="text-xs font-bold text-[#0B1220]">
                           {sub.plan.name}
                         </span>
                       </div>
@@ -344,7 +308,7 @@ export function AdminFinanceClient({ commissionRate }: Props) {
                                   ? 'bg-red-500'
                                   : sub.capacity_usage_pct > 80
                                   ? 'bg-amber-500'
-                                  : 'bg-[#02306B]'
+                                  : 'bg-[#0B1220]'
                               }`}
                               style={{ width: `${sub.capacity_usage_pct}%` }}
                             />
@@ -376,14 +340,14 @@ export function AdminFinanceClient({ commissionRate }: Props) {
                     <Td className="text-right">
                       {isUpdating ? (
                         <div className="flex items-center justify-end gap-1.5 text-xs text-slate-500">
-                          <Loader2 className="h-3.5 w-3.5 animate-spin text-[#02306B]" />
+                          <Loader2 className="h-3.5 w-3.5 animate-spin text-[#0B1220]" />
                           <span>Mise à jour...</span>
                         </div>
                       ) : (
                         <select
                           value={sub.plan.slug}
                           onChange={(e) => handleUpdatePlan(sub.agency_id, e.target.value)}
-                          className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-slate-700 outline-none hover:border-slate-300 focus:border-[#02306B]"
+                          className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-slate-700 outline-none hover:border-slate-300 focus:border-[#0B1220]"
                         >
                           {plans.map((p) => (
                             <option key={p.id} value={p.slug}>

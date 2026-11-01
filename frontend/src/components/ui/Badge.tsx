@@ -16,7 +16,7 @@ export function Badge({ variant = 'outline', children, className, icon = false }
     rented: 'badge-rented font-medium',
     pending: 'badge-pending font-medium',
     outline: 'border border-slate-200 text-slate-700 bg-white',
-    accent: 'bg-blue-50 text-[#02306B] border border-blue-200 font-medium',
+    accent: 'bg-red-50 text-[#E63946] border border-red-200 font-medium',
   };
 
   return (
@@ -27,7 +27,7 @@ export function Badge({ variant = 'outline', children, className, icon = false }
         className
       )}
     >
-      {icon && variant === 'verified' && <ShieldCheck className="w-3.5 h-3.5 text-[#02306B]" />}
+      {icon && variant === 'verified' && <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />}
       {icon && variant === 'available' && (
         <span className="relative flex h-2 w-2">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>

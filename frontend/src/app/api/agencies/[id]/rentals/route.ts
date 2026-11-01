@@ -20,12 +20,15 @@ export async function GET(request: NextRequest, context: RouteContext) {
   const supabase = await createAdminClient();
   if (!supabase) return failure('Service de base de données indisponible.', 503);
 
+  await supabase.rpc('expire_completed_bookings');
+
   let query = supabase
     .from('bookings')
     .select(
       'id, booking_ref, reference, customer_name, customer_phone, customer_email, cin, start_date, end_date, pickup_time, dropoff_time, status, total_price, deposit_amount, delivery_type, flight_number, vehicle:vehicles(id, brand, model, license_plate, unit_number, mileage, images:vehicle_images(url, is_primary))'
     )
     .eq('agency_id', agencyId)
+    .gte('end_date', today)
     .order('start_date', { ascending: true });
 
   if (tab === 'pickups') {

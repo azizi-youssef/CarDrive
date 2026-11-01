@@ -290,7 +290,7 @@ export function AdminNotificationsClient() {
           onClick={() => setActiveTab('feed')}
           className={`py-3 px-5 text-sm font-semibold border-b-2 transition-colors flex items-center gap-2 ${
             activeTab === 'feed'
-              ? 'border-[#02306B] text-[#02306B]'
+              ? 'border-[#0B1220] text-[#0B1220]'
               : 'border-transparent text-slate-500 hover:text-slate-800'
           }`}
         >
@@ -301,7 +301,7 @@ export function AdminNotificationsClient() {
           onClick={() => setActiveTab('broadcast')}
           className={`py-3 px-5 text-sm font-semibold border-b-2 transition-colors flex items-center gap-2 ${
             activeTab === 'broadcast'
-              ? 'border-[#02306B] text-[#02306B]'
+              ? 'border-[#0B1220] text-[#0B1220]'
               : 'border-transparent text-slate-500 hover:text-slate-800'
           }`}
         >
@@ -312,7 +312,7 @@ export function AdminNotificationsClient() {
           onClick={() => setActiveTab('templates')}
           className={`py-3 px-5 text-sm font-semibold border-b-2 transition-colors flex items-center gap-2 ${
             activeTab === 'templates'
-              ? 'border-[#02306B] text-[#02306B]'
+              ? 'border-[#0B1220] text-[#0B1220]'
               : 'border-transparent text-slate-500 hover:text-slate-800'
           }`}
         >
@@ -323,7 +323,7 @@ export function AdminNotificationsClient() {
           onClick={() => setActiveTab('webhook')}
           className={`py-3 px-5 text-sm font-semibold border-b-2 transition-colors flex items-center gap-2 ${
             activeTab === 'webhook'
-              ? 'border-[#02306B] text-[#02306B]'
+              ? 'border-[#0B1220] text-[#0B1220]'
               : 'border-transparent text-slate-500 hover:text-slate-800'
           }`}
         >

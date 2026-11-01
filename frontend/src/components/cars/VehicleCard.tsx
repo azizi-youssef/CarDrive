@@ -98,7 +98,7 @@ export function VehicleCardSkeleton() {
       aria-hidden="true"
       className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm animate-pulse motion-reduce:animate-none"
     >
-      <div className="aspect-[16/10] bg-slate-100" />
+      <div className="aspect-16/10 bg-slate-100" />
       <div className="p-4 space-y-3">
         <div className="space-y-1.5">
           <div className="h-3 w-20 bg-slate-100 rounded" />
@@ -123,7 +123,7 @@ export function VehicleCardSkeleton() {
 const ARROW_BASE =
   'absolute top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-white/95 backdrop-blur-sm flex items-center justify-center shadow-md hover:bg-white transition-opacity duration-150 ' +
   'opacity-0 group-hover:opacity-100 focus-visible:opacity-100 [@media(hover:none)]:opacity-100 ' +
-  'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#02306B]';
+  'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0B1220]';
 
 function VehicleGallery({
   images,
@@ -141,12 +141,13 @@ function VehicleGallery({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [failedIndexes, setFailedIndexes] = useState<Set<number>>(() => new Set());
 
-  // Si la liste d'images change, on repart de zéro
   const imagesKey = images.join('|');
-  useEffect(() => {
+  const [prevImagesKey, setPrevImagesKey] = useState(imagesKey);
+  if (prevImagesKey !== imagesKey) {
+    setPrevImagesKey(imagesKey);
     setCurrentIndex(0);
     setFailedIndexes(new Set());
-  }, [imagesKey]);
+  }
 
   const goTo = useCallback(
     (dir: 1 | -1, e: React.MouseEvent) => {
@@ -162,7 +163,7 @@ function VehicleGallery({
     : (images[currentIndex] ?? PLACEHOLDER_IMAGE);
 
   return (
-    <div className="relative aspect-[16/10] w-full overflow-hidden bg-slate-100">
+    <div className="relative aspect-16/10 w-full overflow-hidden bg-slate-100">
       <div className="absolute inset-0 transition-transform duration-500 ease-out motion-reduce:transition-none group-hover:scale-[1.04]">
         <Image
           src={src}
@@ -177,7 +178,7 @@ function VehicleGallery({
         />
       </div>
 
-      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
+      <div className="absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
 
       {images.length > 1 && (
         <>
@@ -258,17 +259,17 @@ function VehicleCardComponent({
   );
 
   const titleClasses =
-    'text-base font-bold text-slate-900 leading-tight transition-colors group-hover:text-[#02306B]';
+    'text-base font-bold text-slate-900 leading-tight transition-colors group-hover:text-[#E63946]';
 
   return (
     <motion.article
       initial={reduceMotion ? false : { opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: [0.33, 1, 0.68, 1] }}
-      className="group relative bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-lg hover:shadow-slate-900/10 hover:border-slate-300 focus-within:border-[#02306B] transition-all duration-300 flex flex-col"
+      className="group relative bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-lg hover:shadow-slate-900/10 hover:border-slate-300 focus-within:border-[#0B1220] transition-all duration-300 flex flex-col"
     >
       {/* Image */}
-      <div className="relative flex-shrink-0">
+      <div className="relative shrink-0">
         <VehicleGallery
           images={images}
           brand={vehicle.brand}
@@ -300,7 +301,7 @@ function VehicleCardComponent({
           aria-label={isFavorite ? `Retirer ${vehicleName} des favoris` : `Ajouter ${vehicleName} aux favoris`}
           className={cn(
             'absolute top-2.5 right-2.5 z-20 w-9 h-9 rounded-full bg-white/95 backdrop-blur-sm border border-white/60 shadow-sm flex items-center justify-center transition-colors duration-200',
-            'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#02306B]',
+            'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#E63946]',
             isFavorite ? 'text-[#E63946]' : 'text-slate-400 hover:text-[#E63946]'
           )}
         >
@@ -329,7 +330,7 @@ function VehicleCardComponent({
             {isBookable ? (
               <Link
                 href={`/cars/${encodeURIComponent(vehicle.slug)}`}
-                className="outline-none after:absolute after:inset-0 after:z-10 focus-visible:after:ring-2 focus-visible:after:ring-inset focus-visible:after:ring-[#02306B] after:rounded-2xl"
+                className="outline-none after:absolute after:inset-0 after:z-10 focus-visible:after:ring-2 focus-visible:after:ring-inset focus-visible:after:ring-[#E63946] after:rounded-2xl"
               >
                 {vehicle.model}
                 <span className="sr-only">, {vehicle.year}. Voir le véhicule</span>

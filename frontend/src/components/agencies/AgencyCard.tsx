@@ -83,11 +83,11 @@ export function AgencyCard({ agency, carCount }: AgencyCardProps) {
       <div className="p-4 sm:p-5 pt-0">
         <Link
           href={`/agencies/${agency.slug}`}
-          className="w-full py-2.5 px-4 rounded-xl bg-[#02306B] hover:bg-[#064181] text-white text-xs font-semibold flex items-center justify-center gap-2 transition-colors shadow-sm"
+          className="w-full py-2.5 px-4 rounded-xl bg-[#0B1220] hover:bg-slate-800 text-white text-xs font-semibold flex items-center justify-center gap-2 transition-colors shadow-sm group"
         >
-          <Car className="w-3.5 h-3.5 text-[#FF7300]" />
-          <span>Voir la flotte & Réserver</span>
-          <ArrowRight className="w-3.5 h-3.5 ml-auto text-slate-300" />
+          <Car className="w-3.5 h-3.5 text-[#E63946]" />
+          <span>Voir la flotte &amp; Réserver</span>
+          <ArrowRight className="w-3.5 h-3.5 ml-auto text-slate-400 group-hover:translate-x-0.5 transition-transform" />
         </Link>
         <p className="text-[10px] text-center text-slate-400 mt-2 flex items-center justify-center gap-1">
           <ShieldCheck className="w-3 h-3 text-emerald-600" />

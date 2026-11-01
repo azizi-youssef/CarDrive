@@ -66,9 +66,9 @@ export const metadata: Metadata = {
   },
 
   icons: {
-    icon: [{ url: '/icon.png', type: 'image/png' }],
-    shortcut: '/icon.png',
-    apple: [{ url: '/icon.png', type: 'image/png' }],
+    icon: [{ url: '/icon_12.png', type: 'image/png' }],
+    shortcut: '/icon_12.png',
+    apple: [{ url: '/icon_12.png', type: 'image/png' }],
   },
 
   manifest: '/manifest.webmanifest',
@@ -121,7 +121,7 @@ const jsonLd = {
       url: SITE_URL,
       logo: {
         '@type': 'ImageObject',
-        url: `${SITE_URL}/icon_logo.png`,
+        url: `${SITE_URL}/icon_12.png`,
         width: 512,
         height: 512,
       },

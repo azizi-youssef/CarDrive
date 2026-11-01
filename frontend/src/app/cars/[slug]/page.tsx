@@ -12,6 +12,7 @@ import { SameModelAlternatives } from '@/components/cars/SameModelAlternatives';
 import { Badge } from '@/components/ui/Badge';
 import { PriceDisplay } from '@/components/ui/PriceDisplay';
 import { useRealtimeRefresh } from '@/lib/supabase/realtime';
+import { GsapReveal } from '@/components/ui/react-bits';
 import type { Vehicle, Review } from '@/types';
 import {
   Users,
@@ -99,7 +100,7 @@ export default function CarDetailsPage({
   if (loading) {
     return (
       <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center gap-3 text-slate-600">
-        <div className="w-8 h-8 border-4 border-[#02306B] border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-[#0B1220] border-t-transparent rounded-full animate-spin" />
         <p className="text-sm font-medium">Chargement des données du véhicule en direct…</p>
       </div>
     );
@@ -337,7 +338,7 @@ export default function CarDetailsPage({
 
             <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-2.5 shadow-sm">
 
-              <div className="relative aspect-[16/10] overflow-hidden rounded-xl bg-slate-100">
+              <div className="relative aspect-16/10 overflow-hidden rounded-xl bg-slate-100">
 
                 <Image
                   src={images[activeImageIndex]}
@@ -350,7 +351,7 @@ export default function CarDetailsPage({
                 />
 
                 {/* Gradient */}
-                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/40 to-transparent" />
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-linear-to-t from-black/40 to-transparent" />
 
                 {/* Image counter */}
                 <div className="absolute bottom-3 left-3 flex items-center gap-1.5 rounded-lg bg-black/50 px-2.5 py-1.5 text-[10px] font-semibold text-white backdrop-blur-md">
@@ -387,7 +388,7 @@ export default function CarDetailsPage({
                         setActiveImageIndex(index)
                       }
                       aria-label={`Afficher la photo ${index + 1}`}
-                      className={`relative aspect-[16/10] overflow-hidden rounded-lg border-2 transition-all duration-200 ${activeImageIndex === index
+                      className={`relative aspect-16/10 overflow-hidden rounded-lg border-2 transition-all duration-200 ${activeImageIndex === index
                           ? 'border-[#E63946] ring-2 ring-[#E63946]/10'
                           : 'border-transparent opacity-65 hover:opacity-100'
                         }`}
@@ -411,37 +412,37 @@ export default function CarDetailsPage({
             {/* QUICK TRUST STRIP                                           */}
             {/* ---------------------------------------------------------- */}
 
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <GsapReveal stagger={0.06} className="grid grid-cols-2 gap-2 sm:grid-cols-4">
 
-              <div className="flex items-center gap-2.5 rounded-xl border border-slate-200 bg-white p-3">
+              <div className="flex items-center gap-2.5 rounded-xl border border-slate-200 bg-white p-3 shadow-2xs">
                 <ShieldCheck className="h-4 w-4 shrink-0 text-emerald-500" />
                 <span className="text-[10px] font-semibold text-slate-600">
                   Agence vérifiée
                 </span>
               </div>
 
-              <div className="flex items-center gap-2.5 rounded-xl border border-slate-200 bg-white p-3">
+              <div className="flex items-center gap-2.5 rounded-xl border border-slate-200 bg-white p-3 shadow-2xs">
                 <LockKeyhole className="h-4 w-4 shrink-0 text-slate-500" />
                 <span className="text-[10px] font-semibold text-slate-600">
                   Réservation sécurisée
                 </span>
               </div>
 
-              <div className="flex items-center gap-2.5 rounded-xl border border-slate-200 bg-white p-3">
+              <div className="flex items-center gap-2.5 rounded-xl border border-slate-200 bg-white p-3 shadow-2xs">
                 <CalendarDays className="h-4 w-4 shrink-0 text-slate-500" />
                 <span className="text-[10px] font-semibold text-slate-600">
                   Disponibilité
                 </span>
               </div>
 
-              <div className="flex items-center gap-2.5 rounded-xl border border-slate-200 bg-white p-3">
+              <div className="flex items-center gap-2.5 rounded-xl border border-slate-200 bg-white p-3 shadow-2xs">
                 <MessageCircle className="h-4 w-4 shrink-0 text-emerald-500" />
                 <span className="text-[10px] font-semibold text-slate-600">
                   Contact direct
                 </span>
               </div>
 
-            </div>
+            </GsapReveal>
 
             {/* ---------------------------------------------------------- */}
             {/* SPECS                                                       */}
@@ -727,8 +728,8 @@ export default function CarDetailsPage({
               {/* CarDrive Conciergerie & Assistance */}
               <div className="mt-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50">
-                    <MessageCircle className="h-4 w-4 text-[#02306B]" />
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100">
+                    <MessageCircle className="h-4 w-4 text-[#0B1220]" />
                   </div>
 
                   <div className="min-w-0 flex-1">
@@ -744,7 +745,7 @@ export default function CarDetailsPage({
                     href={whatsappLink}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="rounded-lg bg-[#02306B] px-3 py-2 text-[10px] font-bold text-white transition-colors hover:bg-[#064181]"
+                    className="rounded-lg bg-[#0B1220] px-3 py-2 text-[10px] font-bold text-white transition-colors hover:bg-slate-800"
                   >
                     Conciergerie
                   </a>
@@ -763,52 +764,6 @@ export default function CarDetailsPage({
             </div>
 
           </aside>
-
-        </div>
-
-      </div>
-
-      {/* ================================================================ */}
-      {/* MOBILE STICKY BOOKING BAR                                       */}
-      {/* ================================================================ */}
-
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 px-4 py-3 shadow-[0_-8px_30px_rgba(15,23,42,0.10)] backdrop-blur-xl lg:hidden">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3">
-          <div className="min-w-0">
-            <p className="truncate text-[10px] font-semibold text-slate-500">
-              {vehicle.brand} {vehicle.model}
-            </p>
-            <div className="flex items-baseline gap-1">
-              <span className="text-base font-extrabold text-slate-950">
-                {formatPrice(vehicle.daily_price)}
-              </span>
-              <span className="text-[10px] text-slate-400">
-                / jour
-              </span>
-            </div>
-          </div>
-
-          <div className="flex shrink-0 items-center gap-2">
-            <a
-              href={whatsappLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Assistance Conciergerie CarDrive"
-              className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700 shadow-sm transition-colors hover:bg-slate-200"
-              title="Conciergerie CarDrive"
-            >
-              <MessageCircle className="h-4 w-4 text-[#02306B]" />
-            </a>
-
-            <a
-              href="#booking-form"
-              className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-[#02306B] px-4 text-xs font-bold text-white shadow-sm shadow-blue-900/10 transition-all hover:bg-[#064181]"
-            >
-              Demander cette voiture
-              <ArrowRight className="h-3 w-3 text-[#FF7300]" />
-            </a>
-
-          </div>
 
         </div>
 

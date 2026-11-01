@@ -196,9 +196,9 @@ export function BookingRequestModal({
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
       <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col max-h-[92vh]">
-        
+
         {/* Header de la Modal avec Logo CarDrive Officiel */}
-        <div className="bg-[#02306B] text-white px-5 sm:px-6 py-3 flex items-center justify-between relative shrink-0 border-b border-blue-900/30">
+        <div className="bg-[#0B1220] text-white px-5 sm:px-6 py-3 flex items-center justify-between relative shrink-0 border-b border-slate-800">
           <div className="flex items-center gap-3">
             <div className="relative h-9 w-28 bg-white/10 rounded-xl p-1.5 flex items-center justify-center backdrop-blur-sm border border-white/15 shrink-0">
               <Image
@@ -211,10 +211,10 @@ export function BookingRequestModal({
               />
             </div>
             <div>
-              <div className="flex items-center gap-2 text-[10px] sm:text-xs font-semibold text-blue-200 uppercase tracking-wider">
+              <div className="flex items-center gap-2 text-[10px] sm:text-xs font-semibold text-slate-300 uppercase tracking-wider">
                 <span>Marketplace</span>
                 <span>•</span>
-                <span className="text-[#FF7300] font-bold">Demande officielle</span>
+                <span className="text-[#E63946] font-bold">Demande officielle</span>
               </div>
               <h2 className="text-base sm:text-lg font-bold text-white mt-0.5">
                 Demander la {vehicle.brand} {vehicle.model}
@@ -242,22 +242,20 @@ export function BookingRequestModal({
               ].map((s) => (
                 <div
                   key={s.num}
-                  className={`flex items-center justify-center gap-1.5 pb-1 border-b-2 transition-all ${
-                    currentStep === s.num
-                      ? 'border-[#02306B] text-[#02306B]'
+                  className={`flex items-center justify-center gap-1.5 pb-1 border-b-2 transition-all ${currentStep === s.num
+                      ? 'border-[#0B1220] text-[#0B1220]'
                       : currentStep > s.num
-                      ? 'border-emerald-500 text-emerald-600'
-                      : 'border-transparent text-slate-400'
-                  }`}
+                        ? 'border-emerald-500 text-emerald-600'
+                        : 'border-transparent text-slate-400'
+                    }`}
                 >
                   <span
-                    className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] ${
-                      currentStep === s.num
-                        ? 'bg-[#02306B] text-white'
+                    className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] ${currentStep === s.num
+                        ? 'bg-[#0B1220] text-white'
                         : currentStep > s.num
-                        ? 'bg-emerald-500 text-white'
-                        : 'bg-slate-200 text-slate-500'
-                    }`}
+                          ? 'bg-emerald-500 text-white'
+                          : 'bg-slate-200 text-slate-500'
+                      }`}
                   >
                     {currentStep > s.num ? '✓' : s.num}
                   </span>
@@ -269,7 +267,7 @@ export function BookingRequestModal({
         )}
 
         {/* Contenu Déroulant */}
-        <div className="p-5 overflow-y-auto flex-grow min-h-0 space-y-5">
+        <div className="p-5 overflow-y-auto grow min-h-0 space-y-5">
           {submissionError && (
             <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
               <AlertCircle className="w-4 h-4 shrink-0 text-red-500" />
@@ -296,7 +294,7 @@ export function BookingRequestModal({
                     placeholder="Ex: Youssef"
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-[#02306B] focus:ring-1 focus:ring-[#02306B] outline-none"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-[#E63946] focus:ring-1 focus:ring-[#E63946]/20 outline-none"
                   />
                 </div>
                 <div>
@@ -307,7 +305,7 @@ export function BookingRequestModal({
                     placeholder="Ex: Azizi"
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-[#02306B] focus:ring-1 focus:ring-[#02306B] outline-none"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-[#E63946] focus:ring-1 focus:ring-[#E63946]/20 outline-none"
                   />
                 </div>
 
@@ -319,7 +317,7 @@ export function BookingRequestModal({
                     placeholder="Ex: S123456 ou 12AB34567"
                     value={cin}
                     onChange={(e) => setCin(e.target.value.toUpperCase())}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-[#02306B] focus:ring-1 focus:ring-[#02306B] outline-none uppercase font-semibold text-slate-900"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-[#E63946] focus:ring-1 focus:ring-[#E63946]/20 outline-none uppercase font-semibold text-slate-900"
                   />
                 </div>
                 <div>
@@ -329,7 +327,7 @@ export function BookingRequestModal({
                     placeholder="exemple@domaine.com (optionnel)"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-[#02306B] focus:ring-1 focus:ring-[#02306B] outline-none"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-[#E63946] focus:ring-1 focus:ring-[#E63946]/20 outline-none"
                   />
                 </div>
                 <div>
@@ -340,7 +338,7 @@ export function BookingRequestModal({
                     placeholder="+212 6..."
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-[#02306B] focus:ring-1 focus:ring-[#02306B] outline-none"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-[#E63946] focus:ring-1 focus:ring-[#E63946]/20 outline-none"
                   />
                 </div>
 
@@ -349,7 +347,7 @@ export function BookingRequestModal({
                   <select
                     value={country}
                     onChange={(e) => setCountry(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white focus:border-[#02306B] outline-none"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white focus:border-[#E63946] outline-none"
                   >
                     <option value="Maroc">Maroc</option>
                     <option value="France">France</option>
@@ -367,7 +365,7 @@ export function BookingRequestModal({
                     required
                     value={birthDate}
                     onChange={(e) => setBirthDate(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-[#02306B] outline-none"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-[#E63946] outline-none"
                   />
                 </div>
 
@@ -379,7 +377,7 @@ export function BookingRequestModal({
                     placeholder="Ex: 04/123456"
                     value={licenseNumber}
                     onChange={(e) => setLicenseNumber(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-[#02306B] outline-none"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-[#E63946] outline-none"
                   />
                 </div>
                 <div>
@@ -389,13 +387,13 @@ export function BookingRequestModal({
                     required
                     value={licenseExpiry}
                     onChange={(e) => setLicenseExpiry(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-[#02306B] outline-none"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-[#E63946] outline-none"
                   />
                 </div>
               </div>
 
-              <div className="p-3 bg-blue-50/70 border border-blue-200/80 rounded-xl text-blue-900 text-[11px] flex gap-2">
-                <ShieldCheck className="w-4 h-4 text-[#02306B] shrink-0 mt-0.5" />
+              <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 text-[11px] flex gap-2">
+                <ShieldCheck className="w-4 h-4 text-[#E63946] shrink-0 mt-0.5" />
                 <span>
                   <strong>Protection de votre vie privée :</strong> CarDrive ne demande pas la photo de votre permis à cette étape. Les pièces justificatives physiques seront vérifiées directement par l'agence partenaire lors de la remise des clés.
                 </span>
@@ -479,11 +477,10 @@ export function BookingRequestModal({
                       key={item.key}
                       type="button"
                       onClick={() => setDeliveryType(item.key as any)}
-                      className={`p-2.5 rounded-xl border text-center font-medium transition-all ${
-                        deliveryType === item.key
-                          ? 'border-[#02306B] bg-blue-50 text-[#02306B] font-bold shadow-sm'
+                      className={`p-2.5 rounded-xl border text-center font-medium transition-all ${deliveryType === item.key
+                          ? 'border-[#0B1220] bg-slate-100 text-[#0B1220] font-bold shadow-sm'
                           : 'border-slate-200 text-slate-600 hover:bg-slate-50'
-                      }`}
+                        }`}
                     >
                       {item.label}
                     </button>
@@ -505,13 +502,12 @@ export function BookingRequestModal({
                         setPickupLocation(mp.name);
                         setDropoffLocation(mp.name);
                       }}
-                      className={`p-2.5 rounded-xl border text-left flex items-center gap-2.5 transition-all cursor-pointer ${
-                        pickupLocation === mp.name
-                          ? 'border-[#02306B] bg-blue-50/80 shadow-sm ring-1 ring-[#02306B]'
+                      className={`p-2.5 rounded-xl border text-left flex items-center gap-2.5 transition-all cursor-pointer ${pickupLocation === mp.name
+                          ? 'border-[#E63946] bg-red-50/60 shadow-sm ring-1 ring-[#E63946]'
                           : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
-                      }`}
+                        }`}
                     >
-                      <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-white shrink-0 bg-gradient-to-br ${mp.gradientBg}`}>
+                      <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-white shrink-0 bg-linear-to-br ${mp.gradientBg}`}>
                         {mp.type === 'AIRPORT' && <Plane className="w-4 h-4" />}
                         {mp.type === 'PORT' && <Building2 className="w-4 h-4" />}
                         {mp.type === 'AGENCY' && <Building2 className="w-4 h-4" />}
@@ -524,7 +520,7 @@ export function BookingRequestModal({
                         <p className="text-[10px] text-slate-500 truncate">{mp.badgeLabel}</p>
                       </div>
                       {pickupLocation === mp.name && (
-                        <CheckCircle2 className="w-4 h-4 text-[#02306B] shrink-0" />
+                        <CheckCircle2 className="w-4 h-4 text-[#E63946] shrink-0" />
                       )}
                     </button>
                   ))}
@@ -587,7 +583,7 @@ export function BookingRequestModal({
                     type="checkbox"
                     checked={childSeat}
                     onChange={(e) => setChildSeat(e.target.checked)}
-                    className="w-4 h-4 accent-[#02306B]"
+                    className="w-4 h-4 accent-[#E63946]"
                   />
                   <div>
                     <span className="font-bold text-slate-900 block">Siège enfant ou réhausseur</span>
@@ -600,7 +596,7 @@ export function BookingRequestModal({
                     type="checkbox"
                     checked={additionalDriver}
                     onChange={(e) => setAdditionalDriver(e.target.checked)}
-                    className="w-4 h-4 accent-[#02306B]"
+                    className="w-4 h-4 accent-[#E63946]"
                   />
                   <div>
                     <span className="font-bold text-slate-900 block">Conducteur supplémentaire</span>
@@ -618,7 +614,7 @@ export function BookingRequestModal({
                   placeholder="Précisions sur vos horaires, bagages volumineux, etc."
                   value={customerNotes}
                   onChange={(e) => setCustomerNotes(e.target.value)}
-                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 outline-none focus:border-[#02306B]"
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 outline-none focus:border-[#E63946]"
                 />
               </div>
             </div>
@@ -664,12 +660,12 @@ export function BookingRequestModal({
                 </div>
                 <div className="flex justify-between items-center pt-1">
                   <span className="font-semibold text-slate-700">Durée calculée</span>
-                  <span className="font-bold text-[#02306B]">{pricing.number_of_days} jour(s)</span>
+                  <span className="font-bold text-[#0B1220]">{pricing.number_of_days} jour(s)</span>
                 </div>
               </div>
 
               {/* Décomposition Financière CarDrive */}
-              <div className="p-4 rounded-2xl bg-gradient-to-br from-blue-50/80 to-white border border-blue-200/90 space-y-2">
+              <div className="p-4 rounded-2xl bg-linear-to-br from-slate-50 to-white border border-slate-200 space-y-2">
                 <div className="flex justify-between text-slate-600">
                   <span>Prix unitaire journalier</span>
                   <span className="font-semibold text-slate-900">{formatPrice(pricing.daily_price)}</span>
@@ -679,9 +675,9 @@ export function BookingRequestModal({
                   <span className="font-semibold text-slate-900">{formatPrice(pricing.subtotal)}</span>
                 </div>
 
-                <div className="pt-2 border-t border-blue-200 flex justify-between text-sm font-extrabold text-[#02306B]">
+                <div className="pt-2 border-t border-slate-200 flex justify-between text-sm font-extrabold text-[#0B1220]">
                   <span>Total estimé de la location</span>
-                  <span>{formatPrice(pricing.total)}</span>
+                  <span className="text-[#E63946]">{formatPrice(pricing.total)}</span>
                 </div>
 
                 {/* Détails de règlement & caution */}
@@ -732,7 +728,7 @@ export function BookingRequestModal({
                   <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
                     Référence unique de dossier
                   </span>
-                  <span className="font-mono text-base font-black text-[#02306B] tracking-wider block">
+                  <span className="font-mono text-base font-black text-[#0B1220] tracking-wider block">
                     {confirmedBookingRef || 'CD-2026-001842'}
                   </span>
                   <span className="inline-block mt-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
@@ -778,15 +774,15 @@ export function BookingRequestModal({
                   rel="noopener noreferrer"
                   className="flex-1 py-3 px-4 rounded-xl bg-white border border-slate-300 hover:border-slate-400 text-slate-800 font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all"
                 >
-                  <Download className="w-4 h-4 text-[#02306B]" />
+                  <Download className="w-4 h-4 text-[#0B1220]" />
                   <span>Télécharger le PDF</span>
                 </a>
 
                 <Link
                   href={`/account/bookings/${encodeURIComponent(confirmedBookingRef || '')}`}
-                  className="flex-1 py-3 px-4 rounded-xl bg-[#02306B] hover:bg-[#064181] text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md transition-all"
+                  className="flex-1 py-3 px-4 rounded-xl bg-[#0B1220] hover:bg-slate-800 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md transition-all"
                 >
-                  <Clock className="w-4 h-4 text-[#FF7300]" />
+                  <Clock className="w-4 h-4 text-[#E63946]" />
                   <span>Suivre ma demande</span>
                 </Link>
               </div>
@@ -832,7 +828,7 @@ export function BookingRequestModal({
                   if (currentStep === 2 && !validateStep2()) return;
                   setCurrentStep((prev) => prev + 1);
                 }}
-                className="px-5 py-2.5 rounded-xl bg-[#02306B] hover:bg-[#064181] text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition-colors"
+                className="px-5 py-2.5 rounded-xl bg-[#0B1220] hover:bg-slate-800 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition-colors"
               >
                 <span>Continuer</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -842,13 +838,13 @@ export function BookingRequestModal({
                 type="button"
                 disabled={isSubmitting}
                 onClick={handleSubmitBookingRequest}
-                className="px-6 py-3 rounded-xl bg-[#02306B] hover:bg-[#064181] disabled:opacity-50 text-white text-xs sm:text-sm font-bold flex items-center gap-2 shadow-lg shadow-blue-950/20 transition-all cursor-pointer"
+                className="px-6 py-3 rounded-xl bg-[#E63946] hover:bg-[#C92F3B] disabled:opacity-50 text-white text-xs sm:text-sm font-bold flex items-center gap-2 shadow-lg shadow-red-950/20 transition-all cursor-pointer"
               >
                 {isSubmitting ? (
                   <span>Envoi en cours...</span>
                 ) : (
                   <>
-                    <CarFront className="w-4 h-4 text-[#FF7300]" />
+                    <CarFront className="w-4 h-4 text-white" />
                     <span>Envoyer ma demande de réservation</span>
                   </>
                 )}

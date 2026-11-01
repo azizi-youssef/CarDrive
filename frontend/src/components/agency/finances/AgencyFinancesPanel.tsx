@@ -167,12 +167,12 @@ export function AgencyFinancesPanel({ agencyId }: { agencyId: string }) {
       {data?.subscription && (
         <div className="rounded-2xl border border-blue-200 bg-linear-to-r from-blue-50/80 via-white to-slate-50 p-5 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-3.5">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#02306B] text-white shadow-xs">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#0B1220] text-white shadow-xs">
               <Sparkles className="h-5 w-5 text-amber-300" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-[#02306B] uppercase tracking-wider">
+                <span className="text-xs font-bold text-[#0B1220] uppercase tracking-wider">
                   Forfait Concession Actif
                 </span>
                 <span className="rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5">
@@ -191,88 +191,13 @@ export function AgencyFinancesPanel({ agencyId }: { agencyId: string }) {
           <button
             type="button"
             onClick={() => setUpgradeModalOpen(true)}
-            className="flex items-center justify-center gap-1.5 rounded-xl bg-[#02306B] hover:bg-[#064181] text-white px-4 py-2.5 text-xs font-bold transition shadow-xs cursor-pointer"
+            className="flex items-center justify-center gap-1.5 rounded-xl bg-[#0B1220] hover:bg-slate-800 text-white px-4 py-2.5 text-xs font-bold transition shadow-xs cursor-pointer"
           >
             <span>Changer de formule</span>
             <ArrowUpRight className="h-4 w-4" />
           </button>
         </div>
       )}
-
-      {/* KPI Cards Grid */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {/* Gross Volume */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-              Volume Brut Total
-            </span>
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
-              <TrendingUp className="h-4 w-4" />
-            </div>
-          </div>
-          <p className="mt-3 text-2xl font-bold text-slate-900">
-            {formatPrice(data?.kpis.grossRevenue ?? 0)}
-          </p>
-          <p className="mt-1 text-xs text-slate-500">
-            {data?.kpis.totalBookingsCount ?? 0} réservations validées
-          </p>
-        </div>
-
-        {/* Commission CarDrive */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-              Commission Plateforme
-            </span>
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
-              <Percent className="h-4 w-4" />
-            </div>
-          </div>
-          <p className="mt-3 text-2xl font-bold text-emerald-600">
-            {formatPrice(data?.kpis.platformCommission ?? 0)}
-          </p>
-          <p className="mt-1 text-xs text-slate-500">
-            Taux prélevé : 0% (inclus dans l'abonnement)
-          </p>
-        </div>
-
-        {/* Net Agency Payout */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-              Net Reçu par l&apos;Agence
-            </span>
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
-              <Wallet className="h-4 w-4" />
-            </div>
-          </div>
-          <p className="mt-3 text-2xl font-bold text-emerald-600">
-            {formatPrice(data?.kpis.agencyNet ?? 0)}
-          </p>
-          <p className="mt-1 text-xs text-slate-500">
-            100% des locations conservées
-          </p>
-        </div>
-
-        {/* Abonnement mensuel */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-              Coût Abonnement
-            </span>
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
-              <ShieldCheck className="h-4 w-4" />
-            </div>
-          </div>
-          <p className="mt-3 text-2xl font-bold text-slate-900">
-            {formatPrice(data?.subscription?.price_monthly ?? 0)}
-          </p>
-          <p className="mt-1 text-xs text-slate-500">
-            Par mois ({data?.subscription?.plan.name ?? 'Abonnement'})
-          </p>
-        </div>
-      </div>
 
       {/* Transactions Table */}
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs">
@@ -301,7 +226,7 @@ export function AgencyFinancesPanel({ agencyId }: { agencyId: string }) {
                   <th className="px-4 py-3">Client</th>
                   <th className="px-4 py-3">Véhicule</th>
                   <th className="px-4 py-3 text-right">Montant Brut</th>
-                  <th className="px-4 py-3 text-right">Commission (15%)</th>
+                  <th className="px-4 py-3 text-right">Commission (0%)</th>
                   <th className="px-4 py-3 text-right">Part Agence</th>
                   <th className="px-4 py-3 text-center">Statut</th>
                 </tr>
