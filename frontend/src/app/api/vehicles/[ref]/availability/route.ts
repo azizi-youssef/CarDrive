@@ -40,9 +40,11 @@ export async function GET(req: NextRequest, context: Ctx) {
     );
   } catch (error: unknown) {
     console.error('[API /api/vehicles/[ref]/availability] Error:', error);
+    // En cas d'erreur inattendue, ne pas bloquer l'utilisateur avec un 500 :
+    // permettre l'envoi de la demande sous réserve de confirmation manuelle de l'agence
     return NextResponse.json(
-      { success: false, error: 'Impossible de vérifier la disponibilité du véhicule.' },
-      { status: 500, headers: { 'Cache-Control': 'no-store' } }
+      { success: true, data: { available: true } },
+      { headers: { 'Cache-Control': 'no-store' } }
     );
   }
 }

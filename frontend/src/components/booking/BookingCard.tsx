@@ -54,7 +54,11 @@ export function BookingCard({ vehicle }: BookingCardProps) {
         }
         if (active) setAvailability(result.data.available ? 'available' : 'unavailable');
       } catch {
-        if (active) setAvailability('error');
+        if (active) {
+          // Si le service de vérification distante est temporairement indisponible,
+          // on utilise le statut natif de la flotte au lieu de bloquer l'utilisateur
+          setAvailability(vehicle.status === 'AVAILABLE' ? 'available' : 'unavailable');
+        }
       }
     };
 
@@ -99,9 +103,9 @@ export function BookingCard({ vehicle }: BookingCardProps) {
             ? 'Disponible pour ces dates'
             : availability === 'checking'
               ? 'Vérification…'
-              : availability === 'error'
-                ? 'Disponibilité inconnue'
-                : 'Non disponible pour ces dates'}
+              : availability === 'unavailable'
+                ? 'Non disponible pour ces dates'
+                : 'Disponible (confirmation agence)'}
         </Badge>
       </div>
 
@@ -192,9 +196,7 @@ export function BookingCard({ vehicle }: BookingCardProps) {
                 ? 'Vérification de la disponibilité pour ces dates…'
                 : availability === 'unavailable'
                   ? 'Ce véhicule n’est pas disponible pour la période choisie.'
-                  : availability === 'error'
-                    ? 'La disponibilité ne peut pas être vérifiée actuellement. Réessayez dans un instant.'
-                    : ''}
+                  : ''}
             </p>
           )}
 
@@ -300,7 +302,7 @@ export function BookingCard({ vehicle }: BookingCardProps) {
             <button
               type="button"
               onClick={() => setIsModalOpen(true)}
-              disabled={availability !== 'available'}
+              disabled={availability === 'unavailable'}
               className="w-full py-3.5 px-4 rounded-xl bg-[#E63946] hover:bg-[#C92F3B] disabled:bg-slate-300 disabled:shadow-none text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xs hover:shadow-[0_4px_16px_rgba(230,57,70,0.3)] transition-all cursor-pointer disabled:cursor-not-allowed"
             >
               <Calendar className="w-4 h-4 text-white" />

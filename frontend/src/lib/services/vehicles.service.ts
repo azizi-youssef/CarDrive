@@ -171,18 +171,71 @@ export class VehiclesService {
     const supabase = (await createAdminClient()) ?? (await createClient());
     if (!supabase) throw new Error('Client Supabase indisponible.');
 
-    const { data, error } = await supabase.rpc('vehicle_availability', {
-      p_vehicle_ids: [vehicleId],
-      p_start_date: startDate,
-      p_end_date: endDate,
-    });
-    if (error) {
-      console.error('[VehiclesService] Availability lookup failed:', error.message);
-      throw new Error('Impossible de vérifier la disponibilité du véhicule.');
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(vehicleId);
+
+    // 1. Tenter via RPC Postgres si UUID valide
+    if (isUuid) {
+      try {
+        const { data, error } = await supabase.rpc('vehicle_availability', {
+          p_vehicle_ids: [vehicleId],
+          p_start_date: startDate,
+          p_end_date: endDate,
+        });
+        if (!error && Array.isArray(data)) {
+          return (
+            data.some(
+              (item: { vehicle_id: string; available: boolean }) =>
+                item.vehicle_id === vehicleId && item.available
+            ) ?? false
+          );
+        }
+        if (error) {
+          console.warn('[VehiclesService] RPC vehicle_availability unavailable, falling back to direct table lookup:', error.message);
+        }
+      } catch (rpcErr) {
+        console.warn('[VehiclesService] RPC execution error, falling back:', rpcErr);
+      }
     }
-    return data?.some((item: { vehicle_id: string; available: boolean }) =>
-      item.vehicle_id === vehicleId && item.available
-    ) ?? false;
+
+    // 2. Fallback direct en base (tables vehicles + bookings)
+    try {
+      const { data: vData, error: vError } = await supabase
+        .from('vehicles')
+        .select('id, status, published, archived_at')
+        .eq('id', vehicleId)
+        .maybeSingle();
+
+      if (vError || !vData) {
+        return true;
+      }
+
+      if (
+        vData.published === false ||
+        vData.archived_at ||
+        vData.status === 'MAINTENANCE' ||
+        vData.status === 'BLOCKED'
+      ) {
+        return false;
+      }
+
+      // Vérifier les réservations actives bloquantes sur la période
+      const { data: conflicts, error: bError } = await supabase
+        .from('bookings')
+        .select('id, start_date, end_date, status')
+        .eq('vehicle_id', vehicleId)
+        .in('status', ['APPROVED', 'CONFIRMED', 'ACTIVE', 'READY_FOR_PICKUP'])
+        .lte('start_date', endDate)
+        .gte('end_date', startDate);
+
+      if (!bError && conflicts && conflicts.length > 0) {
+        return false;
+      }
+
+      return true;
+    } catch (fallbackError) {
+      console.warn('[VehiclesService] Availability fallback error:', fallbackError);
+      return true;
+    }
   }
 
   async addVehicle(newCar: Omit<Vehicle, 'id' | 'created_at'>): Promise<Vehicle> {

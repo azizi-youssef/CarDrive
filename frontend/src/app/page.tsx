@@ -130,17 +130,40 @@ export default function HomePage() {
   const totalVehicles = vehicles.length;
   const totalAgencies = agencies.length;
 
-  const getCategoryCount = (cat: string) => vehicles.filter((v) => v.category === cat).length;
-  const getAutoCount = () => vehicles.filter((v) => v.transmission === 'AUTOMATIC').length;
+  // ── Helpers catégories ──────────────────────────────────────────
+  const getCategoryCount = (cat: string) =>
+    vehicles.filter((v) => v.category === cat && v.status === 'AVAILABLE').length;
+  const getCategoryMinPrice = (cat: string): number | null => {
+    const prices = vehicles
+      .filter((v) => v.category === cat && v.status === 'AVAILABLE')
+      .map((v) => v.daily_price);
+    return prices.length > 0 ? Math.min(...prices) : null;
+  };
+  const getTotalCategoryCount = (cat: string) =>
+    vehicles.filter((v) => v.category === cat).length;
 
-  // Catégories harmonisées avec visuels locaux exclusivement
-  const categories = [
-    { name: 'Économique', count: getCategoryCount('Économique'), image: '/economique.jpeg', description: 'Pratique & économique' },
-    { name: 'SUV', count: getCategoryCount('SUV'), image: '/suv.jpeg', description: 'Confort & espace' },
-    { name: 'Berline', count: getCategoryCount('Berline'), image: '/Mercedes%20Class%20C%20220%20D.jpeg', description: 'Élégance au quotidien' },
-    { name: 'Luxe', count: getCategoryCount('Luxe'), image: '/luxe.jpeg', description: 'Prestige & confort' },
-    { name: 'Automatique', count: getAutoCount(), image: '/renault-kardian.jpeg', description: 'Conduite sans effort' },
-    { name: '7 places', count: getCategoryCount('7 places'), image: '/voiture%207%20places.jpeg', description: 'Famille & groupes' },
+  // Types de véhicules (taxonomie officielle — cartes)
+  // Ordre par popularité / volume estimé
+  const CATEGORY_DEFS = [
+    { name: 'Économique', image: '/economique.jpeg', description: 'Pratique & économique' },
+    { name: 'SUV',        image: '/suv.jpeg',        description: 'Confort & espace' },
+    { name: 'Berline',    image: '/Mercedes%20Class%20C%20220%20D.jpeg', description: 'Élégance au quotidien' },
+    { name: 'Compacte',   image: '/economique.jpeg', description: 'Agile en ville' },
+    { name: 'Luxe',       image: '/luxe.jpeg',       description: 'Prestige & confort' },
+    { name: 'Utilitaire', image: '/voiture%207%20places.jpeg', description: 'Charges & déménagement' },
+  ] as const;
+
+  const categories = CATEGORY_DEFS.map((def) => ({
+    ...def,
+    availableCount: getCategoryCount(def.name),
+    totalCount: getTotalCategoryCount(def.name),
+    minPrice: getCategoryMinPrice(def.name),
+  }));
+
+  // Filtres pratiques (chips — cumulables avec catégorie)
+  const practicalFilters = [
+    { label: 'Automatique', key: 'automatic', active: vehicleFilter === 'Automatique' },
+    { label: '7 places',    key: '7places',   active: vehicleFilter === '7 places' },
   ];
 
   const destinations = [
@@ -337,7 +360,8 @@ export default function HomePage() {
           CATEGORIES — "Trouvez votre style" (visuels locaux homogènes)
       ================================================================= */}
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
-        <div className="mb-10 flex items-end justify-between">
+        {/* En-tête */}
+        <div className="mb-6 flex items-end justify-between gap-4">
           <div>
             <p className="section-header-eyebrow">
               <span className="h-3 w-3 rounded-full bg-[#E63946]" />
@@ -346,44 +370,147 @@ export default function HomePage() {
             <h2 className="text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">
               Trouvez votre style
             </h2>
-            <p className="mt-2 text-sm text-slate-500">Du modèle économique au véhicule familial ou premium.</p>
+            <p className="mt-2 text-sm text-slate-500 max-w-md">
+              Du modèle économique au véhicule premium — choisissez le type qui correspond à votre trajet.
+            </p>
           </div>
-          <Link href="/search" className="hidden items-center gap-2 text-sm font-bold text-slate-600 transition hover:text-[#E63946] sm:flex">
-            Tous les véhicules <ArrowRight className="h-4 w-4" />
+          <Link
+            href="/search"
+            className="hidden items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 shadow-sm transition hover:border-[#E63946]/30 hover:text-[#E63946] hover:shadow-md sm:flex shrink-0"
+          >
+            Tout explorer <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-          {categories.map((category) => (
-            <Link
-              key={category.name}
-              href={`/search?category=${encodeURIComponent(category.name)}`}
-              className="group relative aspect-[0.88] overflow-hidden rounded-2xl bg-slate-900"
+        {/* Chips filtres pratiques (cumulables avec type) */}
+        <div className="mb-6 flex flex-wrap items-center gap-2" role="group" aria-label="Filtres pratiques">
+          <span className="text-xs font-semibold text-slate-500">Aussi :</span>
+          {practicalFilters.map((f) => (
+            <button
+              key={f.key}
+              type="button"
+              onClick={() => setVehicleFilter(f.active ? 'Tous' : f.label)}
+              aria-pressed={f.active}
+              className={
+                f.active
+                  ? 'rounded-full px-4 py-2 text-xs font-bold bg-[#0B1220] text-white shadow-sm transition min-h-11'
+                  : 'rounded-full px-4 py-2 text-xs font-semibold bg-white border border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50 transition min-h-11'
+              }
             >
-              <Image
-                src={category.image}
-                alt={category.name}
-                fill
-                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw"
-                className="object-cover transition duration-700 group-hover:scale-110"
-              />
-              <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/25 to-transparent" />
-              <div className="absolute inset-x-0 bottom-0 h-0.5 scale-x-0 bg-[#E63946] transition-transform duration-300 group-hover:scale-x-100" />
-
-              <div className="absolute inset-x-0 bottom-0 p-4">
-                <div className="text-sm font-black text-white">{category.name}</div>
-                <div className="mt-0.5 text-[11px] text-white/70">{category.description}</div>
-                <div className="mt-2 flex items-center justify-between">
-                  <span className="text-[11px] font-semibold text-white/60">
-                    {category.count > 0 ? `${category.count} véh.` : 'Voir'}
-                  </span>
-                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/10 transition group-hover:bg-[#E63946]">
-                    <ArrowUpRight className="h-3.5 w-3.5 text-white" />
-                  </span>
-                </div>
-              </div>
-            </Link>
+              {f.label}
+            </button>
           ))}
+        </div>
+
+        {/* Grille de cartes — mobile: scroll-snap horizontal, tablette: 3 col, desktop: 6 col */}
+        <div
+          className="flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory no-scrollbar sm:grid sm:grid-cols-3 sm:overflow-visible sm:pb-0 lg:grid-cols-6 sm:gap-4"
+          role="list"
+          aria-label="Catégories de véhicules"
+        >
+          {categories.map((category) => {
+            const isSoon = category.totalCount === 0;
+            const hasAvailable = category.availableCount > 0;
+            const ariaLabel = isSoon
+              ? `Catégorie ${category.name} — bientôt disponible`
+              : `Voir les ${category.availableCount} véhicule${category.availableCount > 1 ? 's' : ''} ${category.name.toLowerCase()}`;
+
+            if (isSoon) {
+              // Carte grisée non-cliquable
+              return (
+                <div
+                  key={category.name}
+                  role="listitem"
+                  aria-label={ariaLabel}
+                  className="relative aspect-[0.88] w-[72vw] shrink-0 snap-start overflow-hidden rounded-2xl bg-slate-900 opacity-60 sm:w-auto cursor-not-allowed"
+                >
+                  <Image
+                    src={category.image}
+                    alt=""
+                    fill
+                    loading="lazy"
+                    sizes="(max-width: 640px) 72vw, (max-width: 1024px) 33vw, 16vw"
+                    className="object-cover grayscale"
+                  />
+                  <div className="absolute inset-0 bg-linear-to-t from-black/85 via-black/50 to-black/10 pointer-events-none" />
+                  <div className="absolute inset-x-0 bottom-0 p-3.5">
+                    <div className="text-sm font-black text-white/70">{category.name}</div>
+                    <div className="mt-1 inline-flex items-center gap-1 rounded-full bg-white/10 px-2 py-0.5 text-[11px] font-bold text-white/50">
+                      Bientôt
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+
+            return (
+              <Link
+                key={category.name}
+                href={`/search?category=${encodeURIComponent(category.name)}`}
+                role="listitem"
+                aria-label={ariaLabel}
+                className="group relative aspect-[0.88] w-[72vw] shrink-0 snap-start overflow-hidden rounded-2xl bg-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#E63946] sm:w-auto"
+              >
+                {/* Photo */}
+                <Image
+                  src={category.image}
+                  alt={`${category.name} — CarDrive Nador`}
+                  fill
+                  loading="lazy"
+                  sizes="(max-width: 640px) 72vw, (max-width: 1024px) 33vw, 16vw"
+                  className="object-cover transition-transform duration-700 ease-out motion-reduce:transition-none group-hover:scale-105"
+                />
+
+                {/* Dégradé — 60 % de hauteur, jusqu'à 85 % opacité */}
+                <div className="absolute inset-0 bg-linear-to-t from-black/85 via-black/45 to-black/5 pointer-events-none" />
+
+                {/* Barre accent bas */}
+                <div className="absolute inset-x-0 bottom-0 h-0.5 origin-left scale-x-0 bg-[#E63946] transition-transform duration-300 group-hover:scale-x-100 motion-reduce:transition-none" aria-hidden="true" />
+
+                {/* Contenu texte */}
+                <div className="absolute inset-x-0 bottom-0 p-3.5 sm:p-4">
+                  {/* Nom catégorie */}
+                  <p className="text-sm font-black text-white leading-tight" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.4)' }}>
+                    {category.name}
+                  </p>
+
+                  {/* Sous-titre */}
+                  <p className="mt-0.5 text-[13px] font-medium text-white/80 leading-snug">
+                    {category.description}
+                  </p>
+
+                  {/* Ligne bas : compteur + prix + flèche */}
+                  <div className="mt-2 flex items-center justify-between gap-1">
+                    <div className="flex flex-col">
+                      <span className="text-[13px] font-bold text-white/90 leading-none">
+                        {hasAvailable
+                          ? `${category.availableCount} véhicule${category.availableCount > 1 ? 's' : ''}`
+                          : 'Indisponible'}
+                      </span>
+                      {category.minPrice !== null && (
+                        <span className="text-[11px] font-semibold text-white/65 mt-0.5">
+                          à partir de {category.minPrice.toLocaleString('fr-FR')} DH/j
+                        </span>
+                      )}
+                    </div>
+                    <span
+                      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/15 transition-colors duration-200 group-hover:bg-[#E63946] motion-reduce:transition-none"
+                      aria-hidden="true"
+                    >
+                      <ArrowUpRight className="h-3.5 w-3.5 text-white" />
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+
+        {/* Lien mobile "Voir tout" */}
+        <div className="mt-6 flex justify-center sm:hidden">
+          <Link href="/search" className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 shadow-sm transition hover:border-[#E63946]/30 hover:text-[#E63946]">
+            Tout explorer <ArrowRight className="h-4 w-4" />
+          </Link>
         </div>
       </section>
 
@@ -436,7 +563,7 @@ export default function HomePage() {
                       setSelectedDays(0);
                     }
                   }}
-                  className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0B1220] focus:border-transparent transition min-h-[44px]"
+                  className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0B1220] focus:border-transparent transition min-h-11"
                   aria-label="Date de départ"
                 />
               </div>
@@ -459,7 +586,7 @@ export default function HomePage() {
                       setSelectedDays(0);
                     }
                   }}
-                  className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0B1220] focus:border-transparent transition min-h-[44px]"
+                  className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0B1220] focus:border-transparent transition min-h-11"
                   aria-label="Date de retour"
                 />
               </div>
@@ -481,8 +608,8 @@ export default function HomePage() {
                 aria-pressed={vehicleFilter === filter}
                 className={
                   vehicleFilter === filter
-                    ? 'rounded-full px-4 py-2 text-xs font-bold bg-[#0B1220] text-white shadow-sm transition min-h-[44px]'
-                    : 'rounded-full px-4 py-2 text-xs font-semibold bg-white border border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50 transition min-h-[44px]'
+                    ? 'rounded-full px-4 py-2 text-xs font-bold bg-[#0B1220] text-white shadow-sm transition min-h-11'
+                    : 'rounded-full px-4 py-2 text-xs font-semibold bg-white border border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50 transition min-h-11'
                 }
               >
                 {filter}
@@ -501,7 +628,7 @@ export default function HomePage() {
                 id="budget-max"
                 value={budgetMax}
                 onChange={(e) => setBudgetMax(Number(e.target.value))}
-                className="rounded-xl border border-slate-200 bg-white px-2 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#0B1220] transition min-h-[44px] cursor-pointer"
+                className="rounded-xl border border-slate-200 bg-white px-2 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#0B1220] transition min-h-11 cursor-pointer"
                 aria-label="Budget maximum par jour"
               >
                 <option value={0}>Tous budgets</option>

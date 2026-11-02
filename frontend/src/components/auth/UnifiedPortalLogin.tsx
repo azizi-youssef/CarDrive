@@ -54,20 +54,19 @@ const bodyFont = Instrument_Sans({
 
 const MAX_ATTEMPTS = 5;
 const LOCK_SECONDS = 30;
+const MIN_PASSWORD_LENGTH = 8;
 
-type FieldErrors = { name?: string; email?: string; password?: string; passwordConfirmation?: string };
-type LoginStatus = 'idle' | 'submitting' | 'resetting' | 'success';
-
-const PORTAL_LABEL: Record<LoginPortal, string> = {
-  client: 'Client',
-  agency: 'Agence',
-  admin: 'Admin',
+type FieldErrors = {
+  name?: string;
+  email?: string;
+  password?: string;
+  passwordConfirmation?: string;
 };
+type LoginStatus = 'idle' | 'submitting' | 'resetting' | 'success';
 
 const PORTAL_COPY: Record<
   LoginPortal,
   {
-    plateTag: string;
     eyebrow: string;
     title: string;
     titleAccent: string;
@@ -82,7 +81,6 @@ const PORTAL_COPY: Record<
   }
 > = {
   client: {
-    plateTag: 'Client',
     eyebrow: 'Espace client',
     title: 'Vos trajets,',
     titleAccent: 'vos réservations.',
@@ -96,7 +94,6 @@ const PORTAL_COPY: Record<
     submitLabel: 'Se connecter',
   },
   agency: {
-    plateTag: 'Agence',
     eyebrow: 'Portail partenaire',
     title: 'Votre flotte,',
     titleAccent: 'sous contrôle.',
@@ -110,7 +107,6 @@ const PORTAL_COPY: Record<
     submitLabel: 'Accéder à mon espace',
   },
   admin: {
-    plateTag: 'Admin',
     eyebrow: 'Administration plateforme',
     title: 'Votre parc,',
     titleAccent: 'sous contrôle.',
@@ -125,7 +121,10 @@ const PORTAL_COPY: Record<
   },
 };
 
-const PORTAL_FEATURES: Record<LoginPortal, { icon: React.ComponentType<{ className?: string }>; label: string }[]> = {
+const PORTAL_FEATURES: Record<
+  LoginPortal,
+  { icon: React.ComponentType<{ className?: string }>; label: string }[]
+> = {
   client: [
     { icon: CarFront, label: 'Locations' },
     { icon: UserRound, label: 'Profil' },
@@ -157,6 +156,7 @@ const loginStyles = `
     --cd-line: rgba(255,255,255,.12);
     --cd-accent: #ff6673;
     --cd-button: #d12e40;
+    --cd-button-hover: #bf2637;
     color-scheme: dark;
     display: grid;
     grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr);
@@ -169,10 +169,10 @@ const loginStyles = `
     -webkit-font-smoothing: antialiased;
   }
   .cd-login, .cd-login * { box-sizing: border-box; }
-  .cd-login h1, .cd-login h2, .cd-login p { margin: 0; }
-  .cd-login a { color: inherit; text-decoration: none; }
-  .cd-login button, .cd-login input { font: inherit; }
-  .cd-login button { cursor: pointer; }
+  .cd-login :where(h1, h2, p) { margin: 0; }
+  .cd-login :where(a) { color: inherit; text-decoration: none; }
+  .cd-login :where(button, input) { font: inherit; }
+  .cd-login :where(button) { cursor: pointer; }
   .cd-login svg { display: block; flex-shrink: 0; }
   .cd-login :is(a, button, summary):focus-visible {
     outline: 2px solid var(--cd-accent);
@@ -248,7 +248,7 @@ const loginStyles = `
     height: 2px;
     background: var(--cd-accent);
   }
-  .cd-hero h2 {
+  .cd-hero-title {
     margin-top: 25px;
     max-width: 570px;
     font-family: var(--font-display), Arial, sans-serif;
@@ -257,10 +257,10 @@ const loginStyles = `
     font-weight: 800;
     letter-spacing: -.055em;
   }
-  .cd-hero h2 span { color: var(--cd-accent); }
+  .cd-hero-title span { color: var(--cd-accent); }
   .cd-hero-copy {
     max-width: 355px;
-    margin-top: 26px !important;
+    margin-top: 26px;
     color: #b4b7c2;
     font-size: 16px;
     line-height: 1.75;
@@ -304,12 +304,12 @@ const loginStyles = `
     justify-content: center;
     gap: 8px;
     min-height: 44px;
-    color: var(--cd-muted) !important;
+    color: var(--cd-muted);
     font-size: 12px;
     transition: color .2s ease;
   }
   .cd-back svg { width: 15px; height: 15px; transition: transform .2s ease; }
-  .cd-back:hover { color: var(--cd-text) !important; }
+  .cd-back:hover { color: var(--cd-text); }
   .cd-back:hover svg { transform: translateX(-3px); }
   .cd-form-content {
     width: 100%;
@@ -318,33 +318,36 @@ const loginStyles = `
     padding: 50px 0 44px;
     animation: cd-enter .5s ease both;
   }
-  .cd-portal-tabs {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
-    margin-bottom: 28px;
+  .cd-switch {
+    margin-bottom: 22px;
+    color: var(--cd-muted);
+    font-size: 12px;
+    text-align: right;
   }
-  .cd-portal-tab {
-    min-height: 44px;
-    padding: 8px 6px;
+  .cd-switch a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px;
+    color: #ff9ca5;
+    font-weight: 600;
+  }
+  .cd-switch a:hover, .cd-join a:hover { text-decoration: underline; }
+  .cd-admin-note {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 24px;
+    padding: 10px 14px;
     border: 1px solid var(--cd-line);
     border-radius: 10px;
-    background: rgba(255,255,255,.02);
+    background: rgba(255,255,255,.03);
     color: var(--cd-muted);
-    font-size: 11px;
-    font-weight: 600;
-    line-height: 1.3;
-    transition: border-color .2s, background .2s, color .2s;
+    font-size: 12px;
   }
-  .cd-portal-tab[aria-current='true'] {
-    border-color: rgba(255,102,115,.45);
-    background: rgba(255,102,115,.08);
-    color: var(--cd-text);
-  }
-  .cd-portal-tab:hover:not([aria-current='true']) {
-    border-color: rgba(255,255,255,.22);
-    color: #e1e4eb;
-  }
+  .cd-admin-note > span { display: inline-flex; align-items: center; gap: 8px; color: var(--cd-text); font-weight: 600; }
+  .cd-admin-note svg { width: 16px; height: 16px; color: var(--cd-accent); }
+  .cd-admin-note a { color: #ff9ca5; font-weight: 600; }
   .cd-form-header { margin-bottom: 24px; }
   .cd-access-label {
     display: inline-flex;
@@ -411,9 +414,10 @@ const loginStyles = `
     border-radius: 10px;
     background: var(--cd-field);
     color: var(--cd-text);
-    font-size: 16px !important;
+    font-size: 16px;
     line-height: 1.5;
-    outline: none;
+    outline: 2px solid transparent;
+    outline-offset: 2px;
     transition: border-color .2s ease, background .2s ease, box-shadow .2s ease;
   }
   .cd-input::placeholder { color: #939cab; opacity: 1; }
@@ -422,6 +426,14 @@ const loginStyles = `
     border-color: var(--cd-accent);
     background: #1b202a;
     box-shadow: 0 0 0 4px rgba(255,102,115,.11);
+  }
+  .cd-input:-webkit-autofill,
+  .cd-input:-webkit-autofill:hover,
+  .cd-input:-webkit-autofill:focus {
+    -webkit-text-fill-color: var(--cd-text);
+    caret-color: var(--cd-text);
+    -webkit-box-shadow: 0 0 0 1000px var(--cd-field) inset;
+    transition: background-color 9999s ease-out 0s;
   }
   .cd-input-wrap:focus-within .cd-input-icon { color: var(--cd-accent); }
   .cd-input[aria-invalid='true'] { border-color: #ff8190; }
@@ -440,11 +452,14 @@ const loginStyles = `
     border-radius: 6px;
     background: transparent;
     color: var(--cd-muted);
+    transition: color .2s ease, background .2s ease;
   }
+  .cd-toggle-password:hover:not(:disabled) { color: var(--cd-text); background: rgba(255,255,255,.06); }
   .cd-toggle-password svg { width: 18px; height: 18px; }
-  .cd-field-error, .cd-caps-hint { margin-top: 9px !important; font-size: 12px; line-height: 1.6; }
+  .cd-field-error, .cd-caps-hint, .cd-hint { margin-top: 9px; font-size: 12px; line-height: 1.6; }
   .cd-field-error { color: #ff9ca5; }
   .cd-caps-hint { color: #f0c773; }
+  .cd-hint { color: var(--cd-muted); }
   .cd-alert, .cd-notice {
     display: flex;
     align-items: flex-start;
@@ -474,9 +489,14 @@ const loginStyles = `
     font-size: 14px;
     font-weight: 600;
     box-shadow: 0 5px 20px rgba(170,21,39,.14);
+    transition: background .2s ease, transform .1s ease;
   }
+  .cd-submit svg { transition: transform .2s ease; }
+  .cd-submit:hover:not(:disabled) { background: var(--cd-button-hover); }
+  .cd-submit:hover:not(:disabled) svg:last-child { transform: translateX(3px); }
+  .cd-submit:active:not(:disabled) { transform: translateY(1px); }
   .cd-submit:disabled { cursor: not-allowed; opacity: .7; }
-  .cd-submit[data-success='true'] { background: #24734b; }
+  .cd-submit[data-success='true'] { background: #24734b; opacity: 1; }
   .cd-spinner { animation: cd-spin .8s linear infinite; }
   .cd-countdown { color: var(--cd-muted); font-size: 12px; text-align: center; }
   .cd-oauth { margin-top: 8px; display: grid; gap: 12px; }
@@ -512,6 +532,8 @@ const loginStyles = `
   .cd-help { margin-top: 16px; color: var(--cd-muted); font-size: 12px; line-height: 1.7; }
   .cd-help summary { display: inline-flex; align-items: center; gap: 5px; min-height: 44px; cursor: pointer; list-style: none; }
   .cd-help summary::-webkit-details-marker { display: none; }
+  .cd-help summary svg { width: 14px; height: 14px; transition: transform .2s ease; }
+  .cd-help[open] summary svg { transform: rotate(180deg); }
   .cd-access-footer { color: #929baa; font-size: 11px; text-align: center; }
   .cd-skeleton { height: 56px; border: 1px solid var(--cd-line); border-radius: 10px; background: var(--cd-field); }
   .cd-skeleton-label { height: 12px; width: 94px; margin-bottom: 12px; border-radius: 3px; background: #252c39; }
@@ -525,12 +547,23 @@ const loginStyles = `
     .cd-topbar { flex-direction: column-reverse; align-items: stretch; gap: 14px; }
     .cd-topbar .cd-back { align-self: flex-start; }
     .cd-mobile-brand { display: inline-flex; align-self: center; }
+    .cd-mobile-brand img { width: 168px; }
+    .cd-form-content { padding-top: 30px; }
   }
   @media (max-width: 400px) {
-    .cd-portal-tab { font-size: 10px; padding: 8px 4px; }
-    .cd-back span { display: none; }
+    .cd-access { padding-inline: 20px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cd-form-content { animation: none; }
+    .cd-spinner { animation-duration: 1.8s; }
+    .cd-back svg, .cd-submit svg, .cd-help summary svg { transition: none; }
+    .cd-back:hover svg, .cd-submit:hover:not(:disabled) svg:last-child { transform: none; }
   }
 `;
+
+function LoginStyles() {
+  return <style dangerouslySetInnerHTML={{ __html: loginStyles }} />;
+}
 
 function BrandLogo({ mobile = false }: { mobile?: boolean }) {
   return (
@@ -538,8 +571,9 @@ function BrandLogo({ mobile = false }: { mobile?: boolean }) {
       <Image
         src="/logo_12.png"
         alt="CarDrive"
-        width={200}
-        height={200}
+        width={400}
+        height={400}
+        sizes={mobile ? '168px' : '400px'}
         priority
       />
     </div>
@@ -561,11 +595,11 @@ function BrandPanel({ portal }: { portal: LoginPortal }) {
       </svg>
       <div className="cd-hero">
         <div className="cd-eyebrow">{copy.eyebrow}</div>
-        <h2>
+        <p className="cd-hero-title">
           {copy.title}
           <br />
           <span>{copy.titleAccent}</span>
-        </h2>
+        </p>
         <p className="cd-hero-copy">{copy.copy}</p>
         <div className="cd-features">
           {features.map(({ icon: Icon, label }) => (
@@ -622,6 +656,17 @@ function PortalLoginForm() {
   const busy = status !== 'idle';
   const locked = lockLeft > 0;
 
+  // Changement de portail ou de mode (connexion / inscription) : on repart d'un formulaire propre.
+  useEffect(() => {
+    setError(null);
+    setNotice(null);
+    setFieldErrors({});
+    setPassword('');
+    setPasswordConfirmation('');
+    setShowPassword(false);
+    setCapsLock(false);
+  }, [portal, isRegistration]);
+
   useEffect(() => {
     const code = searchParams?.get('error');
     if (code && URL_ERROR_MESSAGES[code]) {
@@ -644,13 +689,6 @@ function PortalLoginForm() {
     return () => window.clearInterval(timer);
   }, [lockUntil]);
 
-  const switchPortal = (next: LoginPortal) => {
-    if (next === portal) return;
-    setError(null);
-    setNotice(null);
-    router.replace(loginUrl(next, { redirect: isSafeRedirect(redirectParam) ? redirectParam : undefined }));
-  };
-
   const startCooldown = () => {
     setLockLeft(LOCK_SECONDS);
     setLockUntil(Date.now() + LOCK_SECONDS * 1000);
@@ -669,8 +707,8 @@ function PortalLoginForm() {
     if (!normalizedEmail) nextErrors.email = 'Saisissez votre adresse e-mail.';
     else if (emailRef.current?.validity.typeMismatch) nextErrors.email = 'Adresse e-mail invalide.';
     if (!password) nextErrors.password = 'Saisissez votre mot de passe.';
-    else if (isRegistration && password.length < 8) {
-      nextErrors.password = 'Le mot de passe doit contenir au moins 8 caractères.';
+    else if (isRegistration && password.length < MIN_PASSWORD_LENGTH) {
+      nextErrors.password = `Le mot de passe doit contenir au moins ${MIN_PASSWORD_LENGTH} caractères.`;
     }
     if (isRegistration && password !== passwordConfirmation) {
       nextErrors.passwordConfirmation = 'Les mots de passe ne correspondent pas.';
@@ -734,6 +772,8 @@ function PortalLoginForm() {
       if (!data.session || !data.user) {
         if (isRegistration && data.user) {
           setNotice('Compte créé. Consultez votre e-mail pour confirmer votre adresse avant de vous connecter.');
+          setPassword('');
+          setPasswordConfirmation('');
           return;
         }
         setError('La connexion n’a pas abouti. Réessayez.');
@@ -826,9 +866,24 @@ function PortalLoginForm() {
 
   const AccessIcon = portal === 'agency' ? Building2 : portal === 'admin' ? LockKeyhole : UserRound;
 
+  const liveMessage =
+    status === 'submitting'
+      ? isRegistration ? 'Création du compte en cours.' : 'Connexion en cours.'
+      : status === 'resetting'
+        ? 'Envoi du lien de réinitialisation.'
+        : status === 'success'
+          ? isRegistration ? 'Compte créé.' : 'Connexion réussie. Redirection en cours.'
+          : '';
+
+  const passwordDescribedBy = fieldErrors.password
+    ? 'cd-err-password'
+    : isRegistration
+      ? 'cd-password-hint'
+      : undefined;
+
   return (
     <main lang="fr" className={`${displayFont.variable} ${bodyFont.variable} cd-login`}>
-      <style>{loginStyles}</style>
+      <LoginStyles />
       <BrandPanel portal={portal} />
       <section className="cd-access" aria-label="Connexion CarDrive">
         <div className="cd-topbar">
@@ -840,57 +895,23 @@ function PortalLoginForm() {
         </div>
 
         <div className="cd-form-content">
-          {portal !== 'admin' ? (
-            <div className="cd-portal-tabs" role="tablist" aria-label="Type de compte">
-              {(['client', 'agency'] as LoginPortal[]).map((p) => (
-                <button
-                  key={p}
-                  type="button"
-                  role="tab"
-                  aria-current={p === portal ? 'true' : undefined}
-                  className="cd-portal-tab"
-                  onClick={() => switchPortal(p)}
-                  disabled={busy}
-                >
-                  {PORTAL_LABEL[p]}
-                </button>
-              ))}
-            </div>
-          ) : (
-            <div
-              style={{
-                marginBottom: '24px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '10px 14px',
-                borderRadius: '10px',
-                border: '1px solid var(--cd-line)',
-                background: 'rgba(255,255,255,.03)',
-                fontSize: '12px',
-                color: 'var(--cd-muted)',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <ShieldCheck style={{ width: '16px', height: '16px', color: '#ff6673' }} aria-hidden="true" />
-                <span style={{ fontWeight: 600, color: 'var(--cd-text)' }}>Accès réservé administration</span>
-              </div>
-              <button
-                type="button"
-                onClick={() => switchPortal('client')}
-                disabled={busy}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: '#ff9ca5',
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  padding: 0,
-                }}
-              >
-                Espace public
-              </button>
+          {portal === 'client' && (
+            <p className="cd-switch">
+              Vous êtes une agence ? <Link href={loginUrl('agency')}>Accès partenaire</Link>
+            </p>
+          )}
+          {portal === 'agency' && (
+            <p className="cd-switch">
+              Vous êtes un client ? <Link href={loginUrl('client')}>Espace client</Link>
+            </p>
+          )}
+          {portal === 'admin' && (
+            <div className="cd-admin-note">
+              <span>
+                <ShieldCheck aria-hidden="true" />
+                Accès réservé — administration
+              </span>
+              <Link href={loginUrl('client')}>Espace client</Link>
             </div>
           )}
 
@@ -937,12 +958,14 @@ function PortalLoginForm() {
                     placeholder="Votre nom"
                     disabled={busy}
                     aria-invalid={Boolean(fieldErrors.name)}
+                    aria-describedby={fieldErrors.name ? 'cd-err-name' : undefined}
                     className="cd-input"
                   />
                 </div>
-                {fieldErrors.name && <p className="cd-field-error">{fieldErrors.name}</p>}
+                {fieldErrors.name && <p id="cd-err-name" className="cd-field-error">{fieldErrors.name}</p>}
               </div>
             )}
+
             <div className="cd-field">
               <label htmlFor="cd-login-email">{copy.emailLabel}</label>
               <div className="cd-input-wrap">
@@ -951,6 +974,9 @@ function PortalLoginForm() {
                   ref={emailRef}
                   id="cd-login-email"
                   type="email"
+                  inputMode="email"
+                  autoCapitalize="none"
+                  spellCheck={false}
                   autoComplete={isRegistration ? 'email' : 'username'}
                   required
                   value={email}
@@ -961,14 +987,15 @@ function PortalLoginForm() {
                   placeholder={copy.emailPlaceholder}
                   disabled={busy}
                   aria-invalid={Boolean(fieldErrors.email)}
+                  aria-describedby={fieldErrors.email ? 'cd-err-email' : undefined}
                   className="cd-input"
                 />
               </div>
-              {fieldErrors.email && <p className="cd-field-error">{fieldErrors.email}</p>}
+              {fieldErrors.email && <p id="cd-err-email" className="cd-field-error">{fieldErrors.email}</p>}
             </div>
 
             <div className="cd-field">
-              {portal !== 'admin' ? (
+              {portal !== 'admin' && !isRegistration ? (
                 <div className="cd-label-row">
                   <label htmlFor="cd-login-password">Mot de passe</label>
                   <button type="button" className="cd-link-btn" onClick={handleForgotPassword} disabled={busy || locked}>
@@ -993,8 +1020,11 @@ function PortalLoginForm() {
                   }}
                   onKeyDown={(e) => setCapsLock(e.getModifierState('CapsLock'))}
                   onKeyUp={(e) => setCapsLock(e.getModifierState('CapsLock'))}
+                  onBlur={() => setCapsLock(false)}
                   placeholder="Votre mot de passe"
                   disabled={busy}
+                  aria-invalid={Boolean(fieldErrors.password)}
+                  aria-describedby={passwordDescribedBy}
                   className="cd-input cd-input-password"
                 />
                 <button
@@ -1002,14 +1032,21 @@ function PortalLoginForm() {
                   className="cd-toggle-password"
                   onClick={() => setShowPassword((v) => !v)}
                   disabled={busy}
+                  aria-controls="cd-login-password"
                   aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
                 >
                   {showPassword ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}
                 </button>
               </div>
-              {fieldErrors.password && <p className="cd-field-error">{fieldErrors.password}</p>}
+              {fieldErrors.password && <p id="cd-err-password" className="cd-field-error">{fieldErrors.password}</p>}
+              {isRegistration && !fieldErrors.password && (
+                <p id="cd-password-hint" className="cd-hint">
+                  {MIN_PASSWORD_LENGTH} caractères minimum.
+                </p>
+              )}
               {capsLock && <p className="cd-caps-hint">Verrouillage majuscules activé.</p>}
             </div>
+
             {isRegistration && (
               <div className="cd-field">
                 <label htmlFor="cd-password-confirmation">Confirmer le mot de passe</label>
@@ -1029,10 +1066,13 @@ function PortalLoginForm() {
                     placeholder="Confirmez votre mot de passe"
                     disabled={busy}
                     aria-invalid={Boolean(fieldErrors.passwordConfirmation)}
+                    aria-describedby={fieldErrors.passwordConfirmation ? 'cd-err-confirmation' : undefined}
                     className="cd-input"
                   />
                 </div>
-                {fieldErrors.passwordConfirmation && <p className="cd-field-error">{fieldErrors.passwordConfirmation}</p>}
+                {fieldErrors.passwordConfirmation && (
+                  <p id="cd-err-confirmation" className="cd-field-error">{fieldErrors.passwordConfirmation}</p>
+                )}
               </div>
             )}
 
@@ -1057,6 +1097,7 @@ function PortalLoginForm() {
               )}
             </button>
             {locked && <p className="cd-countdown">Patientez avant une nouvelle tentative.</p>}
+            <p className="cd-sr-only" role="status" aria-live="polite">{liveMessage}</p>
           </form>
 
           {portal === 'client' && (
@@ -1103,8 +1144,8 @@ function PortalLoginForm() {
 function LoginFallback() {
   return (
     <main className={`${displayFont.variable} ${bodyFont.variable} cd-login`}>
-      <style>{loginStyles}</style>
-      <div className="cd-access" style={{ gridColumn: '1 / -1', minHeight: '100svh' }}>
+      <LoginStyles />
+      <div className="cd-access" style={{ gridColumn: '1 / -1', minHeight: '100svh' }} aria-hidden="true">
         <div className="cd-form-content">
           <div className="cd-skeleton-label" />
           <div className="cd-skeleton" />
