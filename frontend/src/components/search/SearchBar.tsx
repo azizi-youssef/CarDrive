@@ -11,6 +11,7 @@ import {
   isValidDateOnly,
 } from '@/lib/utils/date-only';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
+import { cn } from '@/lib/utils';
 
 interface SearchBarProps {
   initialLocation?: string;
@@ -41,18 +42,25 @@ function Field({
   id,
   label,
   icon: Icon,
+  className,
   children,
 }: {
   id: string;
   label: string;
   icon: LucideIcon;
+  className?: string;
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-w-0 items-center gap-3 rounded-xl border border-transparent bg-white px-4 py-3 transition-colors focus-within:border-[#E63946]/50 focus-within:ring-2 focus-within:ring-[#E63946]/20 hover:border-slate-200">
+    <div
+      className={cn(
+        'flex min-w-0 items-center gap-2.5 sm:gap-3 rounded-xl border border-slate-100 bg-white px-3 sm:px-4 py-2.5 sm:py-3 transition-colors focus-within:border-[#E63946]/50 focus-within:ring-2 focus-within:ring-[#E63946]/20 hover:border-slate-200',
+        className
+      )}
+    >
       <Icon className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
       <div className="min-w-0 flex-1">
-        <label htmlFor={id} className="mb-0.5 block text-xs font-medium text-slate-500">
+        <label htmlFor={id} className="mb-0.5 block text-[11px] sm:text-xs font-medium text-slate-500">
           {label}
         </label>
         {children}
@@ -61,8 +69,9 @@ function Field({
   );
 }
 
+// text-base on mobile prevents iOS Safari from automatically zooming in when focusing selects/inputs
 const controlClass =
-  'w-full cursor-pointer truncate bg-transparent text-sm font-semibold text-slate-900 focus:outline-none';
+  'w-full cursor-pointer truncate bg-transparent text-base sm:text-sm font-semibold text-slate-900 focus:outline-none';
 
 export function SearchBar({
   initialLocation = 'Aéroport Nador Al-Aroui (NDR)',
@@ -98,33 +107,24 @@ export function SearchBar({
     getEffectiveRentalDates(startDate, endDate, today);
 
   const handleStartChange = (value: string) => {
-    const localToday = today || formatLocalDate(new Date());
-    const nextStart = isValidDateOnly(value) && value >= localToday ? value : localToday;
-    setStartDate(nextStart);
-    if (
-      !isValidDateOnly(effectiveEndDate) ||
-      effectiveEndDate <= nextStart
-    ) {
-      setEndDate(addDateDays(nextStart, 1));
-    }
+    setStartDate(value);
     setDateError('');
+    if (isValidDateOnly(value)) {
+      if (!isValidDateOnly(effectiveEndDate) || effectiveEndDate <= value) {
+        setEndDate(addDateDays(value, 3));
+      }
+    }
   };
 
   const handleEndChange = (value: string) => {
-    if (!value) {
-      setEndDate('');
-      return;
-    }
-    if (!isValidDateOnly(value)) return;
-    setEndDate(
-      value <= effectiveStartDate ? addDateDays(effectiveStartDate, 1) : value
-    );
+    setEndDate(value);
     setDateError('');
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const localToday = today || formatLocalDate(new Date());
+
     if (
       !isValidDateOnly(effectiveStartDate) ||
       effectiveStartDate < localToday ||
@@ -151,82 +151,98 @@ export function SearchBar({
       aria-label="Rechercher une voiture de location"
       className={`w-full ${isCompact ? '' : 'mx-auto max-w-5xl'}`}
     >
-      <div className="grid gap-1 rounded-2xl border border-slate-200/80 bg-white p-1.5 sm:grid-cols-2 lg:grid-cols-[1.3fr_1fr_1fr_1.1fr_1.1fr_auto]">
-        <Field id={`${uid}-location`} label={t.searchBar.pickupLocation} icon={MapPin}>
-          <select
-            id={`${uid}-location`}
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            className={controlClass}
-          >
-            {LOCATIONS_NADOR.map((loc) => (
-              <option key={loc} value={loc}>
-                {loc}
-              </option>
-            ))}
-          </select>
-        </Field>
+      <div className="grid grid-cols-2 gap-1.5 sm:gap-1 rounded-2xl sm:rounded-3xl border border-slate-200/80 bg-white p-1.5 sm:grid-cols-2 lg:grid-cols-[1.3fr_1fr_1fr_1.1fr_1.1fr_auto]">
+        {/* Lieu : pleine largeur sur mobile */}
+        <div className="col-span-2 sm:col-span-2 lg:col-span-1">
+          <Field id={`${uid}-location`} label={t.searchBar.pickupLocation} icon={MapPin}>
+            <select
+              id={`${uid}-location`}
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              className={controlClass}
+            >
+              {LOCATIONS_NADOR.map((loc) => (
+                <option key={loc} value={loc}>
+                  {loc}
+                </option>
+              ))}
+            </select>
+          </Field>
+        </div>
 
-        <Field id={`${uid}-start`} label={t.searchBar.pickupDate} icon={Calendar}>
-          <input
-            id={`${uid}-start`}
-            type="date"
-            value={effectiveStartDate}
-            min={today}
-            disabled={!today}
-            required
-            onChange={(e) => handleStartChange(e.target.value)}
-            className={controlClass}
-          />
-        </Field>
+        {/* Date départ : côte à côte avec retour sur mobile */}
+        <div className="col-span-1">
+          <Field id={`${uid}-start`} label={t.searchBar.pickupDate} icon={Calendar}>
+            <input
+              id={`${uid}-start`}
+              type="date"
+              value={effectiveStartDate}
+              min={today}
+              disabled={!today}
+              required
+              onChange={(e) => handleStartChange(e.target.value)}
+              className={controlClass}
+            />
+          </Field>
+        </div>
 
-        <Field id={`${uid}-end`} label={t.searchBar.dropoffDate} icon={Calendar}>
-          <input
-            id={`${uid}-end`}
-            type="date"
-            value={effectiveEndDate}
-            min={isValidDateOnly(effectiveStartDate) ? addDateDays(effectiveStartDate, 1) : today}
-            disabled={!today}
-            required
-            onChange={(e) => handleEndChange(e.target.value)}
-            className={controlClass}
-          />
-        </Field>
+        {/* Date retour : côte à côte avec départ sur mobile */}
+        <div className="col-span-1">
+          <Field id={`${uid}-end`} label={t.searchBar.dropoffDate} icon={Calendar}>
+            <input
+              id={`${uid}-end`}
+              type="date"
+              value={effectiveEndDate}
+              min={isValidDateOnly(effectiveStartDate) ? addDateDays(effectiveStartDate, 1) : today}
+              disabled={!today}
+              required
+              onChange={(e) => handleEndChange(e.target.value)}
+              className={controlClass}
+            />
+          </Field>
+        </div>
 
-        <Field id={`${uid}-brand`} label="Marque" icon={CarFront}>
-          <select
-            id={`${uid}-brand`}
-            value={brand}
-            onChange={(e) => setBrand(e.target.value)}
-            className={controlClass}
-          >
-            {POPULAR_BRANDS.map((b) => (
-              <option key={b} value={b}>
-                {b}
-              </option>
-            ))}
-          </select>
-        </Field>
+        {/* Marque : côte à côte avec catégorie sur mobile */}
+        <div className="col-span-1 sm:col-span-1 lg:col-span-1">
+          <Field id={`${uid}-brand`} label="Marque" icon={CarFront}>
+            <select
+              id={`${uid}-brand`}
+              value={brand}
+              onChange={(e) => setBrand(e.target.value)}
+              className={controlClass}
+            >
+              {POPULAR_BRANDS.map((b) => (
+                <option key={b} value={b}>
+                  {b}
+                </option>
+              ))}
+            </select>
+          </Field>
+        </div>
 
-        <Field id={`${uid}-category`} label="Catégorie" icon={Car}>
-          <select
-            id={`${uid}-category`}
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className={controlClass}
-          >
-            {CATEGORIES.map((cat) => (
-              <option key={cat} value={cat}>
-                {cat}
-              </option>
-            ))}
-          </select>
-        </Field>
+        {/* Catégorie : côte à côte avec marque sur mobile */}
+        <div className="col-span-1 sm:col-span-1 lg:col-span-1">
+          <Field id={`${uid}-category`} label="Catégorie" icon={Car}>
+            <select
+              id={`${uid}-category`}
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className={controlClass}
+            >
+              {CATEGORIES.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
+            </select>
+          </Field>
+        </div>
 
+        {/* Bouton Rechercher : grande surface tactile sur mobile */}
         <button
           type="submit"
           disabled={!today}
-          className="flex items-center justify-center gap-2 rounded-xl bg-[#E63946] px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-[#C92F3B] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0B1220] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 sm:col-span-2 lg:col-span-1"
+          className="col-span-2 lg:col-span-1 flex h-12 lg:h-auto items-center justify-center gap-2 rounded-xl bg-[#E63946] px-6 py-3.5 text-base lg:text-sm font-semibold text-white transition hover:bg-[#C92F3B] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0B1220] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 shadow-sm"
         >
           <Search className="h-4 w-4" aria-hidden="true" />
           {t.searchBar.searchBtn}

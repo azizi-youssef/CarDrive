@@ -759,97 +759,99 @@ export default function AdminDashboard() {
                 </div>
               )}
 
-              {/* Registre financier : Monétisation Abonnements & Volume */}
-              <section
-                aria-labelledby="ledger-title"
-                className="overflow-hidden rounded-xl border border-slate-200 bg-white"
-              >
-                <div className="p-6 sm:p-8">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div>
-                      <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-800 border border-emerald-200 mb-2">
-                        <Sparkles className="h-3.5 w-3.5 text-emerald-600" />
-                        Monétisation Abonnements · 0% de commission
-                      </div>
-                      <h2
-                        id="ledger-title"
-                        className="text-sm font-medium text-slate-500"
-                      >
-                        Revenu Récurrent Mensuel (MRR Plateforme)
-                      </h2>
-                      <p className="mt-2 font-(family-name:--font-display) text-5xl font-extrabold tracking-[-0.045em] tabular-nums text-[#0B0E13] sm:text-6xl">
-                        {formatPrice(subscriptionData?.stats?.monthlyRecurringRevenue ?? 0)}
-                        <span className="text-base font-normal text-slate-500 ml-2">/ mois</span>
-                      </p>
-                      <p className="mt-2 text-sm text-slate-500">
-                        généré par les forfaits mensuels de capacité flotte souscrits par les agences
-                      </p>
+              {/* Grille KPI & Capacité (Sans métriques de commission) */}
+              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 transition-shadow hover:shadow-sm">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="text-sm font-medium text-slate-500">Agences vérifiées</p>
+                    <div className="rounded-lg bg-blue-50 p-2 text-blue-600">
+                      <Building2 aria-hidden="true" className="h-4 w-4" />
                     </div>
-
-                    <button
-                      type="button"
-                      onClick={() => setActiveTab('subscriptions')}
-                      className="inline-flex items-center gap-2 rounded-xl bg-[#0B1220] px-4 py-2.5 text-xs sm:text-sm font-bold text-white shadow-xs hover:bg-slate-800 transition self-start sm:self-auto"
-                    >
-                      <Sparkles className="h-4 w-4 text-amber-300" />
-                      Gérer les forfaits agences
-                    </button>
                   </div>
-
-                  {/* Volume marketplace & Transparence */}
-                  <dl className="mt-8 grid gap-4 sm:grid-cols-2 pt-6 border-t border-slate-100">
-                    <div className="flex items-start gap-3 rounded-xl bg-slate-50 p-4 border border-slate-100">
-                      <span className="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full bg-emerald-500" />
-                      <div>
-                        <dt className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                          Volume brut des réservations (100% agences)
-                        </dt>
-                        <dd className="text-2xl font-black tabular-nums text-[#0B0E13] mt-1">
-                          {formatPrice(stats.totalVolume)}
-                        </dd>
-                        <p className="text-xs text-emerald-700 font-medium mt-0.5">
-                          0 DH de commission prélevé · Revenus directement conservés par les loueurs
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-3 rounded-xl bg-slate-50 p-4 border border-slate-100">
-                      <span className="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full bg-[#0B1220]" />
-                      <div>
-                        <dt className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                          Agences souscrites & Flotte autorisée
-                        </dt>
-                        <dd className="text-2xl font-black tabular-nums text-[#0B0E13] mt-1">
-                          {subscriptionData?.stats?.activeSubscribers ?? 0} agences · {subscriptionData?.stats?.fleetCapacityTotal ?? 0} véhicules
-                        </dd>
-                        <p className="text-xs text-slate-500 mt-0.5">
-                          Capacité de flotte régionale allouée sous licence active
-                        </p>
-                      </div>
-                    </div>
-                  </dl>
+                  <p className="mt-2.5 font-(family-name:--font-display) text-3xl font-extrabold tracking-tight tabular-nums text-[#0B0E13]">
+                    {stats.verifiedAgencies}
+                    <span className="text-base font-normal text-slate-400 ml-1.5">/ {stats.totalAgencies}</span>
+                  </p>
+                  <p className="mt-1 text-xs text-slate-500">{verificationRate} % du réseau vérifié</p>
                 </div>
 
-                <dl className="grid grid-cols-1 divide-y divide-slate-200 border-t border-slate-200 bg-slate-50/60 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
-                  <Stat
-                    icon={Building2}
-                    label="Agences vérifiées"
-                    value={`${stats.verifiedAgencies} / ${stats.totalAgencies}`}
-                    hint={`${verificationRate} % du réseau`}
-                  />
-                  <Stat
-                    icon={Car}
-                    label="Véhicules référencés"
-                    value={String(stats.totalVehicles)}
-                    hint="Flotte de la marketplace"
-                  />
-                  <Stat
-                    icon={CalendarDays}
-                    label="Réservations"
-                    value={String(stats.totalBookings)}
-                    hint={`${confirmedBookings} confirmées`}
-                  />
-                </dl>
+                <div className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 transition-shadow hover:shadow-sm">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="text-sm font-medium text-slate-500">Abonnements actifs</p>
+                    <div className="rounded-lg bg-amber-50 p-2 text-amber-600">
+                      <Sparkles aria-hidden="true" className="h-4 w-4" />
+                    </div>
+                  </div>
+                  <p className="mt-2.5 font-(family-name:--font-display) text-3xl font-extrabold tracking-tight tabular-nums text-[#0B0E13]">
+                    {subscriptionData?.stats?.activeSubscribers ?? 0}
+                  </p>
+                  <p className="mt-1 text-xs text-slate-500">Forfaits flotte mensuels souscrits</p>
+                </div>
+
+                <div className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 transition-shadow hover:shadow-sm">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="text-sm font-medium text-slate-500">Véhicules référencés</p>
+                    <div className="rounded-lg bg-indigo-50 p-2 text-indigo-600">
+                      <Car aria-hidden="true" className="h-4 w-4" />
+                    </div>
+                  </div>
+                  <p className="mt-2.5 font-(family-name:--font-display) text-3xl font-extrabold tracking-tight tabular-nums text-[#0B0E13]">
+                    {stats.totalVehicles}
+                  </p>
+                  <p className="mt-1 text-xs text-slate-500">Flotte globale sur la marketplace</p>
+                </div>
+
+                <div className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 transition-shadow hover:shadow-sm">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="text-sm font-medium text-slate-500">Réservations</p>
+                    <div className="rounded-lg bg-emerald-50 p-2 text-emerald-600">
+                      <CalendarDays aria-hidden="true" className="h-4 w-4" />
+                    </div>
+                  </div>
+                  <p className="mt-2.5 font-(family-name:--font-display) text-3xl font-extrabold tracking-tight tabular-nums text-[#0B0E13]">
+                    {stats.totalBookings}
+                  </p>
+                  <p className="mt-1 text-xs text-emerald-600 font-medium">{confirmedBookings} confirmées / en cours</p>
+                </div>
+              </div>
+
+              {/* Bannière MRR Abonnements Premium */}
+              <section
+                aria-labelledby="subscription-banner-title"
+                className="relative overflow-hidden rounded-2xl bg-[#0B1220] p-6 sm:p-8 shadow-sm"
+              >
+                <div className="pointer-events-none absolute -top-12 right-0 h-48 w-80 rounded-full bg-[#E63946]/10 blur-3xl" />
+                <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
+                  <div>
+                    <div className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1 text-xs font-semibold text-amber-300 mb-3">
+                      <Sparkles className="h-3.5 w-3.5" />
+                      Modèle Forfaits Mensuels · 0% de commission
+                    </div>
+                    <h2
+                      id="subscription-banner-title"
+                      className="text-xs font-semibold uppercase tracking-wider text-slate-400"
+                    >
+                      Revenu Récurrent Mensuel (MRR Plateforme)
+                    </h2>
+                    <p className="mt-2 font-(family-name:--font-display) text-4xl sm:text-5xl font-extrabold tracking-[-0.04em] tabular-nums text-white">
+                      {formatPrice(subscriptionData?.stats?.monthlyRecurringRevenue ?? 0)}
+                      <span className="text-base font-normal text-slate-400 ml-2">/ mois</span>
+                    </p>
+                    <p className="mt-2 text-xs sm:text-sm text-slate-400">
+                      {subscriptionData?.stats?.activeSubscribers ?? 0} agences souscrites ·{' '}
+                      {subscriptionData?.stats?.fleetCapacityTotal ?? 0} véhicules sous quota de flotte
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('subscriptions')}
+                    className="inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 px-4 py-3 text-xs sm:text-sm font-bold text-white transition self-start sm:self-auto shadow-xs"
+                  >
+                    <Sparkles className="h-4 w-4 text-amber-300" />
+                    Gérer les forfaits agences
+                  </button>
+                </div>
               </section>
 
               <div className="grid gap-6 xl:grid-cols-[1.4fr_1fr]">
@@ -896,9 +898,7 @@ export default function AdminDashboard() {
                               {booking.agency?.name}
                             </p>
                           </div>
-                          <span className="hidden text-sm font-semibold tabular-nums text-slate-900 sm:block">
-                            {formatPrice(booking.total_price)}
-                          </span>
+                          
                           <Badge variant={bookingBadgeVariant(booking.status)}>
                             {BOOKING_STATUS_LABEL[booking.status] ??
                               booking.status}
@@ -1321,10 +1321,10 @@ export default function AdminDashboard() {
                 >
                   {[
                     ['ALL', 'Toutes'],
-                    ['starter', 'Starter (1-5)'],
-                    ['pro', 'Pro (6-15)'],
-                    ['business', 'Business (16-30)'],
-                    ['unlimited', 'Illimité (31+)'],
+                    ['starter', 'Starter (5-15)'],
+                    ['pro', 'Pro (15-25)'],
+                    ['business', 'Business (25-35)'],
+                    ['unlimited', 'Concession (35-45)'],
                   ].map(([val, label]) => (
                     <button
                       key={val}

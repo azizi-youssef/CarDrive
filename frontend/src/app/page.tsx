@@ -10,7 +10,7 @@ import { loginUrl } from '@/lib/auth/login-portals';
 import { useRealtimeRefresh } from '@/lib/supabase/realtime';
 import type { Vehicle, Agency } from '@/types';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
-import { ShinyText, Magnet, GsapReveal } from '@/components/ui/react-bits';
+import { Magnet, GsapReveal } from '@/components/ui/react-bits';
 
 import {
   AlertCircle,
@@ -59,6 +59,12 @@ export default function HomePage() {
   const [heroLoaded, setHeroLoaded] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
+  // Filtres rapides section véhicules
+  const [vehicleFilter, setVehicleFilter] = useState<string>('Tous');
+  // Budget max filtre (0 = pas de limite)
+  const [budgetMax, setBudgetMax] = useState<number>(0);
+  // Jours sélectionnés pour prix total estimé
+  const [selectedDays, setSelectedDays] = useState<number>(0);
 
   const load = useCallback(async () => {
     setHasError(false);
@@ -99,7 +105,26 @@ export default function HomePage() {
     pollingIntervalMs: 60_000,
   });
 
-  const featuredVehicles = vehicles;
+  // Tri : disponibles d'abord, puis prix croissant
+  const sortedVehicles = [...vehicles].sort((a, b) => {
+    const aAvail = a.status === 'AVAILABLE' ? 0 : 1;
+    const bAvail = b.status === 'AVAILABLE' ? 0 : 1;
+    if (aAvail !== bAvail) return aAvail - bAvail;
+    return a.daily_price - b.daily_price;
+  });
+
+  // Filtre catégorie + budget
+  const featuredVehicles = sortedVehicles.filter((v) => {
+    const categoryMatch =
+      vehicleFilter === 'Tous'
+        ? true
+        : vehicleFilter === 'Automatique'
+        ? v.transmission === 'AUTOMATIC'
+        : v.category === vehicleFilter;
+    const budgetMatch = budgetMax === 0 || v.daily_price <= budgetMax;
+    return categoryMatch && budgetMatch;
+  });
+
   const featuredAgencies = agencies.slice(0, 4);
 
   const totalVehicles = vehicles.length;
@@ -186,7 +211,7 @@ export default function HomePage() {
       {/* ================================================================
           HERO — Compact, recherche directement accessible sans défilement
       ================================================================= */}
-      <section className="relative overflow-hidden bg-[#070B12] text-white py-12 sm:py-20 lg:py-24">
+      <section className="relative overflow-hidden bg-[#070B12] text-white py-8 sm:py-16 lg:py-24">
 
         {/* Image d'arrière-plan */}
         <div className="absolute inset-0">
@@ -214,14 +239,8 @@ export default function HomePage() {
 
             {/* Titre et badges d'accroche */}
             <div className="max-w-3xl">
-              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3.5 py-1.5 text-xs font-semibold text-white/90 backdrop-blur-md shadow-2xs">
-                <span className="live-dot" />
-                <ShinyText text={t.hero.eyebrow} className="text-white" />
-                <span className="h-3 w-px bg-white/20" />
-                <span className="text-[11px] font-normal text-white/70">Nador · Oriental</span>
-              </div>
 
-              <h1 className="text-3xl font-black tracking-tight text-white sm:text-5xl lg:text-6xl text-crisp">
+              <h1 className="text-[26px] xs:text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white text-crisp leading-tight">
                 Votre voiture.{' '}
                 <span className="text-white/50">Votre liberté.</span>{' '}
                 <span className="text-[#E63946]">À Nador.</span>
@@ -239,7 +258,7 @@ export default function HomePage() {
               </div>
 
               {/* Raccourcis marques avec effet magnétique */}
-              <div className="mt-3.5 flex flex-wrap items-center gap-2 text-xs">
+              <div className="mt-3 flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 sm:flex-wrap sm:gap-2 text-xs">
                 <span className="text-white/50 text-[11px] font-medium">Marques populaires :</span>
                 {['Dacia', 'Renault', 'Volkswagen', 'Hyundai', 'Peugeot'].map((brand) => (
                   <Magnet key={brand} strength={0.25}>
@@ -373,7 +392,8 @@ export default function HomePage() {
       ================================================================= */}
       <section className="bg-white py-16 sm:py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mb-10 flex items-end justify-between">
+          {/* En-tête section */}
+          <div className="mb-6 flex items-end justify-between">
             <div>
               <p className="section-header-eyebrow">
                 <span className="h-3 w-3 rounded-full bg-[#E63946]" />
@@ -383,7 +403,7 @@ export default function HomePage() {
                 Les véhicules populaires
               </h2>
               <p className="mt-2 text-sm text-slate-500">
-                Consultez les caractéristiques et transmettez votre demande pour vos dates de séjour.
+                Consultez les caractéristiques et envoyez votre demande pour vos dates.
               </p>
             </div>
             <Link
@@ -392,6 +412,105 @@ export default function HomePage() {
             >
               Tout explorer <ArrowRight className="h-4 w-4" />
             </Link>
+          </div>
+
+          {/* ── Barre de dates ──────────────────────────────────────────────── */}
+          <div className="mb-5 rounded-2xl border border-slate-200 bg-white shadow-xs p-3 sm:p-4">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+              <div className="flex items-center gap-2 flex-1">
+                <label htmlFor="date-depart" className="text-xs font-semibold text-slate-600 shrink-0 w-16">
+                  Départ
+                </label>
+                <input
+                  id="date-depart"
+                  type="date"
+                  min={new Date().toISOString().split('T')[0]}
+                  onChange={(e) => {
+                    const start = e.target.value;
+                    const endInput = document.getElementById('date-retour') as HTMLInputElement | null;
+                    const end = endInput?.value ?? '';
+                    if (start && end && end > start) {
+                      const diff = Math.round((new Date(end).getTime() - new Date(start).getTime()) / 86400000);
+                      setSelectedDays(diff > 0 ? diff : 0);
+                    } else {
+                      setSelectedDays(0);
+                    }
+                  }}
+                  className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0B1220] focus:border-transparent transition min-h-[44px]"
+                  aria-label="Date de départ"
+                />
+              </div>
+              <div className="flex items-center gap-2 flex-1">
+                <label htmlFor="date-retour" className="text-xs font-semibold text-slate-600 shrink-0 w-16">
+                  Retour
+                </label>
+                <input
+                  id="date-retour"
+                  type="date"
+                  min={new Date().toISOString().split('T')[0]}
+                  onChange={(e) => {
+                    const end = e.target.value;
+                    const startInput = document.getElementById('date-depart') as HTMLInputElement | null;
+                    const start = startInput?.value ?? '';
+                    if (start && end && end > start) {
+                      const diff = Math.round((new Date(end).getTime() - new Date(start).getTime()) / 86400000);
+                      setSelectedDays(diff > 0 ? diff : 0);
+                    } else {
+                      setSelectedDays(0);
+                    }
+                  }}
+                  className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0B1220] focus:border-transparent transition min-h-[44px]"
+                  aria-label="Date de retour"
+                />
+              </div>
+              {selectedDays > 0 && (
+                <div className="shrink-0 rounded-xl bg-[#0B1220] px-4 py-2.5 text-sm font-bold text-white flex items-center">
+                  {selectedDays} jour{selectedDays > 1 ? 's' : ''}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* ── Chips filtres rapides ───────────────────────────────────────── */}
+          <div className="mb-6 flex flex-wrap items-center gap-2" role="group" aria-label="Filtrer par catégorie">
+            {(['Tous', 'Économique', 'SUV', 'Berline', 'Luxe', 'Automatique', 'Compacte'] as const).map((filter) => (
+              <button
+                key={filter}
+                type="button"
+                onClick={() => setVehicleFilter(filter)}
+                aria-pressed={vehicleFilter === filter}
+                className={
+                  vehicleFilter === filter
+                    ? 'rounded-full px-4 py-2 text-xs font-bold bg-[#0B1220] text-white shadow-sm transition min-h-[44px]'
+                    : 'rounded-full px-4 py-2 text-xs font-semibold bg-white border border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50 transition min-h-[44px]'
+                }
+              >
+                {filter}
+                {filter !== 'Tous' && filter !== 'Automatique' && vehicles.filter((v) => v.category === filter).length > 0 && (
+                  <span className="ml-1.5 opacity-60">
+                    ({vehicles.filter((v) => v.category === filter).length})
+                  </span>
+                )}
+              </button>
+            ))}
+            <div className="flex items-center gap-1.5 ml-auto">
+              <label htmlFor="budget-max" className="text-xs font-semibold text-slate-600 shrink-0">
+                Budget&nbsp;:
+              </label>
+              <select
+                id="budget-max"
+                value={budgetMax}
+                onChange={(e) => setBudgetMax(Number(e.target.value))}
+                className="rounded-xl border border-slate-200 bg-white px-2 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#0B1220] transition min-h-[44px] cursor-pointer"
+                aria-label="Budget maximum par jour"
+              >
+                <option value={0}>Tous budgets</option>
+                <option value={300}>≤ 300 DH/j</option>
+                <option value={500}>≤ 500 DH/j</option>
+                <option value={800}>≤ 800 DH/j</option>
+                <option value={1200}>≤ 1 200 DH/j</option>
+              </select>
+            </div>
           </div>
 
           {/* État d'erreur technique explicite */}
@@ -437,11 +556,14 @@ export default function HomePage() {
             </div>
           ) : (
             /* Grille de véhicules réelle */
-            <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {featuredVehicles.map((vehicle, index) => (
-                <div key={vehicle.id} className="card-hover transition duration-300">
-                  <VehicleCard vehicle={vehicle} priority={index < 3} />
-                </div>
+                <VehicleCard
+                  key={vehicle.id}
+                  vehicle={vehicle}
+                  priority={index < 3}
+                  selectedDays={selectedDays > 0 ? selectedDays : undefined}
+                />
               ))}
             </div>
           )}

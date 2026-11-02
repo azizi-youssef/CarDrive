@@ -229,7 +229,7 @@ export function Topbar({
                   <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
                 ) : (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src="/icon_logo.png" alt="" className="h-full w-full object-contain p-0.5" />
+                  <img src="/logo_12.png" alt="" className="h-full w-full object-contain p-0.5" />
                 )}
               </div>
               <span className="hidden max-w-32 truncate text-sm font-medium text-slate-700 sm:block">
@@ -252,7 +252,7 @@ export function Topbar({
                 <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
               ) : (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src="/icon_logo.png" alt="" className="h-full w-full object-contain p-0.5" />
+                <img src="/logo_12.png" alt="" className="h-full w-full object-contain p-0.5" />
               )}
             </div>
             <div className="min-w-0 flex-1">

@@ -585,3 +585,12 @@ body {
   border-radius: 50%;
   background-color: #34d399;
 }
+
+/* ── No Scrollbar Utility for Mobile Carousels ─────────────────── */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

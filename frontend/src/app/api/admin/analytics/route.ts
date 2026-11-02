@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { requirePlatformPermissionApi } from '@/lib/auth/access-api';
 import { createAdminClient } from '@/lib/supabase/server';
+import { subscriptionService } from '@/lib/services/subscription.service';
 
 export async function GET() {
   const gate = await requirePlatformPermissionApi('reports.read');
@@ -12,56 +13,60 @@ export async function GET() {
   }
 
   try {
-    // 1. Récupérer toutes les réservations pour calculs statistiques
-    const { data: bookings, error: bErr } = await supabase
-      .from('bookings')
-      .select(`
-        id, reference, total_price, total_days, status, start_date, end_date,
-        created_at, pickup_location, delivery_type,
-        agency:agencies(id, name, rating),
-        vehicle:vehicles(id, brand, model, category)
-      `);
+    // 1. Récupérer les réservations, abonnements et statistiques globales en parallèle
+    const [bookingsRes, subscriptionStats, agenciesCountRes, vehiclesCountRes] = await Promise.all([
+      supabase
+        .from('bookings')
+        .select(`
+          id, reference, total_days, status, start_date, end_date,
+          created_at, pickup_location, delivery_type,
+          agency:agencies(id, name, rating, city),
+          vehicle:vehicles(id, brand, model, category)
+        `),
+      subscriptionService.getSubscriptionStats().catch(() => ({
+        monthlyRecurringRevenue: 0,
+        activeSubscribers: 0,
+        fleetCapacityTotal: 0,
+      })),
+      supabase.from('agencies').select('id', { count: 'exact', head: true }),
+      supabase.from('vehicles').select('id', { count: 'exact', head: true }),
+    ]);
 
-    if (bErr) throw bErr;
+    if (bookingsRes.error) throw bookingsRes.error;
 
-    const allBookings = bookings || [];
+    const allBookings = bookingsRes.data || [];
+    const totalAgencies = agenciesCountRes.count || 0;
+    const totalVehicles = vehiclesCountRes.count || 0;
 
-    // 2. Calcul des KPIs globaux
-    const validBookings = allBookings.filter((b) => b.status !== 'CANCELLED' && b.status !== 'REJECTED');
-    const totalVolume = validBookings.reduce((sum, b) => sum + (Number(b.total_price) || 0), 0);
-    const totalDays = validBookings.reduce((sum, b) => sum + (Number(b.total_days) || 1), 0);
-    const averageBookingPrice = validBookings.length > 0 ? Math.round(totalVolume / validBookings.length) : 0;
-    const averageRentalDays = validBookings.length > 0 ? (totalDays / validBookings.length).toFixed(1) : '0';
-
+    // 2. Calcul des indicateurs de performance des réservations
     const confirmedCount = allBookings.filter((b) => ['CONFIRMED', 'ACTIVE', 'COMPLETED'].includes(b.status)).length;
     const cancelledCount = allBookings.filter((b) => ['CANCELLED', 'REJECTED'].includes(b.status)).length;
+    const pendingCount = allBookings.filter((b) => ['PENDING', 'REQUESTED', 'UNDER_REVIEW'].includes(b.status)).length;
+
     const confirmationRate = allBookings.length > 0 ? Math.round((confirmedCount / allBookings.length) * 100) : 0;
     const cancellationRate = allBookings.length > 0 ? Math.round((cancelledCount / allBookings.length) * 100) : 0;
 
-    // Commission estimée (15% moyenne plateforme)
-    const platformCommission = Math.round(totalVolume * 0.15);
-    const agencyNet = totalVolume - platformCommission;
+    const validBookings = allBookings.filter((b) => b.status !== 'CANCELLED' && b.status !== 'REJECTED');
+    const totalDays = validBookings.reduce((sum, b) => sum + (Number(b.total_days) || 1), 0);
+    const averageRentalDays = validBookings.length > 0 ? Number((totalDays / validBookings.length).toFixed(1)) : 0;
 
     // 3. Répartition par catégorie de véhicule
-    const categoryCounts: Record<string, { count: number; volume: number }> = {};
+    const categoryCounts: Record<string, number> = {};
     validBookings.forEach((b) => {
       const cat = (b.vehicle as any)?.category || 'Non renseigné';
-      if (!categoryCounts[cat]) {
-        categoryCounts[cat] = { count: 0, volume: 0 };
-      }
-      categoryCounts[cat].count += 1;
-      categoryCounts[cat].volume += Number(b.total_price) || 0;
+      categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
     });
 
-    const categoryBreakdown = Object.entries(categoryCounts).map(([category, stats]) => ({
-      category,
-      count: stats.count,
-      volume: stats.volume,
-      percentage: validBookings.length > 0 ? Math.round((stats.count / validBookings.length) * 100) : 0,
-    })).sort((a, b) => b.count - a.count);
+    const categoryBreakdown = Object.entries(categoryCounts)
+      .map(([category, count]) => ({
+        category,
+        count,
+        percentage: validBookings.length > 0 ? Math.round((count / validBookings.length) * 100) : 0,
+      }))
+      .sort((a, b) => b.count - a.count);
 
-    // 4. Top agences partenaires
-    const agencyStatsMap: Record<string, { name: string; count: number; volume: number; rating: number }> = {};
+    // 4. Performance des agences partenaires (par nombre de réservations et note)
+    const agencyStatsMap: Record<string, { name: string; city: string; count: number; rating: number }> = {};
     validBookings.forEach((b) => {
       const ag = b.agency as any;
       const agencyName = ag?.name || 'Agence';
@@ -69,17 +74,16 @@ export async function GET() {
       if (!agencyStatsMap[agencyId]) {
         agencyStatsMap[agencyId] = {
           name: agencyName,
+          city: ag?.city || 'Maroc',
           count: 0,
-          volume: 0,
           rating: Number(ag?.rating) || 4.8,
         };
       }
       agencyStatsMap[agencyId].count += 1;
-      agencyStatsMap[agencyId].volume += Number(b.total_price) || 0;
     });
 
     const topAgencies = Object.values(agencyStatsMap)
-      .sort((a, b) => b.volume - a.volume)
+      .sort((a, b) => b.count - a.count)
       .slice(0, 6);
 
     // 5. Points de rendez-vous les plus demandés
@@ -98,23 +102,25 @@ export async function GET() {
       .sort((a, b) => b.count - a.count)
       .slice(0, 5);
 
-    // 6. Tendances mensuelles (6 derniers mois)
-    const monthlyTrendsMap: Record<string, { month: string; bookings: number; volume: number }> = {};
+    // 6. Tendances mensuelles des réservations (6 derniers mois)
+    const monthlyTrendsMap: Record<string, { month: string; bookings: number; confirmed: number }> = {};
     const now = new Date();
     for (let i = 5; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
       const label = d.toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' });
-      monthlyTrendsMap[key] = { month: label, bookings: 0, volume: 0 };
+      monthlyTrendsMap[key] = { month: label, bookings: 0, confirmed: 0 };
     }
 
-    validBookings.forEach((b) => {
+    allBookings.forEach((b) => {
       const dateStr = b.created_at || b.start_date;
       if (dateStr) {
         const key = dateStr.slice(0, 7);
         if (monthlyTrendsMap[key]) {
           monthlyTrendsMap[key].bookings += 1;
-          monthlyTrendsMap[key].volume += Number(b.total_price) || 0;
+          if (['CONFIRMED', 'ACTIVE', 'COMPLETED'].includes(b.status)) {
+            monthlyTrendsMap[key].confirmed += 1;
+          }
         }
       }
     });
@@ -125,17 +131,17 @@ export async function GET() {
       success: true,
       data: {
         kpis: {
-          totalVolume,
-          platformCommission,
-          agencyNet,
           totalBookings: allBookings.length,
           confirmedBookings: confirmedCount,
+          pendingBookings: pendingCount,
           cancelledBookings: cancelledCount,
-          averageBookingPrice,
-          averageRentalDays: Number(averageRentalDays),
           confirmationRate,
           cancellationRate,
+          averageRentalDays,
+          totalAgencies,
+          totalVehicles,
         },
+        subscriptions: subscriptionStats,
         monthlyTrends,
         categoryBreakdown,
         topAgencies,

@@ -434,7 +434,7 @@ export function Footer() {
             >
               <div className="relative h-9 w-40">
                 <Image
-                  src="/Logo_12.png"
+                  src="/logo_12.png"
                   alt="CarDrive"
                   fill
                   sizes="160px"
@@ -445,16 +445,6 @@ export function Footer() {
                 />
               </div>
             </Link>
-
-            <div className="flex items-center gap-2">
-              <span className="relative flex h-2 w-2" aria-hidden="true">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
-              </span>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                {strings.regionTag}
-              </span>
-            </div>
 
             <p className="max-w-sm text-xs leading-relaxed text-slate-400">
               {strings.brandDesc}

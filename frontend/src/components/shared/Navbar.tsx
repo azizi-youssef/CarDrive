@@ -925,14 +925,14 @@ export function Navbar() {
               <div
                 className={cn(
                   'relative sm:hidden transition-all duration-300',
-                  scrolled ? 'h-7 w-10' : 'h-8 w-11'
+                  scrolled ? 'h-7 w-28' : 'h-8 w-32'
                 )}
               >
                 <Image
-                  src="/icon_12.png"
+                  src="/logo_12.png"
                   alt="CarDrive"
                   fill
-                  sizes="56px"
+                  sizes="128px"
                   className="object-contain transition-transform duration-300 group-hover:scale-105"
                   priority
                 />
@@ -948,7 +948,7 @@ export function Navbar() {
                 )}
               >
                 <Image
-                  src="/Logo_12.png"
+                  src="/logo_12.png"
                   alt="CarDrive — Location de voitures à Nador"
                   fill
                   sizes="(max-width: 1024px) 208px, 224px"
@@ -1615,7 +1615,7 @@ export function Navbar() {
                 className="flex items-center"
               >
                 <Image
-                  src="/Logo_12.png"
+                  src="/logo_12.png"
                   alt="CarDrive"
                   width={140}
                   height={32}

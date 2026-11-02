@@ -1,79 +1,93 @@
 'use client';
 
-import React, { memo, useCallback, useEffect, useState } from 'react';
+import React, { memo, useState, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, useReducedMotion } from 'framer-motion';
-import { Vehicle } from '@/types';
-import { formatNumber, formatPrice, cn } from '@/lib/utils';
 import {
-  Heart,
+  Gauge,
   Users,
   Fuel,
-  Gauge,
-  Star,
   ShieldCheck,
-  ArrowRight,
-  Wind,
+  Star,
+  MapPin,
+  Heart,
   ChevronLeft,
   ChevronRight,
-  MapPin,
+  ArrowRight,
+  BellRing,
+  CalendarX2,
+  BadgeCheck,
+  Sparkles,
 } from 'lucide-react';
+import type { Vehicle } from '@/types';
+import { cn, formatPrice, formatNumber } from '@/lib/utils';
 import { AgencyLogo } from '@/components/agencies/AgencyLogo';
 
 interface VehicleCardProps {
   vehicle: Vehicle;
   priority?: boolean;
-  /** true quand la disponibilité a été vérifiée côté serveur pour les dates recherchées */
   availabilityChecked?: boolean;
-  onFavorite?: (vehicleId: string) => void;
+  onFavorite?: (id: string) => void;
   isFavorite?: boolean;
+  /** Nombre de jours sélectionnés dans la barre de dates (pour afficher le prix total) */
+  selectedDays?: number;
+  /** Date de début sélectionnée (pour afficher le prix total) */
+  onNotify?: (vehicleId: string) => void;
 }
 
-const PLACEHOLDER_IMAGE = '/vehicle-placeholder.svg';
+const PLACEHOLDER_IMAGE = '/cars/default.png';
+const MIN_REVIEWS_FOR_RATING = 5;
 
 const STATUS_STYLES = {
   available: {
     label: 'Disponible',
     color: 'text-emerald-700',
-    bg: 'border-emerald-200/80',
+    bg: 'bg-emerald-50 border-emerald-200',
     dot: 'bg-emerald-500',
+    icon: '✓',
   },
-  unavailable: {
-    label: 'Non disponible',
-    color: 'text-red-700',
-    bg: 'border-red-200/80',
-    dot: 'bg-red-500',
+  reserved: {
+    label: 'Réservé',
+    color: 'text-amber-700',
+    bg: 'bg-amber-50 border-amber-200',
+    dot: 'bg-amber-500',
+    icon: '◷',
+  },
+  rented: {
+    label: 'En location',
+    color: 'text-blue-700',
+    bg: 'bg-blue-50 border-blue-200',
+    dot: 'bg-blue-500',
+    icon: '↗',
   },
   maintenance: {
     label: 'Maintenance',
-    color: 'text-amber-700',
-    bg: 'border-amber-200/80',
-    dot: 'bg-amber-500',
+    color: 'text-slate-600',
+    bg: 'bg-slate-50 border-slate-200',
+    dot: 'bg-slate-400',
+    icon: '⚙',
   },
   unknown: {
-    label: 'Non disponible',
+    label: 'Indisponible',
     color: 'text-slate-600',
-    bg: 'border-slate-200',
+    bg: 'bg-slate-50 border-slate-200',
     dot: 'bg-slate-400',
+    icon: '✕',
   },
 } as const;
 
-/**
- * Une seule source de vérité pour le badge ET le CTA.
- * Si la disponibilité a été vérifiée pour les dates, un véhicule « RENTED »
- * (loué à d'autres dates) reste réservable.
- */
-function resolveStatus(status: Vehicle['status'], availabilityChecked: boolean) {
-  const bookable =
-    status === 'AVAILABLE' || (availabilityChecked && status === 'RENTED');
-
-  if (bookable) return { isBookable: true, style: STATUS_STYLES.available };
-
-  switch (status) {
+function resolveStatus(rawStatus?: string, checked?: boolean) {
+  if (checked) {
+    return { isBookable: true, style: STATUS_STYLES.available };
+  }
+  switch (rawStatus) {
+    case 'AVAILABLE':
+      return { isBookable: true, style: STATUS_STYLES.available };
+    case 'RESERVED':
+      return { isBookable: false, style: STATUS_STYLES.reserved };
     case 'RENTED':
-    case 'BLOCKED':
-      return { isBookable: false, style: STATUS_STYLES.unavailable };
+      return { isBookable: false, style: STATUS_STYLES.rented };
     case 'MAINTENANCE':
       return { isBookable: false, style: STATUS_STYLES.maintenance };
     default:
@@ -96,25 +110,25 @@ export function VehicleCardSkeleton() {
   return (
     <div
       aria-hidden="true"
-      className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm animate-pulse motion-reduce:animate-none"
+      className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs animate-pulse motion-reduce:animate-none"
     >
-      <div className="aspect-16/10 bg-slate-100" />
-      <div className="p-4 space-y-3">
-        <div className="space-y-1.5">
-          <div className="h-3 w-20 bg-slate-100 rounded" />
-          <div className="h-5 w-36 bg-slate-100 rounded" />
+      <div className="aspect-3/2 bg-slate-100" />
+      <div className="p-3.5 space-y-2.5">
+        <div className="flex justify-between items-center">
+          <div className="h-3.5 w-24 bg-slate-100 rounded" />
+          <div className="h-3.5 w-12 bg-slate-100 rounded" />
         </div>
-        <div className="grid grid-cols-2 gap-1.5">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-7 bg-slate-100 rounded-lg" />
-          ))}
+        <div className="h-5 w-40 bg-slate-100 rounded" />
+        <div className="flex gap-1.5">
+          <div className="h-6 w-16 bg-slate-100 rounded-md" />
+          <div className="h-6 w-16 bg-slate-100 rounded-md" />
+          <div className="h-6 w-14 bg-slate-100 rounded-md" />
         </div>
-        <div className="flex justify-between items-end">
-          <div className="h-7 w-28 bg-slate-100 rounded" />
-          <div className="h-4 w-14 bg-slate-100 rounded" />
+        <div className="h-5 w-full bg-slate-100 rounded" />
+        <div className="flex justify-between items-center pt-2 border-t border-slate-100">
+          <div className="h-6 w-24 bg-slate-100 rounded" />
+          <div className="h-9 w-24 bg-slate-100 rounded-xl" />
         </div>
-        <div className="h-12 bg-slate-100 rounded-lg" />
-        <div className="h-10 bg-slate-100 rounded-lg" />
       </div>
     </div>
   );
@@ -131,12 +145,14 @@ function VehicleGallery({
   model,
   agencyCity,
   priority,
+  unavailable,
 }: {
   images: string[];
   brand: string;
   model: string;
   agencyCity?: string;
   priority: boolean;
+  unavailable: boolean;
 }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [failedIndexes, setFailedIndexes] = useState<Set<number>>(() => new Set());
@@ -163,12 +179,18 @@ function VehicleGallery({
     : (images[currentIndex] ?? PLACEHOLDER_IMAGE);
 
   return (
-    <div className="relative aspect-16/10 w-full overflow-hidden bg-slate-100">
-      <div className="absolute inset-0 transition-transform duration-500 ease-out motion-reduce:transition-none group-hover:scale-[1.04]">
+    <div className="relative aspect-3/2 w-full overflow-hidden bg-slate-100">
+      <div
+        className={cn(
+          'absolute inset-0 transition-transform duration-500 ease-out motion-reduce:transition-none group-hover:scale-[1.04]',
+          unavailable && 'opacity-50 grayscale'
+        )}
+      >
         <Image
           src={src}
-          alt={`${brand} ${model}${agencyCity ? ` à ${agencyCity}` : ''}${images.length > 1 ? ` (photo ${currentIndex + 1} sur ${images.length})` : ''
-            }`}
+          alt={`${brand} ${model}${agencyCity ? ` à ${agencyCity}` : ''}${
+            images.length > 1 ? ` (photo ${currentIndex + 1} sur ${images.length})` : ''
+          }`}
           fill
           priority={priority}
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
@@ -185,7 +207,7 @@ function VehicleGallery({
           <button
             type="button"
             onClick={(e) => goTo(-1, e)}
-            className={cn(ARROW_BASE, 'left-2.5')}
+            className={cn(ARROW_BASE, 'left-2')}
             aria-label="Image précédente"
           >
             <ChevronLeft className="w-4 h-4 text-slate-700" aria-hidden="true" />
@@ -193,22 +215,22 @@ function VehicleGallery({
           <button
             type="button"
             onClick={(e) => goTo(1, e)}
-            className={cn(ARROW_BASE, 'right-2.5')}
+            className={cn(ARROW_BASE, 'right-2')}
             aria-label="Image suivante"
           >
             <ChevronRight className="w-4 h-4 text-slate-700" aria-hidden="true" />
           </button>
 
           <div
-            className="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5 pointer-events-none"
+            className="absolute bottom-2.5 left-0 right-0 flex justify-center gap-1.5 pointer-events-none"
             aria-hidden="true"
           >
             {images.map((_, i) => (
               <span
                 key={i}
                 className={cn(
-                  'h-1.5 rounded-full transition-all duration-300',
-                  i === currentIndex ? 'bg-white w-4' : 'bg-white/50 w-1.5'
+                  'h-1 rounded-full transition-all duration-300',
+                  i === currentIndex ? 'bg-white w-3.5' : 'bg-white/50 w-1'
                 )}
               />
             ))}
@@ -219,21 +241,14 @@ function VehicleGallery({
   );
 }
 
-function SpecItem({ icon: Icon, children }: { icon: React.ElementType; children: React.ReactNode }) {
-  return (
-    <div className="flex items-center gap-1.5 py-1.5 px-2 rounded-lg bg-slate-50 text-slate-600 font-medium">
-      <Icon className="w-3.5 h-3.5 text-slate-400 shrink-0" aria-hidden="true" />
-      <span className="truncate">{children}</span>
-    </div>
-  );
-}
-
 function VehicleCardComponent({
   vehicle,
   priority = false,
   availabilityChecked = false,
   onFavorite,
   isFavorite: externalFavorite,
+  selectedDays,
+  onNotify,
 }: VehicleCardProps) {
   const reduceMotion = useReducedMotion();
   const [internalFavorite, setInternalFavorite] = useState(false);
@@ -244,9 +259,16 @@ function VehicleCardComponent({
   const fuelLabel = getFuelLabel(vehicle.fuel);
   const isAutomatic = vehicle.transmission === 'AUTOMATIC';
   const agency = vehicle.agency;
-  const rating = typeof agency?.rating === 'number' ? agency.rating : null;
+  const reviewCount = agency?.review_count ?? 0;
+  const agencyRating = typeof agency?.rating === 'number' ? agency.rating : null;
+  const showRating = agencyRating !== null && reviewCount >= MIN_REVIEWS_FOR_RATING;
+  const isNew = agencyRating === null || reviewCount < MIN_REVIEWS_FOR_RATING;
   const hasDeposit = (vehicle.deposit ?? 0) > 0;
   const vehicleName = `${vehicle.brand} ${vehicle.model}`;
+  const isUnavailable = !isBookable;
+
+  // Prix total estimé quand des jours sont sélectionnés
+  const totalPrice = selectedDays && selectedDays > 0 ? vehicle.daily_price * selectedDays : null;
 
   const handleFavorite = useCallback(
     (e: React.MouseEvent) => {
@@ -258,17 +280,28 @@ function VehicleCardComponent({
     [onFavorite, vehicle.id]
   );
 
-  const titleClasses =
-    'text-base font-bold text-slate-900 leading-tight transition-colors group-hover:text-[#E63946]';
+  const handleNotify = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      onNotify?.(vehicle.id);
+    },
+    [onNotify, vehicle.id]
+  );
 
   return (
     <motion.article
-      initial={reduceMotion ? false : { opacity: 0, y: 16 }}
+      initial={reduceMotion ? false : { opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, ease: [0.33, 1, 0.68, 1] }}
-      className="group relative bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-lg hover:shadow-slate-900/10 hover:border-slate-300 focus-within:border-[#0B1220] transition-all duration-300 flex flex-col"
+      transition={{ duration: 0.25, ease: [0.33, 1, 0.68, 1] }}
+      className={cn(
+        'group relative bg-white rounded-2xl border overflow-hidden shadow-xs transition-all duration-300 flex flex-col',
+        isUnavailable
+          ? 'border-slate-200 opacity-80'
+          : 'border-slate-200 hover:shadow-lg hover:shadow-slate-900/8 hover:border-slate-300 focus-within:border-[#0B1220]'
+      )}
     >
-      {/* Image */}
+      {/* ── Image & Badges ────────────────────────────────────────────── */}
       <div className="relative shrink-0">
         <VehicleGallery
           images={images}
@@ -276,31 +309,44 @@ function VehicleCardComponent({
           model={vehicle.model}
           agencyCity={agency?.city}
           priority={priority}
+          unavailable={isUnavailable}
         />
 
-        {/* Statut */}
+        {/* Statut badge — toujours icône + texte (jamais couleur seule) */}
         <div className="absolute top-2.5 left-2.5 z-10">
           <div
             className={cn(
-              'inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-semibold border backdrop-blur-sm bg-white/95',
+              'inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-semibold border backdrop-blur-sm bg-white/95 shadow-xs',
               status.color,
               status.bg
             )}
+            role="status"
+            aria-label={status.label}
           >
-            <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', status.dot)} aria-hidden="true" />
+            <span className={cn('w-2 h-2 rounded-full shrink-0', status.dot)} aria-hidden="true" />
             {status.label}
           </div>
         </div>
 
-        {/* Favori */}
+        {/* Nouveau badge */}
+        {isNew && isBookable && (
+          <div className="absolute top-2.5 left-[calc(100%-5rem)] z-10 pointer-events-none">
+            <span className="inline-flex items-center gap-1 bg-amber-400 text-amber-900 text-[10px] font-bold px-1.5 py-0.5 rounded-md shadow-xs">
+              <Sparkles className="w-2.5 h-2.5" aria-hidden="true" />
+              Nouveau
+            </span>
+          </div>
+        )}
+
+        {/* Favori button — min 44px touch target */}
         <motion.button
           type="button"
           onClick={handleFavorite}
-          whileTap={reduceMotion ? undefined : { scale: 1.2 }}
+          whileTap={reduceMotion ? undefined : { scale: 1.15 }}
           aria-pressed={isFavorite}
           aria-label={isFavorite ? `Retirer ${vehicleName} des favoris` : `Ajouter ${vehicleName} aux favoris`}
           className={cn(
-            'absolute top-2.5 right-2.5 z-20 w-9 h-9 rounded-full bg-white/95 backdrop-blur-sm border border-white/60 shadow-sm flex items-center justify-center transition-colors duration-200',
+            'absolute top-2.5 right-2.5 z-20 w-9 h-9 rounded-full bg-white/95 backdrop-blur-sm border border-white/60 shadow-xs flex items-center justify-center transition-colors duration-200',
             'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#E63946]',
             isFavorite ? 'text-[#E63946]' : 'text-slate-400 hover:text-[#E63946]'
           )}
@@ -311,124 +357,173 @@ function VehicleCardComponent({
           />
         </motion.button>
 
-        {/* Catégorie */}
-        <div className="absolute bottom-2.5 left-2.5 z-10 pointer-events-none">
-          <span className="text-[11px] font-bold uppercase tracking-wider bg-white/90 backdrop-blur-sm text-slate-700 px-2 py-0.5 rounded-md border border-white/60 shadow-sm">
+        {/* Catégorie chip */}
+        <div className="absolute bottom-2 left-2.5 z-10 pointer-events-none">
+          <span className="text-[10px] font-bold uppercase tracking-wider bg-white/90 backdrop-blur-sm text-slate-700 px-2 py-0.5 rounded border border-white/60 shadow-2xs">
             {vehicle.category}
           </span>
         </div>
       </div>
 
-      {/* Corps */}
-      <div className="flex flex-col flex-1 p-4 gap-3">
-        {/* Titre & note */}
+      {/* ── Corps compact ─────────────────────────────────────────────── */}
+      <div className="flex flex-col flex-1 p-3.5 sm:p-4 gap-2">
+        {/* Ligne 1 : Marque/Année & Note avis */}
         <div>
-          <p className="text-xs font-bold text-slate-500 uppercase tracking-widest leading-none mb-1">
-            {vehicle.brand} · {vehicle.year}
-          </p>
-          <h3 className={titleClasses}>
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider truncate">
+              {vehicle.brand} · {vehicle.year}
+            </p>
+            {showRating ? (
+              <span
+                className="inline-flex items-center gap-1 text-xs font-bold text-slate-700 shrink-0"
+                aria-label={`Note : ${agencyRating!.toFixed(1)} sur 5, ${reviewCount} avis`}
+              >
+                <Star className="w-3.5 h-3.5 text-amber-400 fill-current" aria-hidden="true" />
+                {agencyRating!.toFixed(1).replace('.', ',')}
+                <span className="text-slate-400 font-normal text-[11px]">· {reviewCount} avis</span>
+              </span>
+            ) : isNew && isBookable ? (
+              <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-600 shrink-0">
+                <BadgeCheck className="w-3 h-3" aria-hidden="true" />
+                Nouveau
+              </span>
+            ) : null}
+          </div>
+
+          {/* Titre du véhicule */}
+          <h3 className="text-base font-bold text-slate-900 leading-snug mt-0.5 transition-colors group-hover:text-[#E63946] truncate">
             {isBookable ? (
               <Link
                 href={`/cars/${encodeURIComponent(vehicle.slug)}`}
                 className="outline-none after:absolute after:inset-0 after:z-10 focus-visible:after:ring-2 focus-visible:after:ring-inset focus-visible:after:ring-[#E63946] after:rounded-2xl"
               >
                 {vehicle.model}
-                <span className="sr-only">, {vehicle.year}. Voir le véhicule</span>
+                <span className="sr-only">, {vehicle.year}. Demander ce véhicule</span>
               </Link>
             ) : (
               vehicle.model
             )}
           </h3>
+        </div>
 
-          {rating !== null && (
-            <div className="flex items-center gap-1.5 mt-1.5">
-              <Star className="w-3.5 h-3.5 text-amber-400 fill-current" aria-hidden="true" />
-              <span className="text-xs font-semibold text-slate-700">
-                <span className="sr-only">Note de l’agence : </span>
-                {rating.toFixed(1)}
-              </span>
-              {(agency?.review_count ?? 0) > 0 && (
-                <span className="text-xs text-slate-500">· {agency!.review_count} avis</span>
-              )}
-            </div>
+        {/* Ligne 2 : Spécifications techniques en ligne scrollable sur mobile */}
+        <div
+          className="flex items-center gap-1 text-xs text-slate-600 overflow-x-auto no-scrollbar"
+          role="list"
+          aria-label="Caractéristiques du véhicule"
+        >
+          <span
+            className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-slate-50 border border-slate-100 font-medium shrink-0 whitespace-nowrap"
+            role="listitem"
+          >
+            <Gauge className="w-3 h-3 text-slate-400 shrink-0" aria-hidden="true" />
+            {isAutomatic ? 'Automatique' : 'Manuelle'}
+          </span>
+          <span
+            className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-slate-50 border border-slate-100 font-medium shrink-0 whitespace-nowrap"
+            role="listitem"
+          >
+            <Fuel className="w-3 h-3 text-slate-400 shrink-0" aria-hidden="true" />
+            {fuelLabel}
+          </span>
+          <span
+            className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-slate-50 border border-slate-100 font-medium shrink-0 whitespace-nowrap"
+            role="listitem"
+          >
+            <Users className="w-3 h-3 text-slate-400 shrink-0" aria-hidden="true" />
+            {vehicle.seats} places
+          </span>
+          {vehicle.min_rental_days > 1 && (
+            <span
+              className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-slate-50 border border-slate-100 font-medium shrink-0 whitespace-nowrap"
+              role="listitem"
+            >
+              <CalendarX2 className="w-3 h-3 text-slate-400 shrink-0" aria-hidden="true" />
+              min {vehicle.min_rental_days} j
+            </span>
           )}
         </div>
 
-        {/* Caractéristiques */}
-        <div className="grid grid-cols-2 gap-1.5 text-xs">
-          <SpecItem icon={Gauge}>{isAutomatic ? 'Automatique' : 'Manuelle'}</SpecItem>
-          <SpecItem icon={Fuel}>{fuelLabel}</SpecItem>
-          <SpecItem icon={Users}>{vehicle.seats} places</SpecItem>
-          {vehicle.air_conditioning && <SpecItem icon={Wind}>Climatisée</SpecItem>}
-        </div>
-
-        {/* Prix + agence + CTA */}
-        <div className="space-y-2.5 mt-auto">
-          <div className="flex items-end justify-between gap-3">
-            <div>
-              <p className="text-xs text-slate-500 font-medium mb-0.5">À partir de</p>
-              <p className="flex items-baseline gap-1">
-                <span className="text-xl font-extrabold text-[#0B1220] leading-none">
-                  {formatNumber(vehicle.daily_price)} <span className="text-sm font-bold">DH</span>
-                </span>
-                <span className="text-xs text-slate-500 font-medium">/jour</span>
-              </p>
-            </div>
-            {hasDeposit && (
-              <div className="text-right">
-                <p className="text-xs text-slate-500">Caution</p>
-                <p className="text-xs font-bold text-slate-700">{formatPrice(vehicle.deposit)}</p>
-              </div>
-            )}
-          </div>
-
-          {agency && (
-            <div className="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-slate-50 border border-slate-100">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-md bg-[#0B1220] text-xs font-bold text-white">
+        {/* Ligne 3 : Agence partenaire */}
+        {agency && (
+          <div className="flex items-center justify-between text-xs pt-1.5 border-t border-slate-100">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <div className="h-5 w-5 shrink-0 rounded overflow-hidden bg-slate-100 border border-slate-200">
                 <AgencyLogo
                   slug={agency.slug}
                   name={agency.name}
                   logoUrl={agency.logo_url}
-                  className="h-full w-full rounded-md object-cover"
+                  className="h-full w-full object-cover"
                 />
               </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-semibold text-slate-800 truncate leading-tight">
-                  {agency.name}
-                </p>
-                {agency.city && (
-                  <p className="text-xs text-slate-500 flex items-center gap-0.5 mt-0.5">
-                    <MapPin className="w-3 h-3 shrink-0" aria-hidden="true" />
-                    <span className="truncate">{agency.city}</span>
-                  </p>
-                )}
-              </div>
+              <span className="text-xs font-semibold text-slate-700 truncate">{agency.name}</span>
               {agency.verified && (
                 <ShieldCheck
-                  className="w-4 h-4 text-emerald-500 shrink-0"
+                  className="w-3.5 h-3.5 text-emerald-500 shrink-0"
                   role="img"
                   aria-label="Agence vérifiée"
                 />
               )}
             </div>
-          )}
-
-          {/* CTA visuel : le lien accessible est le titre (lien étendu à toute la carte) */}
-          <div
-            aria-hidden="true"
-            className={cn(
-              'w-full py-2.5 px-3 rounded-lg text-sm font-bold flex items-center justify-center gap-1.5 transition-all duration-200',
-              isBookable
-                ? 'bg-[#0B1220] text-white group-hover:bg-[#1E293B] shadow-sm'
-                : 'bg-slate-100 text-slate-500'
-            )}
-          >
-            <span>{isBookable ? 'Voir le véhicule' : status.label}</span>
-            {isBookable && (
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200 motion-reduce:transition-none" />
+            {agency.city && (
+              <span className="text-[11px] text-slate-400 truncate flex items-center gap-0.5 shrink-0 ml-1">
+                <MapPin className="w-3 h-3 shrink-0" aria-hidden="true" />
+                {agency.city}
+              </span>
             )}
           </div>
+        )}
+
+        {/* Ligne 4 : Prix + Bouton CTA */}
+        <div className="flex items-end justify-between gap-2 pt-2 border-t border-slate-100 mt-auto">
+          <div className="min-w-0">
+            <p className="flex items-baseline gap-1 leading-none">
+              <span className="text-lg sm:text-xl font-extrabold text-[#0B1220] tabular-nums tracking-tight">
+                {formatNumber(vehicle.daily_price)} <span className="text-xs font-bold">DH</span>
+              </span>
+              <span className="text-xs text-slate-400 font-medium">/jour</span>
+            </p>
+            {totalPrice !== null && (
+              <p className="text-[11px] text-[#0B1220] font-bold mt-0.5">
+                = {formatNumber(totalPrice)} DH pour {selectedDays} j
+              </p>
+            )}
+            {hasDeposit && !totalPrice && (
+              <p className="text-xs text-slate-600 font-semibold mt-0.5">
+                Caution : {formatPrice(vehicle.deposit)}
+              </p>
+            )}
+          </div>
+
+          {/* CTA — pleine largeur sur mobile */}
+          {isBookable ? (
+            <div
+              aria-hidden="true"
+              className="py-2.5 px-4 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all duration-200 shrink-0 bg-[#0B1220] text-white group-hover:bg-[#E63946] shadow-2xs min-h-[44px]"
+            >
+              <span>Demander</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform duration-200 motion-reduce:transition-none" aria-hidden="true" />
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={handleNotify}
+              className="py-2.5 px-3 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all duration-200 shrink-0 bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200 min-h-[44px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0B1220]"
+              aria-label={`Me prévenir quand ${vehicleName} est disponible`}
+            >
+              <BellRing className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+              <span>Me prévenir</span>
+            </button>
+          )}
         </div>
+
+        {/* Disponibilité future si RENTED */}
+        {vehicle.status === 'RENTED' && vehicle.available_from && (
+          <p className="text-[11px] text-blue-600 font-semibold flex items-center gap-1 -mt-1">
+            <CalendarX2 className="w-3 h-3 shrink-0" aria-hidden="true" />
+            Disponible dès le {new Date(vehicle.available_from).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}
+          </p>
+        )}
       </div>
     </motion.article>
   );

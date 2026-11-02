@@ -72,7 +72,7 @@ function SidebarLogo({ collapsed }: { collapsed: boolean }) {
     >
       <div className={cn('relative shrink-0', collapsed ? 'h-7 w-7' : 'h-8 w-30')}>
         <Image
-          src="/Logo-CarDrive2.png"
+          src="/logo_12.png"
           alt="CarDrive"
           fill
           sizes={collapsed ? '28px' : '120px'}
@@ -380,7 +380,7 @@ export function AdminTopBar({
   }, [profileMenuOpen]);
 
   const customAvatar = userProfile?.avatarUrl || userProfile?.agencyLogoUrl;
-  const avatarSrc = customAvatar || '/icon_logo.png';
+  const avatarSrc = customAvatar || '/logo_12.png';
   const isCustom = Boolean(customAvatar);
   const displayName = userProfile?.displayName || 'Super Admin';
   const email = userProfile?.email || 'admin@cardrive.ma';

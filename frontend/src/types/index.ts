@@ -2,15 +2,29 @@ import type { UserRole, AgencyStatus, BookingStatus } from '@cardrive/shared';
 
 export type { UserRole, AgencyStatus, BookingStatus };
 
+/** Taxonomie officielle CarDrive — à utiliser partout (formulaire agence, filtres, validation) */
 export type VehicleCategory =
   | 'Économique'
-  | 'SUV'
+  | 'Compacte'
   | 'Berline'
+  | 'SUV'
   | 'Luxe'
+  | 'Utilitaire'
   | '7 places'
   | 'Automatique'
-  | 'Citadine'
-  | 'Compacte';
+  | 'Citadine';
+
+export const VEHICLE_CATEGORIES: VehicleCategory[] = [
+  'Économique',
+  'Compacte',
+  'Berline',
+  'SUV',
+  'Luxe',
+  'Utilitaire',
+  '7 places',
+  'Automatique',
+  'Citadine',
+];
 
 export type TransmissionType = 'MANUAL' | 'AUTOMATIC';
 export type FuelType = 'DIESEL' | 'GASOLINE' | 'HYBRID' | 'ELECTRIC';
@@ -117,6 +131,14 @@ export interface Vehicle {
   images: string[];
   features: string[];
   created_at: string;
+  /** Date ISO (YYYY-MM-DD) à laquelle le véhicule RENTED redevient disponible */
+  available_from?: string;
+  /** Livraison à domicile / hôtel disponible */
+  delivery_available?: boolean;
+  /** Kilométrage illimité inclus */
+  unlimited_mileage?: boolean;
+  /** Âge minimum du conducteur (ex : 21) */
+  min_driver_age?: number;
 }
 
 export interface Booking {

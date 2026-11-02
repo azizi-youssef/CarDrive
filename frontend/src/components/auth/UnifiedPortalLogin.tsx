@@ -536,7 +536,7 @@ function BrandLogo({ mobile = false }: { mobile?: boolean }) {
   return (
     <div className={`cd-logo${mobile ? ' cd-mobile-brand' : ''}`}>
       <Image
-        src="/logo-12.png"
+        src="/logo_12.png"
         alt="CarDrive"
         width={200}
         height={200}

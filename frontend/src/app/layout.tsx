@@ -66,9 +66,11 @@ export const metadata: Metadata = {
   },
 
   icons: {
-    icon: [{ url: '/icon_12.png', type: 'image/png' }],
-    shortcut: '/icon_12.png',
-    apple: [{ url: '/icon_12.png', type: 'image/png' }],
+    icon: [
+      { url: '/icon_cardrive.ico', sizes: 'any' },
+    ],
+    shortcut: '/icon_cardrive.ico',
+    apple: [{ url: '/icon_cardrive.ico' }],
   },
 
   manifest: '/manifest.webmanifest',
