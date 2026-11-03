@@ -1,5 +1,6 @@
 import { Booking } from '@/types';
 import { createClient } from '@/lib/supabase/server';
+import { signedBookingPdfPath } from '@/lib/auth/booking-pdf-link';
 
 export interface EmailPayload {
   to: string;
@@ -55,7 +56,7 @@ class NotificationService {
   formatAgencyWhatsAppMessage(booking: Booking, appUrl?: string): string {
     const baseUrl = appUrl || process.env.NEXT_PUBLIC_APP_URL || 'https://cardrive.ma';
     const ref = booking.reference || booking.booking_ref || '';
-    const pdfUrl = `${baseUrl}/api/bookings/${encodeURIComponent(ref)}/pdf`;
+    const pdfUrl = `${baseUrl}${signedBookingPdfPath(ref)}`;
     const dashboardUrl = `${baseUrl}/agency?booking=${encodeURIComponent(ref)}`;
     const vehicleName = booking.vehicle
       ? `${booking.vehicle.brand} ${booking.vehicle.model} (${booking.vehicle.year})`

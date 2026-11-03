@@ -3,9 +3,10 @@ import { bookingsService } from '@/lib/services/bookings.service';
 import { pdfService } from '@/lib/services/pdf.service';
 import { authorizeBookingRead } from '@/lib/auth/booking-access';
 import { getServerAuth } from '@/lib/auth/server';
+import { verifyBookingPdfSignature } from '@/lib/auth/booking-pdf-link';
 
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   context: { params: Promise<{ reference: string }> }
 ) {
   try {
@@ -14,13 +15,22 @@ export async function GET(
       return new NextResponse('Référence requise', { status: 400 });
     }
 
+    const hasSignedLink = verifyBookingPdfSignature(
+      reference,
+      req.nextUrl.searchParams.get('exp'),
+      req.nextUrl.searchParams.get('sig')
+    );
     const auth = await getServerAuth();
+    if (!auth && !hasSignedLink) {
+      return new NextResponse('Authentification requise', { status: 401 });
+    }
+
     const booking = await bookingsService.getBookingByReference(reference, true);
     if (!booking) {
       return new NextResponse('Demande de réservation introuvable', { status: 404 });
     }
 
-    if (auth) {
+    if (auth && !hasSignedLink) {
       const access = await authorizeBookingRead(auth, booking);
       if (!access.allowed) {
         return new NextResponse('Demande de réservation introuvable', { status: 404 });

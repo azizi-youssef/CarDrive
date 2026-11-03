@@ -1,6 +1,7 @@
-import { timingSafeEqual } from 'node:crypto';
+import { createHmac, timingSafeEqual } from 'node:crypto';
 import { Booking } from '@/types';
 import { createAdminClient } from '@/lib/supabase/server';
+import { signedBookingPdfPath } from '@/lib/auth/booking-pdf-link';
 
 /**
  * ========================================================================
@@ -338,7 +339,7 @@ export class WhatsAppService {
   ): Promise<WhatsAppMessageResult> {
     const baseUrl = appUrl || process.env.NEXT_PUBLIC_APP_URL || 'https://cardrive.ma';
     const ref = booking.reference || booking.booking_ref || '';
-    const pdfUrl = `${baseUrl}/api/bookings/${encodeURIComponent(ref)}/pdf`;
+    const pdfUrl = `${baseUrl}${signedBookingPdfPath(ref)}`;
     const vehicleName = booking.vehicle
       ? `${booking.vehicle.brand} ${booking.vehicle.model} (${booking.vehicle.year})`
       : 'Véhicule';
@@ -631,6 +632,28 @@ export class WhatsAppService {
   }
 
   /**
+   * Vérifie l'en-tête X-Hub-Signature-256 (HMAC-SHA256 du corps brut avec l'App Secret Meta).
+   * - En production : rejette si WHATSAPP_APP_SECRET n'est pas défini
+   * - En développement sans secret : accepte avec un avertissement
+   */
+  public verifyWebhookSignature(rawBody: string, signatureHeader: string | null): boolean {
+    const appSecret = process.env.WHATSAPP_APP_SECRET || process.env.META_APP_SECRET;
+
+    if (!appSecret) {
+      if (process.env.NODE_ENV === 'production') {
+        console.error('[WhatsAppService] ERREUR CRITIQUE DE SÉCURITÉ : WHATSAPP_APP_SECRET absent en production. Webhook rejeté.');
+        return false;
+      }
+      console.warn('[WhatsAppService] Avertissement : WHATSAPP_APP_SECRET non configuré, signature du webhook non vérifiée (dev).');
+      return true;
+    }
+
+    if (!signatureHeader?.startsWith('sha256=')) return false;
+    const expected = `sha256=${createHmac('sha256', appSecret).update(rawBody, 'utf8').digest('hex')}`;
+    return this.timingSafeStringEqual(signatureHeader, expected);
+  }
+
+  /**
    * Comparaison en temps constant de deux chaînes pour parer les timing attacks
    */
   private timingSafeStringEqual(a: string, b: string): boolean {
@@ -752,11 +775,14 @@ export class WhatsAppService {
           const { data } = await supabase
             .from('bookings')
             .select('*, vehicle:vehicles(brand, model, year), agency:agencies(name, phone, whatsapp)')
-            .or(`booking_ref.ilike.%${explicitRef}%,booking_ref.eq.${explicitRef}`)
-            .order('created_at', { ascending: false })
+            .eq('booking_ref', explicitRef.toUpperCase())
             .limit(1)
             .maybeSingle();
-          booking = data;
+          // Une référence citée ne suffit pas : seul le titulaire du dossier peut agir dessus.
+          booking =
+            data && fromNormalized && this.normalizePhoneNumber(data.customer_phone || '') === fromNormalized
+              ? data
+              : null;
         }
 
         if (!booking && fromNormalized) {

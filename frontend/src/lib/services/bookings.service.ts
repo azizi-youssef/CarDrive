@@ -4,7 +4,7 @@ import { Booking, BookingStatus, BookingEvent, BookingEventType } from '@/types'
 import { createClient, createAdminClient } from '@/lib/supabase/server';
 import { bookingRequestSchema, BookingRequestInput } from '@/lib/validations/booking';
 import { calculateBookingPrice, calculateRentalDays } from '@/lib/utils/pricing';
-import { generateBookingReference } from '@/lib/utils/reference';
+import { generateBookingReference, isValidBookingReference } from '@/lib/utils/reference';
 import { commissionService } from './commission.service';
 import { vehiclesService } from './vehicles.service';
 
@@ -141,6 +141,8 @@ export class BookingsService {
   ): Promise<Booking | null> {
     requireSupabase();
     const cleanRef = reference.trim();
+    // Format strict avant interpolation dans le filtre PostgREST `.or(...)` (anti-injection).
+    if (!isValidBookingReference(cleanRef)) return null;
 
     const supabase = includeCustomerData
       ? await createAdminClient()

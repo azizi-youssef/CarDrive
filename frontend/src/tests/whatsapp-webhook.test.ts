@@ -1,4 +1,5 @@
 import test from 'node:test';
+import { createHmac } from 'node:crypto';
 import assert from 'node:assert/strict';
 import { whatsappService } from '../lib/services/whatsapp.service';
 
@@ -116,4 +117,21 @@ test('5. Webhook WhatsApp — Mise à jour des accusés de réception (sent -> d
   const updatedLog = whatsappService.getRecentLogs(10).find((l) => l.messageId === messageId);
   assert.ok(updatedLog);
   assert.equal(updatedLog.status, 'DELIVERED', 'Le statut doit être mis à jour à DELIVERED');
+});
+
+test('Webhook WhatsApp — Signature X-Hub-Signature-256 (HMAC du corps brut)', () => {
+  const previousSecret = process.env.WHATSAPP_APP_SECRET;
+  process.env.WHATSAPP_APP_SECRET = 'test_app_secret';
+  try {
+    const rawBody = JSON.stringify({ object: 'whatsapp_business_account', entry: [] });
+    const signature = `sha256=${createHmac('sha256', 'test_app_secret').update(rawBody).digest('hex')}`;
+
+    assert.equal(whatsappService.verifyWebhookSignature(rawBody, signature), true, 'Signature valide acceptée');
+    assert.equal(whatsappService.verifyWebhookSignature(`${rawBody} `, signature), false, 'Corps modifié refusé');
+    assert.equal(whatsappService.verifyWebhookSignature(rawBody, 'sha256=deadbeef'), false, 'Signature fausse refusée');
+    assert.equal(whatsappService.verifyWebhookSignature(rawBody, null), false, 'Signature absente refusée');
+  } finally {
+    if (previousSecret === undefined) delete process.env.WHATSAPP_APP_SECRET;
+    else process.env.WHATSAPP_APP_SECRET = previousSecret;
+  }
 });

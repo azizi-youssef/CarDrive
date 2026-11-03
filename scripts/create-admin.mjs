@@ -3,13 +3,13 @@
  * Usage: node scripts/create-admin.mjs
  */
 import { createClient } from '@supabase/supabase-js';
+import { getSupabaseAdminEnv, requireEnv } from './_env.mjs';
 
-const SUPABASE_URL = 'https://wviqbscbnrrpxpojhqql.supabase.co';
-const SERVICE_ROLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind2aXFic2NibnJycHhwb2pocXFsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc5MDkzMDY1MSwiZXhwIjoyMTA2NTA2NjUxfQ.U0SzFdOvWGL2y56F4ssfM9Ov5xkCWQj6tg56ru0ubQM';
+const { url: SUPABASE_URL, serviceRoleKey: SERVICE_ROLE_KEY } = getSupabaseAdminEnv();
 
 // ─── Informations du compte admin ────────────────────────────────────────────
-const ADMIN_EMAIL    = 'admin@cardrive.ma';
-const ADMIN_PASSWORD = 'CarDrive@Admin2026!';
+const ADMIN_EMAIL    = process.env.ADMIN_EMAIL || 'admin@cardrive.ma';
+const [ADMIN_PASSWORD] = requireEnv('ADMIN_PASSWORD');
 const ADMIN_NAME     = 'Super Administrateur CarDrive';
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -66,7 +66,7 @@ if (authError) {
       console.log('\n✅ Compte administrateur mis à jour avec succès !\n');
       console.log('━'.repeat(50));
       console.log(`   Email    : ${ADMIN_EMAIL}`);
-      console.log(`   Mot de passe : ${ADMIN_PASSWORD}`);
+      console.log('   Mot de passe : (valeur de ADMIN_PASSWORD)');
       console.log(`   Rôle     : SUPER_ADMIN`);
       console.log(`   URL      : http://localhost:3000/login`);
       console.log('━'.repeat(50));
@@ -122,7 +122,7 @@ console.log('\n' + '━'.repeat(50));
 console.log('🎉  COMPTE ADMINISTRATEUR CRÉÉ AVEC SUCCÈS');
 console.log('━'.repeat(50));
 console.log(`   Email        : ${ADMIN_EMAIL}`);
-console.log(`   Mot de passe : ${ADMIN_PASSWORD}`);
+console.log('   Mot de passe : (valeur de ADMIN_PASSWORD)');
 console.log(`   Rôle         : SUPER_ADMIN`);
 console.log(`   Nom          : ${ADMIN_NAME}`);
 console.log('');

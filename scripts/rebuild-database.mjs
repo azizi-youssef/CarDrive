@@ -8,12 +8,12 @@ import { createClient } from '@supabase/supabase-js';
 import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { getSupabaseAdminEnv } from './_env.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..');
 
-const SUPABASE_URL = 'https://wviqbscbnrrpxpojhqql.supabase.co';
-const SERVICE_ROLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind2aXFic2NibnJycHhwb2pocXFsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc5MDkzMDY1MSwiZXhwIjoyMTA2NTA2NjUxfQ.U0SzFdOvWGL2y56F4ssfM9Ov5xkCWQj6tg56ru0ubQM';
+const { url: SUPABASE_URL, serviceRoleKey: SERVICE_ROLE_KEY, projectRef } = getSupabaseAdminEnv();
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
   auth: { persistSession: false },
@@ -62,7 +62,7 @@ console.log('\n🚗 CarDrive — Reconstruction de la base de données\n');
 console.log('='.repeat(60));
 console.log('\n📋 INSTRUCTIONS :');
 console.log('   1. Ouvrez le SQL Editor Supabase :');
-console.log('      https://supabase.com/dashboard/project/wviqbscbnrrpxpojhqql/sql/new\n');
+console.log(`      https://supabase.com/dashboard/project/${projectRef}/sql/new\n`);
 console.log('   2. Exécutez chaque bloc SQL ci-dessous dans l\'ordre\n');
 console.log('='.repeat(60));
 

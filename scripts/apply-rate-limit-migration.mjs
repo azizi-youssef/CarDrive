@@ -50,7 +50,7 @@ if (error) {
     const text = await res.text();
     console.error('❌ Erreur API REST:', text);
     console.log('\n📋 Copiez et exécutez ce SQL manuellement dans le SQL Editor de Supabase :');
-    console.log('   https://supabase.com/dashboard/project/wviqbscbnrrpxpojhqql/sql');
+    console.log(`   https://supabase.com/dashboard/project/${new URL(SUPABASE_URL).hostname.split('.')[0]}/sql`);
     console.log('\n' + SQL_PATH + '\n');
     process.exit(1);
   }

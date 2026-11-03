@@ -6,13 +6,10 @@ import { createClient } from '@supabase/supabase-js';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import dotenv from 'dotenv';
+import { getSupabaseAdminEnv } from './_env.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-dotenv.config({ path: join(__dirname, '../.env.local') });
-
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://wviqbscbnrrpxpojhqql.supabase.co';
-const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind2aXFic2NibnJycHhwb2pocXFsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc5MDkzMDY1MSwiZXhwIjoyMTA2NTA2NjUxfQ.U0SzFdOvWGL2y56F4ssfM9Ov5xkCWQj6tg56ru0ubQM';
+const { url: SUPABASE_URL, serviceRoleKey: SERVICE_ROLE_KEY, projectRef } = getSupabaseAdminEnv();
 
 const SQL_PATH = join(
   __dirname,
@@ -42,7 +39,7 @@ if (rpcErr) {
   } else {
     console.log('ℹ️  Les tables SQL doivent être exécutées dans le Dashboard Supabase.');
     console.log('📋 Rendez-vous sur votre SQL Editor Supabase :');
-    console.log('   https://supabase.com/dashboard/project/wviqbscbnrrpxpojhqql/sql');
+    console.log(`   https://supabase.com/dashboard/project/${projectRef}/sql`);
     console.log('   Et collez le contenu du fichier :');
     console.log('   ' + SQL_PATH);
   }

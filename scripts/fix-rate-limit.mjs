@@ -1,7 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 
-const url = 'https://wviqbscbnrrpxpojhqql.supabase.co';
-const key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind2aXFic2NibnJycHhwb2pocXFsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc5MDkzMDY1MSwiZXhwIjoyMTA2NTA2NjUxfQ.U0SzFdOvWGL2y56F4ssfM9Ov5xkCWQj6tg56ru0ubQM';
+import { getSupabaseAdminEnv } from './_env.mjs';
+
+const { url, serviceRoleKey: key, projectRef } = getSupabaseAdminEnv();
 
 const supabase = createClient(url, key, { auth: { persistSession: false } });
 
@@ -102,7 +103,6 @@ NOTIFY pgrst, 'reload schema';
 `;
 
 // Appliquer via l'API de gestion Supabase
-const projectRef = 'wviqbscbnrrpxpojhqql';
 const mgmtRes = await fetch(
   `https://api.supabase.com/v1/projects/${projectRef}/database/query`,
   {

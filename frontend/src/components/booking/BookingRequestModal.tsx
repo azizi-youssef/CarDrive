@@ -63,6 +63,7 @@ export function BookingRequestModal({
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [submissionError, setSubmissionError] = useState<string | null>(null);
   const [confirmedBookingRef, setConfirmedBookingRef] = useState<string | null>(null);
+  const [confirmedPdfUrl, setConfirmedPdfUrl] = useState<string | null>(null);
   const [agencyWhatsAppUrl, setAgencyWhatsAppUrl] = useState<string | null>(null);
   const idempotencyRequestRef = useRef<{ body: string; key: string } | null>(null);
   // Étape 1 : Coordonnées & Permis
@@ -180,6 +181,7 @@ export function BookingRequestModal({
       }
 
       setConfirmedBookingRef(data.reference);
+      setConfirmedPdfUrl(typeof data.pdfUrl === 'string' ? data.pdfUrl : null);
       if (data.agencyWhatsAppUrl) {
         setAgencyWhatsAppUrl(data.agencyWhatsAppUrl);
       }
@@ -769,7 +771,7 @@ export function BookingRequestModal({
               {/* Actions Rapides */}
               <div className="flex flex-col sm:flex-row gap-2.5 max-w-md mx-auto pt-1">
                 <a
-                  href={`/api/bookings/${encodeURIComponent(confirmedBookingRef || '')}/pdf`}
+                  href={confirmedPdfUrl || `/api/bookings/${encodeURIComponent(confirmedBookingRef || '')}/pdf`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex-1 py-3 px-4 rounded-xl bg-white border border-slate-300 hover:border-slate-400 text-slate-800 font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all"

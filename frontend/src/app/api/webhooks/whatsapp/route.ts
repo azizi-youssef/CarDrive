@@ -39,8 +39,14 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const rawBody = await request.text();
+  if (!whatsappService.verifyWebhookSignature(rawBody, request.headers.get('x-hub-signature-256'))) {
+    console.warn('[WhatsAppWebhook] Signature X-Hub-Signature-256 invalide ou absente. Requête rejetée.');
+    return NextResponse.json({ success: false, error: 'Signature invalide' }, { status: 401 });
+  }
+
   try {
-    const body = await request.json();
+    const body = JSON.parse(rawBody);
 
     const summary = await whatsappService.processWebhookPayload(body);
 

@@ -10,6 +10,7 @@ import {
   RateLimitUnavailableError,
 } from '@/lib/rate-limit';
 import { redactBookingCustomerData } from '@/lib/auth/booking-access';
+import { signedBookingPdfPath } from '@/lib/auth/booking-pdf-link';
 
 export async function POST(req: NextRequest) {
   try {
@@ -100,7 +101,7 @@ export async function POST(req: NextRequest) {
     const agencyWhatsAppMessage = notificationService.formatAgencyWhatsAppMessage(result.booking, appUrl);
     const agencyPhone = result.booking.agency?.whatsapp || result.booking.agency?.phone || '+212661234567';
     const agencyWhatsAppUrl = notificationService.generateWhatsAppLink(agencyPhone, agencyWhatsAppMessage);
-    const pdfUrl = `${appUrl}/api/bookings/${encodeURIComponent(result.booking.reference || '')}/pdf`;
+    const pdfUrl = `${appUrl}${signedBookingPdfPath(result.booking.reference || '')}`;
 
     if (!result.idempotentReplay) {
       await notificationService.sendDashboardNotification({
