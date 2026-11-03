@@ -42,7 +42,8 @@ function SearchPageContent() {
   const [vehiclesError, setVehiclesError] = useState<string | null>(null);
 
   const loadData = useCallback(async (isInitial = false) => {
-    if (document.visibilityState !== 'visible') return;
+    // Le chargement initial doit toujours aboutir, même dans un onglet ouvert en arrière-plan.
+    if (!isInitial && document.visibilityState !== 'visible') return;
     if (isInitial) setVehiclesLoading(true);
     try {
       const params = new URLSearchParams();

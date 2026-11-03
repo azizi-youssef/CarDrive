@@ -6,7 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { findSameModelAlternatives } from '@/lib/availability/engine';
-import { BookingCard } from '@/components/booking/BookingCard';
+import { BookingCard, type BookingAvailability } from '@/components/booking/BookingCard';
 import { generateWhatsAppLink, formatPrice, cn } from '@/lib/utils';
 import { SameModelAlternatives } from '@/components/cars/SameModelAlternatives';
 import { Badge } from '@/components/ui/Badge';
@@ -54,6 +54,7 @@ export default function CarDetailsPage({
   const [notFoundState, setNotFoundState] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [favorite, setFavorite] = useState(false);
+  const [dateAvailability, setDateAvailability] = useState<BookingAvailability>('checking');
 
   const load = useCallback(async (isInitial = false) => {
     try {
@@ -124,12 +125,17 @@ export default function CarDetailsPage({
       ];
 
   const isFleetListed = vehicle.status === 'AVAILABLE';
-  const vehicleStatusLabel =
-    vehicle.status === 'AVAILABLE'
-      ? 'Disponible'
-      : vehicle.status === 'MAINTENANCE'
-        ? 'Maintenance'
-        : 'Non disponible';
+  // Un véhicule en flotte n'est « disponible » que si les dates choisies le sont aussi.
+  const isAvailableForDates = isFleetListed && dateAvailability !== 'unavailable';
+  const vehicleStatusLabel = !isFleetListed
+    ? vehicle.status === 'MAINTENANCE'
+      ? 'Maintenance'
+      : 'Non disponible'
+    : dateAvailability === 'checking'
+      ? 'Vérification…'
+      : dateAvailability === 'unavailable'
+        ? 'Indisponible pour ces dates'
+        : 'Disponible';
 
   const averageRating =
     reviews.length > 0
@@ -207,7 +213,7 @@ export default function CarDetailsPage({
 
                 <Badge
                   variant={
-                    isFleetListed
+                    isAvailableForDates
                       ? 'available'
                       : vehicle.status === 'MAINTENANCE'
                         ? 'pending'
@@ -218,10 +224,10 @@ export default function CarDetailsPage({
                   {vehicleStatusLabel}
                 </Badge>
 
-                {isFleetListed && (
+                {isFleetListed && dateAvailability === 'unavailable' && (
                   <span className="flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-[9px] font-bold text-slate-600">
                     <Info className="h-3 w-3" />
-                    Choisissez vos dates pour vérifier
+                    Essayez d’autres dates
                   </span>
                 )}
 
@@ -330,7 +336,7 @@ export default function CarDetailsPage({
           {/* LEFT CONTENT                                                 */}
           {/* ============================================================ */}
 
-          <div className="space-y-7 lg:col-span-8">
+          <div className="min-w-0 space-y-7 lg:col-span-8">
 
             {/* ---------------------------------------------------------- */}
             {/* GALLERY                                                     */}
@@ -363,15 +369,15 @@ export default function CarDetailsPage({
                 <div
                   className={cn(
                     'absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-white/95 px-2.5 py-1.5 text-[9px] font-bold shadow-sm backdrop-blur',
-                    isFleetListed ? 'text-emerald-700' : 'text-red-700'
+                    isAvailableForDates ? 'text-emerald-700' : 'text-red-700'
                   )}
                 >
-                  {isFleetListed ? (
+                  {isAvailableForDates ? (
                     <CheckCircle2 className="h-3 w-3 text-emerald-600" />
                   ) : (
                     <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
                   )}
-                  {isFleetListed ? 'Disponible' : 'Non disponible'}
+                  {vehicleStatusLabel}
                 </div>
 
               </div>
@@ -723,7 +729,7 @@ export default function CarDetailsPage({
 
             <div className="lg:sticky lg:top-24">
 
-              <BookingCard vehicle={vehicle} />
+              <BookingCard vehicle={vehicle} onAvailabilityChange={setDateAvailability} />
 
               {/* CarDrive Conciergerie & Assistance */}
               <div className="mt-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">

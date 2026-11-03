@@ -12,8 +12,12 @@ import { Calendar, MapPin, MessageSquare, Check, ShieldCheck, CheckCircle2, Cloc
 import { BookingRequestModal } from './BookingRequestModal';
 import { Magnet } from '@/components/ui/react-bits';
 
+export type BookingAvailability = 'checking' | 'available' | 'unavailable' | 'error';
+
 interface BookingCardProps {
   vehicle: Vehicle;
+  /** Remonte la disponibilité réelle pour les dates choisies (badges de la fiche). */
+  onAvailabilityChange?: (availability: BookingAvailability) => void;
 }
 
 function getInitialDates() {
@@ -24,7 +28,7 @@ function getInitialDates() {
   return { today, inThreeDays };
 }
 
-export function BookingCard({ vehicle }: BookingCardProps) {
+export function BookingCard({ vehicle, onAvailabilityChange }: BookingCardProps) {
   const [initialDates] = useState(getInitialDates);
   const today = initialDates.today;
 
@@ -36,7 +40,17 @@ export function BookingCard({ vehicle }: BookingCardProps) {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [bookingSuccessRef, setBookingSuccessRef] = useState<string | null>(null);
-  const [availability, setAvailability] = useState<'checking' | 'available' | 'unavailable' | 'error'>('checking');
+  const [availability, setAvailability] = useState<BookingAvailability>('checking');
+
+  useEffect(() => {
+    onAvailabilityChange?.(availability);
+  }, [availability, onAvailabilityChange]);
+
+  const focusDates = () => {
+    const input = document.getElementById('booking-start-date');
+    input?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    input?.focus({ preventScroll: true });
+  };
 
   useEffect(() => {
     let active = true;
@@ -162,6 +176,7 @@ export function BookingCard({ vehicle }: BookingCardProps) {
                 Départ
               </label>
               <input
+                id="booking-start-date"
                 type="date"
                 required
                 min={today}
@@ -350,18 +365,38 @@ export function BookingCard({ vehicle }: BookingCardProps) {
       {/* Sticky Mobile/Tablet Bar CTA (visible under 1024px lg) */}
       <div className="fixed bottom-0 left-0 right-0 p-3.5 bg-white/98 backdrop-blur-xl border-t border-slate-200/90 shadow-[0_-8px_30px_rgba(11,18,32,0.12)] z-40 lg:hidden flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <span className="text-[10px] font-semibold text-slate-500 block">Total estimé ({totalDays}j)</span>
-          <span className="text-base font-extrabold text-[#0B1220]">{formatPrice(totalPrice)}</span>
+          {availability === 'unavailable' ? (
+            <>
+              <span className="text-[10px] font-semibold text-red-600 block">Indisponible</span>
+              <span className="text-xs font-bold text-slate-700">pour ces dates</span>
+            </>
+          ) : (
+            <>
+              <span className="text-[10px] font-semibold text-slate-500 block">Total estimé ({totalDays}j)</span>
+              <span className="text-base font-extrabold text-[#0B1220]">{formatPrice(totalPrice)}</span>
+            </>
+          )}
         </div>
-        <button
-          type="button"
-          onClick={() => setIsModalOpen(true)}
-          disabled={availability !== 'available'}
-          className="flex-1 max-w-xs py-3 px-4 rounded-xl bg-[#E63946] hover:bg-[#C92F3B] disabled:bg-slate-300 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-xs hover:shadow-[0_4px_16px_rgba(230,57,70,0.3)] disabled:cursor-not-allowed transition-all active:scale-[0.99]"
-        >
-          <Calendar className="w-4 h-4 text-white" />
-          <span>Demander cette voiture</span>
-        </button>
+        {availability === 'unavailable' ? (
+          <button
+            type="button"
+            onClick={focusDates}
+            className="flex-1 max-w-xs py-3 px-4 rounded-xl bg-[#0B1220] hover:bg-slate-800 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all active:scale-[0.99]"
+          >
+            <Calendar className="w-4 h-4 text-white" />
+            <span>Changer les dates</span>
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setIsModalOpen(true)}
+            disabled={availability === 'checking'}
+            className="flex-1 max-w-xs py-3 px-4 rounded-xl bg-[#E63946] hover:bg-[#C92F3B] disabled:bg-slate-300 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-xs hover:shadow-[0_4px_16px_rgba(230,57,70,0.3)] disabled:cursor-not-allowed transition-all active:scale-[0.99]"
+          >
+            <Calendar className="w-4 h-4 text-white" />
+            <span>{availability === 'checking' ? 'Vérification…' : 'Demander cette voiture'}</span>
+          </button>
+        )}
       </div>
     </div>
   );
