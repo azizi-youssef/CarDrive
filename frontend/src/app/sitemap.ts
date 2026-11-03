@@ -1,4 +1,5 @@
 import { MetadataRoute } from 'next';
+import { unstable_rethrow } from 'next/navigation';
 import { vehiclesService } from '@/lib/services/vehicles.service';
 import { agenciesService } from '@/lib/services/agencies.service';
 import { ALL_SEO_SLUGS } from '@/lib/seo/landingPages';
@@ -6,10 +7,15 @@ import { ALL_SEO_SLUGS } from '@/lib/seo/landingPages';
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://cardrive.ma';
 
+  // Les pages fixes restent listées même si le catalogue est inaccessible (build CI sans Supabase).
   const [vehicles, agencies] = await Promise.all([
     vehiclesService.getVehicles(),
     agenciesService.getAgencies(false),
-  ]);
+  ]).catch((error: unknown) => {
+    unstable_rethrow(error); // laisse Next passer le sitemap en rendu dynamique (cookies)
+    console.error('[Sitemap] Catalogue indisponible:', error instanceof Error ? error.message : error);
+    return [[], []] as [Awaited<ReturnType<typeof vehiclesService.getVehicles>>, Awaited<ReturnType<typeof agenciesService.getAgencies>>];
+  });
 
   const vehicleUrls = vehicles.map((v) => ({
     url: `${baseUrl}/cars/${v.slug}`,

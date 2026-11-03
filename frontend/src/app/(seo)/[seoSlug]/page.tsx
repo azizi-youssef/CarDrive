@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { notFound, unstable_rethrow } from 'next/navigation';
 import { Metadata } from 'next';
 import { SEO_LANDING_PAGES, ALL_SEO_SLUGS } from '@/lib/seo/landingPages';
 import { vehiclesService } from '@/lib/services/vehicles.service';
@@ -63,11 +63,16 @@ export default async function SeoLandingPage({ params }: PageProps) {
     notFound();
   }
 
-  // Filter vehicles according to the landing page intent
+  // Le contenu éditorial reste servi même si le catalogue est momentanément
+  // inaccessible (build CI sans Supabase, panne).
   const [allVehicles, agencies] = await Promise.all([
     vehiclesService.getVehicles(),
     agenciesService.getAgencies(true),
-  ]);
+  ]).catch((error: unknown) => {
+    unstable_rethrow(error); // laisse Next passer la page en rendu dynamique (cookies)
+    console.error('[SeoLandingPage] Catalogue indisponible:', error instanceof Error ? error.message : error);
+    return [[], []] as [Awaited<ReturnType<typeof vehiclesService.getVehicles>>, Awaited<ReturnType<typeof agenciesService.getAgencies>>];
+  });
   let vehicles = allVehicles;
 
   if (pageData.filterCategory) {

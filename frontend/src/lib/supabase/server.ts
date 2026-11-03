@@ -25,6 +25,9 @@ export async function createClient() {
 
   if (!url || !key || !url.startsWith('http')) {
     if (process.env.NODE_ENV === 'production') {
+      // Lire les cookies d'abord : au build, Next marque ainsi la page comme dynamique
+      // (rendue à la requête) au lieu d'échouer au pré-rendu sans variables Supabase.
+      await cookies();
       throw new Error(
         '[Supabase] Variables d\'environnement manquantes en production : NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY sont requis.'
       );
