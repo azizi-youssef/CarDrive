@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { SearchBar } from '@/components/search/SearchBar';
+import { BrandMarquee } from '@/components/shared/BrandMarquee';
 import { VehicleCard } from '@/components/cars/VehicleCard';
 import { AgencyCard } from '@/components/agencies/AgencyCard';
 import { loginUrl } from '@/lib/auth/login-portals';
@@ -324,6 +325,9 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Bandeau défilant des grandes marques */}
+      <BrandMarquee />
 
       {/* ================================================================
           BANDE DE CONFIANCE UNIQUE — Fusionnée, lisible et factuelle

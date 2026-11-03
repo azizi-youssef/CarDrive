@@ -7,8 +7,8 @@ import { useTranslation } from '@/lib/i18n/LanguageContext';
 import { LanguageSelector } from '@/components/shared/LanguageSelector';
 import {
   ShieldCheck,
-  Star,
-  Clock3,
+  Receipt,
+  Headphones,
   MapPin,
   Mail,
   MessageCircle,
@@ -17,6 +17,7 @@ import {
   Anchor,
   Compass,
   Car,
+  Gauge,
   ChevronDown,
   ChevronRight,
   ArrowUpRight,
@@ -33,9 +34,7 @@ interface FooterStrings {
   agencyBadge: string;
   agencyDesc: string;
   agencyCta: string;
-  brandTagline: string;
   brandDesc: string;
-  regionTag: string;
   trust1Title: string;
   trust1Desc: string;
   trust2Title: string;
@@ -59,7 +58,6 @@ interface FooterStrings {
   allVehicles: string;
   colServices: string;
   agencies: string;
-  becomePartner: string;
   agencyPortal: string;
   faq: string;
   contact: string;
@@ -67,7 +65,6 @@ interface FooterStrings {
   legalCgv: string;
   legalPrivacy: string;
   legalMentions: string;
-  sitemap: string;
   allRightsReserved: string;
   bottomTagline: string;
 }
@@ -79,10 +76,8 @@ const STRINGS: Record<string, FooterStrings> = {
     agencyDesc:
       'Rejoignez le premier réseau de loueurs professionnels de l’Oriental pour digitaliser votre flotte et recevoir des demandes de réservation qualifiées.',
     agencyCta: 'Devenir agence partenaire',
-    brandTagline: 'Location de voitures à Nador',
     brandDesc:
       'CarDrive est la marketplace automobile de référence à Nador. Comparez les disponibilités en temps réel et réservez auprès d’agences locales partenaires rigoureusement sélectionnées.',
-    regionTag: 'Nador · Région de l’Oriental · Maroc',
     trust1Title: 'Agences partenaires vérifiées',
     trust1Desc: 'Des loueurs professionnels immatriculés et rigoureusement sélectionnés.',
     trust2Title: 'Tarifs clairs & sans frais cachés',
@@ -106,7 +101,6 @@ const STRINGS: Record<string, FooterStrings> = {
     allVehicles: 'Tous les véhicules',
     colServices: 'Services & Partenaires',
     agencies: 'Agences partenaires',
-    becomePartner: 'Devenir partenaire',
     agencyPortal: 'Espace agence',
     faq: 'Centre d’aide & FAQ',
     contact: 'Contact & Support',
@@ -114,7 +108,6 @@ const STRINGS: Record<string, FooterStrings> = {
     legalCgv: 'Conditions Générales (CGV)',
     legalPrivacy: 'Confidentialité',
     legalMentions: 'Mentions Légales',
-    sitemap: 'Plan du site',
     allRightsReserved: 'Tous droits réservés.',
     bottomTagline: 'CarDrive · Marketplace de location de véhicules à Nador & dans l’Oriental',
   },
@@ -124,10 +117,8 @@ const STRINGS: Record<string, FooterStrings> = {
     agencyDesc:
       'انضم لشبكة كاردرايف الرائدة في الجهة الشرقية لرقمنة أسطولك واستقبال طلبات حجز موثوقة ومباشرة من الزبائن.',
     agencyCta: 'انضم كوكالة شريكة',
-    brandTagline: 'كراء السيارات في الناظور',
     brandDesc:
       'كاردرايف هي المنصة المرجعية لمقارنة وحجز سيارات الكراء بالناظور والجهة الشرقية، لدى وكالات محلية معتمدة وموثوقة.',
-    regionTag: 'الناظور · الجهة الشرقية · المغرب',
     trust1Title: 'وكالات شريكة معتمدة',
     trust1Desc: 'مهنيون محليون مرخصون ومختارون بعناية فائقة.',
     trust2Title: 'أسعار واضحة بدون مصاريف خفية',
@@ -151,7 +142,6 @@ const STRINGS: Record<string, FooterStrings> = {
     allVehicles: 'عرض جميع السيارات',
     colServices: 'الخدمات والشركاء',
     agencies: 'الوكالات الشريكة',
-    becomePartner: 'انضم كشريك',
     agencyPortal: 'بوابة الوكالة',
     faq: 'الأسئلة الشائعة والمساعدة',
     contact: 'الاتصال والدعم',
@@ -159,7 +149,6 @@ const STRINGS: Record<string, FooterStrings> = {
     legalCgv: 'الشروط العامة للاستخدام',
     legalPrivacy: 'سياسة الخصوصية',
     legalMentions: 'البيانات القانونية',
-    sitemap: 'خريطة الموقع',
     allRightsReserved: 'جميع الحقوق محفوظة.',
     bottomTagline: 'كاردرايف · منصة كراء السيارات بالناظور والجهة الشرقية للمملكة',
   },
@@ -169,10 +158,8 @@ const STRINGS: Record<string, FooterStrings> = {
     agencyDesc:
       'Join the premier rental marketplace in the Oriental region to digitize your fleet and receive verified booking inquiries.',
     agencyCta: 'Become a partner agency',
-    brandTagline: 'Car Rental in Nador',
     brandDesc:
       'CarDrive is the leading automotive marketplace in Nador, helping travelers compare live availability and book directly from verified local partner agencies.',
-    regionTag: 'Nador · Oriental Region · Morocco',
     trust1Title: 'Verified Partner Agencies',
     trust1Desc: 'Licensed, trustworthy local car rental businesses in Nador.',
     trust2Title: 'Transparent Pricing',
@@ -196,7 +183,6 @@ const STRINGS: Record<string, FooterStrings> = {
     allVehicles: 'All Available Vehicles',
     colServices: 'Services & Partners',
     agencies: 'Partner Agencies',
-    becomePartner: 'Partner with Us',
     agencyPortal: 'Agency Portal',
     faq: 'FAQ & Help Center',
     contact: 'Contact & Support',
@@ -204,9 +190,131 @@ const STRINGS: Record<string, FooterStrings> = {
     legalCgv: 'Terms of Service',
     legalPrivacy: 'Privacy Policy',
     legalMentions: 'Legal Notice',
-    sitemap: 'Sitemap',
     allRightsReserved: 'All rights reserved.',
     bottomTagline: 'CarDrive · Car Rental Marketplace in Nador & Eastern Morocco',
+  },
+  de: {
+    agencyTitle: 'Sie betreiben eine Autovermietung in Nador?',
+    agencyBadge: 'Partnerportal',
+    agencyDesc:
+      'Treten Sie dem führenden Netzwerk professioneller Vermieter im Oriental bei, digitalisieren Sie Ihre Flotte und erhalten Sie qualifizierte Buchungsanfragen.',
+    agencyCta: 'Partneragentur werden',
+    brandDesc:
+      'CarDrive ist der führende Automarktplatz in Nador. Vergleichen Sie die Verfügbarkeit in Echtzeit und buchen Sie bei sorgfältig ausgewählten lokalen Partneragenturen.',
+    trust1Title: 'Geprüfte Partneragenturen',
+    trust1Desc: 'Registrierte, sorgfältig ausgewählte professionelle Vermieter.',
+    trust2Title: 'Klare Preise ohne versteckte Kosten',
+    trust2Desc: 'Transparente Bedingungen und Preise direkt von den Agenturen.',
+    trust3Title: 'Verfügbarkeit & Support 7/7',
+    trust3Desc: 'Übergabe am Flughafen, Hafen und im Zentrum mit durchgehender WhatsApp-Hilfe.',
+    whatsappSupport: 'CarDrive WhatsApp-Support',
+    emailUs: 'contact@cardrive.ma',
+    colExplorer: 'Nador entdecken',
+    airport: 'Flughafen Nador-Al Aroui (NDR)',
+    port: 'Hafen Beni Ansar (Fähre)',
+    marchica: 'Marchica & Lagune',
+    downtown: 'Nador Zentrum',
+    selouane: 'Selouane & Umgebung',
+    colVehicles: 'Fahrzeuge & Flotte',
+    suv: 'SUV & 4x4',
+    economy: 'Klein- & Sparwagen',
+    sedan: 'Komfort-Limousinen',
+    premium: 'Luxus & Prestige',
+    automatic: 'Automatikgetriebe',
+    allVehicles: 'Alle Fahrzeuge',
+    colServices: 'Service & Partner',
+    agencies: 'Partneragenturen',
+    agencyPortal: 'Agenturbereich',
+    faq: 'Hilfe & FAQ',
+    contact: 'Kontakt & Support',
+    howItWorks: 'So funktioniert’s',
+    legalCgv: 'AGB',
+    legalPrivacy: 'Datenschutz',
+    legalMentions: 'Impressum',
+    allRightsReserved: 'Alle Rechte vorbehalten.',
+    bottomTagline: 'CarDrive · Mietwagen-Marktplatz in Nador & im Oriental',
+  },
+  es: {
+    agencyTitle: '¿Tiene una agencia de alquiler de coches en Nador?',
+    agencyBadge: 'Portal de socios',
+    agencyDesc:
+      'Únase a la red líder de alquiladores profesionales del Oriental para digitalizar su flota y recibir solicitudes de reserva cualificadas.',
+    agencyCta: 'Ser agencia asociada',
+    brandDesc:
+      'CarDrive es el marketplace de referencia en Nador. Compare la disponibilidad en tiempo real y reserve con agencias locales asociadas seleccionadas con rigor.',
+    trust1Title: 'Agencias asociadas verificadas',
+    trust1Desc: 'Alquiladores profesionales registrados y seleccionados con rigor.',
+    trust2Title: 'Precios claros sin costes ocultos',
+    trust2Desc: 'Condiciones transparentes y precios fijados directamente por las agencias.',
+    trust3Title: 'Disponibilidad y soporte 7/7',
+    trust3Desc: 'Entrega en aeropuerto, puerto y centro con asistencia continua por WhatsApp.',
+    whatsappSupport: 'Asistencia WhatsApp CarDrive',
+    emailUs: 'contact@cardrive.ma',
+    colExplorer: 'Explorar Nador',
+    airport: 'Aeropuerto Nador-Al Aroui (NDR)',
+    port: 'Puerto de Beni Ansar (Ferry)',
+    marchica: 'Marchica y Laguna',
+    downtown: 'Centro de Nador',
+    selouane: 'Selouane y alrededores',
+    colVehicles: 'Vehículos y flota',
+    suv: 'SUV y 4x4',
+    economy: 'Urbanos y económicos',
+    sedan: 'Berlinas confort',
+    premium: 'Lujo y prestigio',
+    automatic: 'Cambio automático',
+    allVehicles: 'Todos los vehículos',
+    colServices: 'Servicios y socios',
+    agencies: 'Agencias asociadas',
+    agencyPortal: 'Espacio agencia',
+    faq: 'Ayuda y FAQ',
+    contact: 'Contacto y soporte',
+    howItWorks: 'Cómo funciona',
+    legalCgv: 'Condiciones generales',
+    legalPrivacy: 'Privacidad',
+    legalMentions: 'Aviso legal',
+    allRightsReserved: 'Todos los derechos reservados.',
+    bottomTagline: 'CarDrive · Marketplace de alquiler de vehículos en Nador y el Oriental',
+  },
+  nl: {
+    agencyTitle: 'Heeft u een autoverhuurbedrijf in Nador?',
+    agencyBadge: 'Partnerportaal',
+    agencyDesc:
+      'Sluit u aan bij het toonaangevende netwerk van professionele verhuurders in de Oriental, digitaliseer uw vloot en ontvang gekwalificeerde boekingsaanvragen.',
+    agencyCta: 'Partnerbureau worden',
+    brandDesc:
+      'CarDrive is dé automarktplaats van Nador. Vergelijk de beschikbaarheid in realtime en boek bij zorgvuldig geselecteerde lokale partnerbureaus.',
+    trust1Title: 'Geverifieerde partnerbureaus',
+    trust1Desc: 'Geregistreerde, zorgvuldig geselecteerde professionele verhuurders.',
+    trust2Title: 'Duidelijke prijzen zonder verborgen kosten',
+    trust2Desc: 'Transparante voorwaarden en prijzen rechtstreeks van de bureaus.',
+    trust3Title: 'Beschikbaarheid & support 7/7',
+    trust3Desc: 'Overdracht op luchthaven, haven en centrum met doorlopende WhatsApp-hulp.',
+    whatsappSupport: 'CarDrive WhatsApp-support',
+    emailUs: 'contact@cardrive.ma',
+    colExplorer: 'Ontdek Nador',
+    airport: 'Luchthaven Nador-Al Aroui (NDR)',
+    port: 'Haven Beni Ansar (Ferry)',
+    marchica: 'Marchica & Lagune',
+    downtown: 'Nador Centrum',
+    selouane: 'Selouane & omgeving',
+    colVehicles: 'Voertuigen & vloot',
+    suv: 'SUV & 4x4',
+    economy: 'Stads- & budgetauto’s',
+    sedan: 'Comfortabele sedans',
+    premium: 'Luxe & prestige',
+    automatic: 'Automaat',
+    allVehicles: 'Alle voertuigen',
+    colServices: 'Diensten & partners',
+    agencies: 'Partnerbureaus',
+    agencyPortal: 'Bureauportaal',
+    faq: 'Hulp & FAQ',
+    contact: 'Contact & support',
+    howItWorks: 'Hoe het werkt',
+    legalCgv: 'Algemene voorwaarden',
+    legalPrivacy: 'Privacy',
+    legalMentions: 'Juridische informatie',
+    allRightsReserved: 'Alle rechten voorbehouden.',
+    bottomTagline: 'CarDrive · Autoverhuurmarktplaats in Nador & de Oriental',
   },
 };
 
@@ -214,8 +322,12 @@ function getStrings(locale: string): FooterStrings {
   return STRINGS[locale] || STRINGS.fr;
 }
 
+/* Valeurs exactes reconnues par la recherche (LOCATIONS_NADOR) */
+const MARCHICA_SEARCH = `/search?location=${encodeURIComponent('Corniche Marchica (Nador)')}`;
+const SELOUANE_SEARCH = `/search?location=${encodeURIComponent('Selouane Centre')}`;
+
 /* ====================================================================== */
-/* LINK COMPONENT                                                         */
+/* LINK & COLUMN COMPONENTS                                               */
 /* ====================================================================== */
 
 function NavItem({
@@ -236,18 +348,17 @@ function NavItem({
       <Link
         href={href}
         className={cn(
-          'group flex items-center justify-between rounded-lg py-1.5 text-[13px] font-medium transition-colors focus-visible:outline-2 focus-visible:outline-[#E63946]',
-          highlight
-            ? 'font-semibold text-[#E63946] hover:text-[#C92F3B]'
-            : 'text-slate-400 hover:text-white'
+          // Cible tactile ≥ 44 px en mobile, liste plus dense sur desktop
+          'group flex min-h-11 items-center justify-between rounded-lg text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-[#E63946] md:min-h-0 md:py-1.5 md:text-[13px]',
+          highlight ? 'font-semibold text-[#FF6B76] hover:text-white' : 'text-slate-300 hover:text-white'
         )}
       >
-        <span className="flex items-center gap-2">
+        <span className="flex items-center gap-2.5">
           {icon && (
             <span
               className={cn(
-                'text-slate-500 transition-colors',
-                highlight ? 'text-[#E63946]' : 'group-hover:text-white'
+                'text-slate-400 transition-colors',
+                highlight ? 'text-[#FF6B76]' : 'group-hover:text-[#FF6B76]'
               )}
             >
               {icon}
@@ -258,16 +369,62 @@ function NavItem({
 
         <ChevronRight
           className={cn(
-            'h-3.5 w-3.5 shrink-0 opacity-0 transition-all duration-200 group-hover:opacity-100',
-            highlight ? 'text-[#E63946] opacity-100' : 'text-slate-500 group-hover:text-white',
-            isRTL
-              ? 'rotate-180 group-hover:-translate-x-0.5'
-              : 'group-hover:translate-x-0.5'
+            'h-4 w-4 shrink-0 text-slate-500 transition-all duration-200 md:opacity-0 md:group-hover:opacity-100',
+            highlight && 'text-[#FF6B76] md:opacity-100',
+            isRTL ? 'rotate-180 group-hover:-translate-x-0.5' : 'group-hover:translate-x-0.5'
           )}
           aria-hidden="true"
         />
       </Link>
     </li>
+  );
+}
+
+/** Colonne de liens : titre simple sur tablette/desktop, accordéon (fermé par défaut) en mobile. */
+function FooterColumn({
+  id,
+  title,
+  open,
+  onToggle,
+  className,
+  children,
+}: {
+  id: string;
+  title: string;
+  open: boolean;
+  onToggle: () => void;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  const listId = `footer-col-${id}`;
+  return (
+    <div className={className}>
+      <h3 className="mb-4 hidden items-center gap-2 text-xs font-bold uppercase tracking-wider text-white md:flex">
+        <span className="h-1 w-3.5 rounded-full bg-[#E63946]" aria-hidden="true" />
+        {title}
+      </h3>
+      <h3 className="md:hidden">
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-expanded={open}
+          aria-controls={listId}
+          className="flex min-h-13 w-full items-center justify-between border-b border-white/8 text-[13px] font-bold uppercase tracking-wider text-white"
+        >
+          <span className="flex items-center gap-2">
+            <span className="h-1 w-3.5 rounded-full bg-[#E63946]" aria-hidden="true" />
+            {title}
+          </span>
+          <ChevronDown
+            className={cn('h-4 w-4 text-slate-400 transition-transform duration-200', open && 'rotate-180')}
+            aria-hidden="true"
+          />
+        </button>
+      </h3>
+      <ul id={listId} className={cn('pt-1 md:space-y-1 md:pt-0', open ? 'block' : 'hidden md:block')}>
+        {children}
+      </ul>
+    </div>
   );
 }
 
@@ -280,59 +437,46 @@ export function Footer() {
   const { locale, isRTL } = useTranslation();
   const strings = getStrings(locale);
 
-  // Mobile Accordion state
-  const [openAccordions, setOpenAccordions] = useState<Record<string, boolean>>({
-    explorer: true,
-    vehicles: false,
-    services: false,
-  });
+  // Accordéons mobiles : tous fermés pour garder un footer court
+  const [openColumns, setOpenColumns] = useState<Record<string, boolean>>({});
+  const toggleColumn = (id: string) => setOpenColumns((prev) => ({ ...prev, [id]: !prev[id] }));
 
-  const toggleAccordion = (section: string) => {
-    setOpenAccordions((prev) => ({
-      ...prev,
-      [section]: !prev[section],
-    }));
-  };
+  const trustItems = [
+    { icon: ShieldCheck, title: strings.trust1Title, desc: strings.trust1Desc },
+    { icon: Receipt, title: strings.trust2Title, desc: strings.trust2Desc },
+    { icon: Headphones, title: strings.trust3Title, desc: strings.trust3Desc },
+  ];
+
+  const legalLinkClass =
+    'inline-flex min-h-11 items-center transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-[#E63946] sm:min-h-0';
 
   return (
-    <footer
-      className="relative overflow-hidden border-t border-white/6 bg-[#0B1220] text-slate-300"
-      role="contentinfo"
-    >
-      {/* Subtle Automotive Industrial Background Atmosphere */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 overflow-hidden"
-      >
-        <div className="absolute -top-32 right-1/4 h-80 w-80 rounded-full bg-[#E63946]/5 blur-3xl" />
-        <div className="absolute -bottom-32 left-10 h-80 w-80 rounded-full bg-slate-700/10 blur-3xl" />
+    <footer className="relative overflow-hidden border-t border-white/6 bg-[#0B1220] text-slate-300" role="contentinfo">
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -top-32 right-1/4 h-80 w-80 rounded-full bg-[#E63946]/6 blur-3xl" />
       </div>
 
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* ============================================================ */}
-        {/* 1. AGENCY CONVERSION CTA                                     */}
+        {/* 1. APPEL AUX AGENCES                                         */}
         {/* ============================================================ */}
         <section aria-label={strings.agencyTitle} className="pt-10 sm:pt-12">
-          <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-linear-to-br from-white/5 via-white/2 to-transparent p-6 sm:p-8">
-            <div className="relative flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+          <div className="rounded-2xl border border-white/10 bg-linear-to-br from-white/6 via-white/2 to-transparent p-5 sm:p-8">
+            <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between md:gap-8">
               <div className="flex items-start gap-4">
                 <div
-                  className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-[#E63946]/25 bg-[#E63946]/10 text-[#E63946]"
+                  className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-[#E63946]/25 bg-[#E63946]/10 text-[#FF6B76] sm:flex"
                   aria-hidden="true"
                 >
                   <Building2 className="h-6 w-6" />
                 </div>
-
                 <div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h2 className="text-sm sm:text-base font-bold text-white">
-                      {strings.agencyTitle}
-                    </h2>
-                    <span className="rounded-full border border-[#E63946]/30 bg-[#E63946]/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[#E63946]">
-                      {strings.agencyBadge}
-                    </span>
-                  </div>
-                  <p className="mt-1.5 max-w-2xl text-xs sm:text-[13px] leading-relaxed text-slate-400">
+                  <span className="hidden rounded-full border border-[#E63946]/30 bg-[#E63946]/10 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-[#FF6B76] sm:inline-block">
+                    {strings.agencyBadge}
+                  </span>
+                  <h2 className="text-base font-bold text-white sm:mt-2 sm:text-lg">{strings.agencyTitle}</h2>
+                  {/* Description masquée en mobile pour raccourcir le footer */}
+                  <p className="mt-1.5 hidden max-w-2xl text-sm leading-relaxed text-slate-300 sm:block">
                     {strings.agencyDesc}
                   </p>
                 </div>
@@ -340,13 +484,13 @@ export function Footer() {
 
               <Link
                 href="/agency/join"
-                className="group inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[#E63946] px-5 py-3 text-xs font-bold text-white shadow-lg shadow-red-950/30 transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#C92F3B] hover:shadow-xl active:translate-y-0 focus-visible:outline-2 focus-visible:outline-white"
+                className="group inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-[#E63946] px-6 text-sm font-bold text-white shadow-lg shadow-red-950/30 transition-colors duration-200 hover:bg-[#C92F3B] focus-visible:outline-2 focus-visible:outline-white"
               >
                 <span>{strings.agencyCta}</span>
                 <ArrowUpRight
                   className={cn(
-                    'h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5',
-                    isRTL && 'rotate-90 group-hover:-translate-x-0.5'
+                    'h-4 w-4 transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5',
+                    isRTL && '-scale-x-100 group-hover:-translate-x-0.5'
                   )}
                   aria-hidden="true"
                 />
@@ -356,402 +500,192 @@ export function Footer() {
         </section>
 
         {/* ============================================================ */}
-        {/* 2. THREE MEANINGFUL TRUST ARGUMENTS                          */}
+        {/* 2. ENGAGEMENTS                                               */}
         {/* ============================================================ */}
-        <section
-          aria-label="Engagements CarDrive"
-          className="my-8 border-y border-white/6 py-8"
-        >
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
-            {/* Argument 1 */}
-            <div className="flex items-start gap-3.5">
-              <div
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-emerald-500/20 bg-emerald-500/10 text-emerald-400"
-                aria-hidden="true"
-              >
-                <ShieldCheck className="h-4.5 w-4.5" />
-              </div>
-              <div>
-                <h3 className="text-xs font-bold text-white">
-                  {strings.trust1Title}
-                </h3>
-                <p className="mt-1 text-[11px] leading-relaxed text-slate-400">
-                  {strings.trust1Desc}
-                </p>
-              </div>
-            </div>
-
-            {/* Argument 2 */}
-            <div className="flex items-start gap-3.5">
-              <div
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-amber-500/20 bg-amber-500/10 text-amber-400"
-                aria-hidden="true"
-              >
-                <Star className="h-4.5 w-4.5" />
-              </div>
-              <div>
-                <h3 className="text-xs font-bold text-white">
-                  {strings.trust2Title}
-                </h3>
-                <p className="mt-1 text-[11px] leading-relaxed text-slate-400">
-                  {strings.trust2Desc}
-                </p>
-              </div>
-            </div>
-
-            {/* Argument 3 */}
-            <div className="flex items-start gap-3.5 sm:col-span-2 md:col-span-1">
-              <div
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-blue-500/20 bg-blue-500/10 text-blue-400"
-                aria-hidden="true"
-              >
-                <Clock3 className="h-4.5 w-4.5" />
-              </div>
-              <div>
-                <h3 className="text-xs font-bold text-white">
-                  {strings.trust3Title}
-                </h3>
-                <p className="mt-1 text-[11px] leading-relaxed text-slate-400">
-                  {strings.trust3Desc}
-                </p>
-              </div>
-            </div>
-          </div>
+        <section aria-label="Engagements CarDrive" className="my-8 border-y border-white/8 py-6 sm:py-8">
+          <ul className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-6">
+            {trustItems.map(({ icon: Icon, title, desc }) => (
+              <li key={title} className="flex items-center gap-3.5 sm:items-start">
+                <span
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#E63946]/20 bg-[#E63946]/10 text-[#FF6B76]"
+                  aria-hidden="true"
+                >
+                  <Icon className="h-5 w-5" />
+                </span>
+                <div>
+                  <h3 className="text-sm font-bold text-white">{title}</h3>
+                  <p className="mt-1 hidden text-[13px] leading-relaxed text-slate-300 sm:block">{desc}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
         </section>
 
         {/* ============================================================ */}
-        {/* 3. FOUR LOGICAL GROUPS ARCHITECTURE                          */}
+        {/* 3. MARQUE + COLONNES DE LIENS                                */}
         {/* ============================================================ */}
-        <div className="grid grid-cols-1 gap-8 pb-10 md:grid-cols-2 lg:grid-cols-12 lg:gap-8">
-          {/* ---------------------------------------------------------- */}
-          {/* GROUP 1: CARDRIVE (Brand, Commercial Description & Contact) */}
-          {/* ---------------------------------------------------------- */}
-          <div className="space-y-4 lg:col-span-4">
+        <div className="grid grid-cols-1 gap-x-8 gap-y-2 pb-8 md:grid-cols-2 md:gap-y-10 lg:grid-cols-12">
+          <div className="space-y-4 pb-6 md:pb-0 lg:col-span-4">
+            {/* Logo sur pastille claire : le « Drive » gris foncé est illisible sur le fond graphite */}
             <Link
               href="/"
               aria-label="CarDrive — Accueil"
-              className="inline-flex items-center focus-visible:outline-2 focus-visible:outline-[#E63946]"
+              className="inline-flex items-center rounded-xl bg-white px-3.5 py-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#E63946]"
             >
-              <div className="relative h-9 w-40">
-                <Image
-                  src="/logo_12.png"
-                  alt="CarDrive"
-                  fill
-                  sizes="160px"
-                  className={cn(
-                    'object-contain brightness-110',
-                    isRTL ? 'object-right' : 'object-left'
-                  )}
-                />
-              </div>
+              <Image src="/logo_12.png" alt="CarDrive" width={134} height={36} className="h-9 w-auto" />
             </Link>
 
-            <p className="max-w-sm text-xs leading-relaxed text-slate-400">
-              {strings.brandDesc}
-            </p>
+            <p className="max-w-sm text-sm leading-relaxed text-slate-300">{strings.brandDesc}</p>
 
-            {/* Direct Contact Actions */}
-            <div className="pt-2 space-y-2">
+            <div className="grid max-w-sm gap-2 pt-1">
               <a
                 href="https://wa.me/212661987654?text=Bonjour%20CarDrive%2C%20je%20souhaite%20louer%20un%20v%C3%A9hicule%20%C3%A0%20Nador"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group flex max-w-sm items-center justify-between rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-3 py-2 text-xs font-semibold text-emerald-400 transition-colors hover:border-emerald-500/40 hover:bg-emerald-500/10"
+                className="group flex min-h-11 items-center justify-between rounded-xl border border-emerald-400/25 bg-emerald-400/8 px-3.5 text-sm font-semibold text-emerald-300 transition-colors hover:border-emerald-400/45 hover:bg-emerald-400/12"
               >
                 <span className="flex items-center gap-2.5">
                   <MessageCircle className="h-4 w-4" aria-hidden="true" />
-                  <span>{strings.whatsappSupport}</span>
+                  {strings.whatsappSupport}
                 </span>
                 <ArrowUpRight
                   className={cn(
-                    'h-3.5 w-3.5 opacity-60 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5',
-                    isRTL && 'rotate-90 group-hover:-translate-x-0.5'
+                    'h-4 w-4 opacity-70 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5',
+                    isRTL && '-scale-x-100 group-hover:-translate-x-0.5'
                   )}
                   aria-hidden="true"
                 />
               </a>
-
               <a
                 href="mailto:contact@cardrive.ma"
-                className="flex max-w-sm items-center gap-2.5 rounded-xl border border-white/5 bg-white/2 px-3 py-2 text-xs text-slate-400 transition-colors hover:border-white/10 hover:text-white"
+                className="flex min-h-11 items-center gap-2.5 rounded-xl border border-white/10 bg-white/3 px-3.5 text-sm text-slate-300 transition-colors hover:border-white/20 hover:text-white"
               >
-                <Mail className="h-4 w-4 text-slate-500" aria-hidden="true" />
-                <span>{strings.emailUs}</span>
+                <Mail className="h-4 w-4 text-slate-400" aria-hidden="true" />
+                {strings.emailUs}
               </a>
             </div>
           </div>
 
-          {/* ---------------------------------------------------------- */}
-          {/* GROUP 2: EXPLORER (Destinations & Hubs)                     */}
-          {/* ---------------------------------------------------------- */}
-          <div className="lg:col-span-3">
-            {/* Desktop / Tablet Header */}
-            <h3 className="hidden md:flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-white mb-4">
-              <span className="h-1 w-3.5 rounded-full bg-[#E63946]" aria-hidden="true" />
-              <span>{strings.colExplorer}</span>
-            </h3>
+          <FooterColumn
+            id="explorer"
+            title={strings.colExplorer}
+            open={Boolean(openColumns.explorer)}
+            onToggle={() => toggleColumn('explorer')}
+            className="lg:col-span-3"
+          >
+            <NavItem href="/location-voiture-nador-aeroport" isRTL={isRTL} icon={<Plane className="h-4 w-4" aria-hidden="true" />}>
+              {strings.airport}
+            </NavItem>
+            <NavItem href="/location-voiture-beni-ansar" isRTL={isRTL} icon={<Anchor className="h-4 w-4" aria-hidden="true" />}>
+              {strings.port}
+            </NavItem>
+            <NavItem href={MARCHICA_SEARCH} isRTL={isRTL} icon={<Compass className="h-4 w-4" aria-hidden="true" />}>
+              {strings.marchica}
+            </NavItem>
+            <NavItem href="/location-voiture-nador" isRTL={isRTL} icon={<Building2 className="h-4 w-4" aria-hidden="true" />}>
+              {strings.downtown}
+            </NavItem>
+            <NavItem href={SELOUANE_SEARCH} isRTL={isRTL} icon={<MapPin className="h-4 w-4" aria-hidden="true" />}>
+              {strings.selouane}
+            </NavItem>
+          </FooterColumn>
 
-            {/* Mobile Accordion Trigger */}
-            <button
-              type="button"
-              onClick={() => toggleAccordion('explorer')}
-              aria-expanded={openAccordions.explorer}
-              className="flex md:hidden w-full items-center justify-between border-b border-white/6 py-3 text-xs font-bold uppercase tracking-wider text-white"
-            >
-              <span className="flex items-center gap-2">
-                <span className="h-1 w-3.5 rounded-full bg-[#E63946]" aria-hidden="true" />
-                <span>{strings.colExplorer}</span>
-              </span>
-              <ChevronDown
-                className={cn(
-                  'h-4 w-4 text-slate-400 transition-transform duration-200',
-                  openAccordions.explorer && 'rotate-180'
-                )}
-                aria-hidden="true"
-              />
-            </button>
+          <FooterColumn
+            id="vehicles"
+            title={strings.colVehicles}
+            open={Boolean(openColumns.vehicles)}
+            onToggle={() => toggleColumn('vehicles')}
+            className="lg:col-span-2"
+          >
+            <NavItem href="/location-voiture-nador-suv" isRTL={isRTL} icon={<Car className="h-4 w-4" aria-hidden="true" />}>
+              {strings.suv}
+            </NavItem>
+            <NavItem href="/search?category=%C3%89conomique" isRTL={isRTL} icon={<Car className="h-4 w-4" aria-hidden="true" />}>
+              {strings.economy}
+            </NavItem>
+            <NavItem href="/search?category=Berline" isRTL={isRTL} icon={<Car className="h-4 w-4" aria-hidden="true" />}>
+              {strings.sedan}
+            </NavItem>
+            <NavItem href="/search?category=Luxe" isRTL={isRTL} icon={<Sparkles className="h-4 w-4" aria-hidden="true" />}>
+              {strings.premium}
+            </NavItem>
+            <NavItem href="/location-voiture-nador-automatique" isRTL={isRTL} icon={<Gauge className="h-4 w-4" aria-hidden="true" />}>
+              {strings.automatic}
+            </NavItem>
+            <NavItem href="/search" isRTL={isRTL} highlight>
+              {strings.allVehicles}
+            </NavItem>
+          </FooterColumn>
 
-            {/* Links List */}
-            <ul
-              className={cn(
-                'space-y-1.5 pt-2 md:pt-0',
-                openAccordions.explorer ? 'block' : 'hidden md:block'
-              )}
-            >
-              <NavItem
-                href="/location-voiture-nador-aeroport"
-                isRTL={isRTL}
-                icon={<Plane className="h-3.5 w-3.5" aria-hidden="true" />}
-              >
-                {strings.airport}
-              </NavItem>
-              <NavItem
-                href="/location-voiture-beni-ansar"
-                isRTL={isRTL}
-                icon={<Anchor className="h-3.5 w-3.5" aria-hidden="true" />}
-              >
-                {strings.port}
-              </NavItem>
-              <NavItem
-                href="/search?location=marchica"
-                isRTL={isRTL}
-                icon={<Compass className="h-3.5 w-3.5" aria-hidden="true" />}
-              >
-                {strings.marchica}
-              </NavItem>
-              <NavItem
-                href="/location-voiture-nador"
-                isRTL={isRTL}
-                icon={<Building2 className="h-3.5 w-3.5" aria-hidden="true" />}
-              >
-                {strings.downtown}
-              </NavItem>
-              <NavItem
-                href="/search?location=selouane"
-                isRTL={isRTL}
-                icon={<MapPin className="h-3.5 w-3.5" aria-hidden="true" />}
-              >
-                {strings.selouane}
-              </NavItem>
-            </ul>
-          </div>
-
-          {/* ---------------------------------------------------------- */}
-          {/* GROUP 3: VEHICLES (SUV, Economy, Sedan, Luxury, Auto)       */}
-          {/* ---------------------------------------------------------- */}
-          <div className="lg:col-span-2">
-            {/* Desktop / Tablet Header */}
-            <h3 className="hidden md:flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-white mb-4">
-              <span className="h-1 w-3.5 rounded-full bg-[#E63946]" aria-hidden="true" />
-              <span>{strings.colVehicles}</span>
-            </h3>
-
-            {/* Mobile Accordion Trigger */}
-            <button
-              type="button"
-              onClick={() => toggleAccordion('vehicles')}
-              aria-expanded={openAccordions.vehicles}
-              className="flex md:hidden w-full items-center justify-between border-b border-white/6 py-3 text-xs font-bold uppercase tracking-wider text-white"
-            >
-              <span className="flex items-center gap-2">
-                <span className="h-1 w-3.5 rounded-full bg-[#E63946]" aria-hidden="true" />
-                <span>{strings.colVehicles}</span>
-              </span>
-              <ChevronDown
-                className={cn(
-                  'h-4 w-4 text-slate-400 transition-transform duration-200',
-                  openAccordions.vehicles && 'rotate-180'
-                )}
-                aria-hidden="true"
-              />
-            </button>
-
-            {/* Links List */}
-            <ul
-              className={cn(
-                'space-y-1.5 pt-2 md:pt-0',
-                openAccordions.vehicles ? 'block' : 'hidden md:block'
-              )}
-            >
-              <NavItem
-                href="/location-voiture-nador-suv"
-                isRTL={isRTL}
-                icon={<Car className="h-3.5 w-3.5" aria-hidden="true" />}
-              >
-                {strings.suv}
-              </NavItem>
-              <NavItem
-                href="/search?category=%C3%89conomique"
-                isRTL={isRTL}
-                icon={<Car className="h-3.5 w-3.5" aria-hidden="true" />}
-              >
-                {strings.economy}
-              </NavItem>
-              <NavItem
-                href="/search?category=Berline"
-                isRTL={isRTL}
-                icon={<Car className="h-3.5 w-3.5" aria-hidden="true" />}
-              >
-                {strings.sedan}
-              </NavItem>
-              <NavItem
-                href="/search?category=Luxe"
-                isRTL={isRTL}
-                icon={<Sparkles className="h-3.5 w-3.5" aria-hidden="true" />}
-              >
-                {strings.premium}
-              </NavItem>
-              <NavItem
-                href="/location-voiture-nador-automatique"
-                isRTL={isRTL}
-                icon={<Sparkles className="h-3.5 w-3.5" aria-hidden="true" />}
-              >
-                {strings.automatic}
-              </NavItem>
-              <NavItem href="/search" isRTL={isRTL} highlight>
-                {strings.allVehicles}
-              </NavItem>
-            </ul>
-          </div>
-
-          {/* ---------------------------------------------------------- */}
-          {/* GROUP 4: SERVICES (Agencies, Registration, FAQ, Support)   */}
-          {/* ---------------------------------------------------------- */}
-          <div className="lg:col-span-3">
-            {/* Desktop / Tablet Header */}
-            <h3 className="hidden md:flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-white mb-4">
-              <span className="h-1 w-3.5 rounded-full bg-[#E63946]" aria-hidden="true" />
-              <span>{strings.colServices}</span>
-            </h3>
-
-            {/* Mobile Accordion Trigger */}
-            <button
-              type="button"
-              onClick={() => toggleAccordion('services')}
-              aria-expanded={openAccordions.services}
-              className="flex md:hidden w-full items-center justify-between border-b border-white/6 py-3 text-xs font-bold uppercase tracking-wider text-white"
-            >
-              <span className="flex items-center gap-2">
-                <span className="h-1 w-3.5 rounded-full bg-[#E63946]" aria-hidden="true" />
-                <span>{strings.colServices}</span>
-              </span>
-              <ChevronDown
-                className={cn(
-                  'h-4 w-4 text-slate-400 transition-transform duration-200',
-                  openAccordions.services && 'rotate-180'
-                )}
-                aria-hidden="true"
-              />
-            </button>
-
-            {/* Links List */}
-            <ul
-              className={cn(
-                'space-y-1.5 pt-2 md:pt-0',
-                openAccordions.services ? 'block' : 'hidden md:block'
-              )}
-            >
-              <NavItem href="/agencies" isRTL={isRTL}>
-                {strings.agencies}
-              </NavItem>
-              <NavItem href="/agency/join" isRTL={isRTL} highlight>
-                {strings.becomePartner}
-              </NavItem>
-              <NavItem href="/agency" isRTL={isRTL}>
-                {strings.agencyPortal}
-              </NavItem>
-              <NavItem href="/about" isRTL={isRTL}>
-                {strings.howItWorks}
-              </NavItem>
-              <NavItem href="/faq" isRTL={isRTL}>
-                {strings.faq}
-              </NavItem>
-              <NavItem href="/contact" isRTL={isRTL}>
-                {strings.contact}
-              </NavItem>
-            </ul>
-          </div>
+          <FooterColumn
+            id="services"
+            title={strings.colServices}
+            open={Boolean(openColumns.services)}
+            onToggle={() => toggleColumn('services')}
+            className="lg:col-span-3"
+          >
+            {/* « Devenir partenaire » n'est plus répété ici : l'appel en tête de footer suffit */}
+            <NavItem href="/agencies" isRTL={isRTL}>
+              {strings.agencies}
+            </NavItem>
+            <NavItem href="/agency" isRTL={isRTL}>
+              {strings.agencyPortal}
+            </NavItem>
+            <NavItem href="/about" isRTL={isRTL}>
+              {strings.howItWorks}
+            </NavItem>
+            <NavItem href="/faq" isRTL={isRTL}>
+              {strings.faq}
+            </NavItem>
+            <NavItem href="/contact" isRTL={isRTL}>
+              {strings.contact}
+            </NavItem>
+          </FooterColumn>
         </div>
 
         {/* ============================================================ */}
-        {/* 4. BOTTOM COPYRIGHT & LEGAL BAR                              */}
+        {/* 4. COPYRIGHT & LIENS LÉGAUX                                  */}
         {/* ============================================================ */}
-        <div className="border-t border-white/6 py-6">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between text-xs text-slate-500">
-            {/* Copyright & Region */}
-            <div className="flex flex-wrap items-center gap-3">
+        <div className="border-t border-white/8 py-6">
+          <div className="flex flex-col gap-4 text-[13px] text-slate-400 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
               <span>
                 © {currentYear} CarDrive. {strings.allRightsReserved}
               </span>
-              <span className="hidden sm:inline text-slate-700" aria-hidden="true">
+              <span className="text-slate-600" aria-hidden="true">
                 •
               </span>
-              <span className="flex items-center gap-1 text-slate-400">
-                <MapPin className="h-3 w-3 text-slate-500" aria-hidden="true" />
-                <span>Nador, Maroc</span>
+              <span className="flex items-center gap-1">
+                <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
+                Nador, Maroc
               </span>
-              <span className="hidden sm:inline text-slate-700" aria-hidden="true">
-                •
-              </span>
-              {/* Language Selector in Footer */}
               <LanguageSelector variant="footer" />
             </div>
 
-            {/* Legal Navigation */}
-            <nav aria-label="Liens légaux" className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
-              <Link
-                href="/cgv"
-                className="transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-[#E63946]"
-              >
-                {strings.legalCgv}
-              </Link>
-              <Link
-                href="/confidentialite"
-                className="transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-[#E63946]"
-              >
-                {strings.legalPrivacy}
-              </Link>
-              <Link
-                href="/mentions-legales"
-                className="transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-[#E63946]"
-              >
-                {strings.legalMentions}
-              </Link>
-              <Link
-                href="/sitemap.xml"
-                className="transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-[#E63946]"
-              >
-                {strings.sitemap}
-              </Link>
+            <nav aria-label="Liens légaux">
+              <ul className="flex flex-wrap items-center gap-x-5 gap-y-0 sm:gap-y-2">
+                <li>
+                  <Link href="/cgv" className={legalLinkClass}>
+                    {strings.legalCgv}
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/confidentialite" className={legalLinkClass}>
+                    {strings.legalPrivacy}
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/mentions-legales" className={legalLinkClass}>
+                    {strings.legalMentions}
+                  </Link>
+                </li>
+              </ul>
             </nav>
           </div>
 
-          {/* Minimalist Industrial Brand Tagline */}
-          <div className="mt-4 pt-4 border-t border-white/3 text-center">
-            <p className="text-[10px] uppercase tracking-widest text-slate-600">
-              {strings.bottomTagline}
-            </p>
-          </div>
+          <p className="mt-4 border-t border-white/5 pt-4 text-center text-[11px] uppercase tracking-widest text-slate-400">
+            {strings.bottomTagline}
+          </p>
         </div>
       </div>
     </footer>

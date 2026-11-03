@@ -386,6 +386,12 @@ body {
   }
 }
 
+/* Défilement continu (bandeau des marques) : la piste contient 2 copies, on avance d'une copie */
+@keyframes cd-marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
 @keyframes cdShinyText {
   0% {
     background-position: 120% 0;

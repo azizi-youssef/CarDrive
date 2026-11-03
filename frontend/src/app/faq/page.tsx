@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import React from 'react';
 import { FaqClient } from './FaqClient';
+import { FAQ_ITEMS } from './faq-data';
 
 export const metadata: Metadata = {
   title: 'Questions fréquentes sur la location de voitures à Nador',
@@ -14,6 +15,25 @@ export const metadata: Metadata = {
   },
 };
 
+// Données structurées FAQPage : mêmes questions/réponses que la page (éligibles aux résultats enrichis)
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: FAQ_ITEMS.map((item) => ({
+    '@type': 'Question',
+    name: item.question,
+    acceptedAnswer: { '@type': 'Answer', text: item.answer },
+  })),
+};
+
 export default function FaqPage() {
-  return <FaqClient />;
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd).replace(/</g, '\\u003c') }}
+      />
+      <FaqClient />
+    </>
+  );
 }

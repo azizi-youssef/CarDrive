@@ -1,292 +1,402 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import {
+  ArrowRight,
   ChevronDown,
+  FileQuestion,
+  HelpCircle,
+  Link2,
   MessageSquare,
   Search,
-  HelpCircle,
-  ShieldCheck,
-  Car,
-  CalendarCheck,
-  MapPin,
-  Building2,
-  ArrowRight,
   X,
-  FileQuestion,
 } from 'lucide-react';
-import { ShinyText, Magnet } from '@/components/ui/react-bits';
+import { FAQ_CATEGORIES, FAQ_ITEMS, type FaqCategoryId, type FaqItem } from './faq-data';
 
-const FAQ_ITEMS = [
-  {
-    question: 'Comment fonctionne CarDrive Nador ?',
-    answer:
-      "CarDrive est une plateforme qui permet de découvrir les véhicules proposés par plusieurs agences de location à Nador et dans les environs. Vous recherchez un véhicule, consultez ses caractéristiques, ses conditions et son tarif, puis contactez l'agence concernée pour finaliser votre réservation.",
-    icon: Car,
-  },
-  {
-    question: 'Comment rechercher une voiture ?',
-    answer:
-      "Vous pouvez commencer votre recherche depuis la page Véhicules en indiquant vos dates et vos critères. Vous pouvez ensuite consulter les modèles disponibles, comparer les caractéristiques et ouvrir la fiche d'un véhicule pour obtenir davantage d'informations.",
-    icon: Search,
-  },
-  {
-    question: 'Comment réserver un véhicule ?',
-    answer:
-      "Après avoir sélectionné un véhicule, cliquez sur « Demander cette voiture ». Vous complétez votre demande avec votre numéro de CIN et vos coordonnées. CarDrive transmet votre dossier à l'agence partenaire qui confirme la disponibilité sous 1h à 2h.",
-    icon: CalendarCheck,
-  },
-  {
-    question: 'Comment fonctionne la disponibilité des véhicules ?',
-    answer:
-      "La disponibilité est gérée en direct par les agences partenaires sur la plateforme CarDrive. En envoyant votre demande via CarDrive, vous bloquez le tarif affiché. Si le véhicule venait à être indisponible, CarDrive vous propose immédiatement des alternatives équivalentes.",
-    icon: CalendarCheck,
-  },
-  {
-    question: 'Que signifie le badge « Agence vérifiée » ?',
-    answer:
-      "Lorsqu'une agence dispose du badge « Agence vérifiée », cela signifie que son registre de commerce, ses assurances professionnelles et son parc ont fait l'objet d'une validation rigoureuse par CarDrive.",
-    icon: ShieldCheck,
-  },
-  {
-    question: "Puis-je récupérer une voiture à l'aéroport Nador-Al Aroui ?",
-    answer:
-      "Oui, la majorité de nos agences partenaires assurent la livraison à l'aéroport Nador-Al Aroui ou au port de Beni Ansar. Précisez simplement votre numéro de vol ou de traversée lors de votre demande sur CarDrive pour que l'agent vous attende à votre arrivée.",
-    icon: MapPin,
-  },
-  {
-    question: 'Quel montant de caution dois-je prévoir ?',
-    answer:
-      "Le montant de la caution dépend notamment du véhicule, de l'agence et des conditions du contrat. Les modalités de paiement ou de blocage de la caution peuvent également varier. Vérifiez toujours les conditions communiquées par l'agence avant de confirmer votre réservation.",
-    icon: ShieldCheck,
-  },
-  {
-    question: 'Les assurances sont-elles incluses dans le prix ?',
-    answer:
-      "Les conditions d'assurance peuvent varier selon le véhicule et l'agence. Le tarif affiché ne doit donc pas être interprété comme incluant automatiquement toutes les garanties ou options. Consultez les conditions du véhicule et demandez à l'agence quelles couvertures sont incluses dans le prix.",
-    icon: ShieldCheck,
-  },
-  {
-    question: 'Puis-je annuler ma réservation ?',
-    answer:
-      "Les conditions d'annulation sont définies par chaque agence et peuvent dépendre du délai avant la prise en charge du véhicule. Avant de réserver, vérifiez les conditions applicables à votre demande et demandez à l'agence quelles éventuelles pénalités peuvent s'appliquer.",
-    icon: CalendarCheck,
-  },
-  {
-    question: "CarDrive est-il adapté aux Marocains résidant à l'étranger (MRE) ?",
-    answer:
-      "Oui. La plateforme est pensée notamment pour faciliter la recherche d'un véhicule avant ou pendant un séjour à Nador. Les services proposés aux MRE, les horaires de prise en charge, les conditions de retard de vol ou les documents nécessaires dépendent toutefois de chaque agence.",
-    icon: MapPin,
-  },
-  {
-    question: 'Une agence peut-elle rejoindre CarDrive ?',
-    answer:
-      "Oui. Les agences de location souhaitant proposer leurs véhicules sur CarDrive peuvent soumettre une demande de partenariat depuis la page dédiée. Après étude des informations fournies, l'agence peut être intégrée à la plateforme selon les conditions du service.",
-    icon: Building2,
-  },
-];
+type CategoryFilter = 'all' | FaqCategoryId;
 
-export function FaqClient() {
-  const [searchQuery, setSearchQuery] = useState('');
+/** Minuscules sans accents : « caution » trouve aussi « Caution », « aéroport » trouve « aeroport ». */
+function normalize(value: string): string {
+  return value.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+}
 
-  const filteredItems = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    if (!q) return FAQ_ITEMS;
-    return FAQ_ITEMS.filter(
-      (item) =>
-        item.question.toLowerCase().includes(q) ||
-        item.answer.toLowerCase().includes(q)
+/** Met en évidence la requête dans le texte, sans tenir compte des accents. */
+function Highlight({ text, query }: { text: string; query: string }) {
+  const q = normalize(query.trim());
+  if (!q) return <>{text}</>;
+  // La normalisation NFD ne change pas la longueur des caractères latins usuels une fois les diacritiques retirés
+  const haystack = normalize(text);
+  if (haystack.length !== text.length) return <>{text}</>;
+  const parts: React.ReactNode[] = [];
+  let from = 0;
+  let index = haystack.indexOf(q);
+  while (index !== -1) {
+    if (index > from) parts.push(text.slice(from, index));
+    parts.push(
+      <mark key={index} className="rounded bg-[#E63946]/15 px-0.5 text-inherit">
+        {text.slice(index, index + q.length)}
+      </mark>
     );
-  }, [searchQuery]);
+    from = index + q.length;
+    index = haystack.indexOf(q, from);
+  }
+  parts.push(text.slice(from));
+  return <>{parts}</>;
+}
+
+function FaqAccordionItem({
+  item,
+  open,
+  query,
+  onToggle,
+}: {
+  item: FaqItem;
+  open: boolean;
+  query: string;
+  onToggle: () => void;
+}) {
+  const Icon = item.icon;
+  const panelId = `faq-panel-${item.id}`;
+  const buttonId = `faq-button-${item.id}`;
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-[#0F172A]">
-      {/* ─────────────────────────────────────────────
-          HERO
-      ───────────────────────────────────────────── */}
-      <section className="relative overflow-hidden border-b border-slate-200/80 bg-white">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 overflow-hidden"
+    <li
+      id={item.id}
+      className={`scroll-mt-28 overflow-hidden rounded-2xl border bg-white transition-[border-color,box-shadow] duration-200 motion-reduce:transition-none ${
+        open
+          ? 'border-[#0B1220]/15 shadow-[0_16px_36px_-24px_rgba(11,18,32,0.35)]'
+          : 'border-slate-200/80 hover:border-slate-300'
+      }`}
+    >
+      <h3>
+        <button
+          id={buttonId}
+          type="button"
+          aria-expanded={open}
+          aria-controls={panelId}
+          onClick={onToggle}
+          className="flex w-full items-center gap-4 px-4 py-4 text-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#E63946] sm:px-6 sm:py-5"
         >
-          <div className="absolute -right-32 -top-32 h-80 w-80 rounded-full bg-[#E63946]/6 blur-3xl" />
-          <div className="absolute -left-32 bottom-0 h-72 w-72 rounded-full bg-slate-900/5 blur-3xl" />
-        </div>
-
-        <div className="relative mx-auto max-w-5xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
-          <div className="mx-auto max-w-3xl text-center">
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-600 shadow-2xs">
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#E63946]/10 text-[#E63946]">
-                <HelpCircle className="h-3 w-3" />
-              </span>
-              <ShinyText text="Questions fréquentes · Assistance CarDrive" />
-            </div>
-
-            <h1 className="text-4xl font-extrabold tracking-[-0.035em] text-[#0B1220] sm:text-5xl">
-              Tout savoir sur{' '}
-              <span className="text-[#E63946]">CarDrive</span>
-            </h1>
-
-            <p className="mx-auto mt-5 max-w-2xl text-sm leading-7 text-slate-600 sm:text-base">
-              Retrouvez les réponses aux questions les plus fréquentes
-              concernant la recherche, la réservation et la location de
-              véhicules à Nador.
-            </p>
-
-            {/* Instant Search Bar */}
-            <div className="mx-auto mt-7 max-w-lg">
-              <div className="relative flex items-center rounded-2xl border border-slate-200 bg-[#F8FAFC] p-1.5 shadow-xs focus-within:border-[#0B1220] focus-within:ring-2 focus-within:ring-[#0B1220]/15 transition-all">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-slate-500 shadow-2xs">
-                  <Search className="h-4 w-4" />
-                </div>
-
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Rechercher une question (caution, aéroport, assurance...)"
-                  className="w-full bg-transparent px-3 text-xs sm:text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none"
-                />
-
-                {searchQuery && (
-                  <button
-                    type="button"
-                    onClick={() => setSearchQuery('')}
-                    aria-label="Effacer la recherche"
-                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-200/70 hover:text-slate-700 transition-colors"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                )}
-              </div>
-
-              {searchQuery && (
-                <p className="mt-2 text-left text-xs text-slate-500 px-2 font-medium">
-                  {filteredItems.length} réponse{filteredItems.length > 1 ? 's' : ''} trouvée{filteredItems.length > 1 ? 's' : ''} pour « {searchQuery} »
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ─────────────────────────────────────────────
-          FAQ ACCORDIONS LIST
-      ───────────────────────────────────────────── */}
-      <section className="mx-auto max-w-4xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
-        {filteredItems.length > 0 ? (
-          <div className="space-y-3">
-            {filteredItems.map((item) => {
-              const Icon = item.icon;
-
-              return (
-                <details
-                  key={item.question}
-                  open={Boolean(searchQuery)}
-                  className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xs transition-all duration-200 hover:border-slate-300 hover:shadow-xs open:border-[#E63946]/30"
-                >
-                  <summary className="flex cursor-pointer list-none items-center gap-4 px-5 py-5 text-sm font-bold text-[#0B1220] outline-none transition-colors hover:text-[#E63946] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#E63946] sm:px-6">
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#F8FAFC] text-slate-600 transition-colors group-open:bg-[#E63946]/10 group-open:text-[#E63946]">
-                      <Icon className="h-4 w-4" />
-                    </span>
-
-                    <span className="min-w-0 flex-1 leading-6">
-                      {item.question}
-                    </span>
-
-                    <ChevronDown className="h-4 w-4 shrink-0 text-slate-400 transition-transform duration-200 group-open:rotate-180 group-open:text-[#E63946]" />
-                  </summary>
-
-                  <div className="border-t border-slate-100">
-                    <div className="px-5 pb-6 pt-5 sm:px-6">
-                      <p className="pl-0 text-sm leading-7 text-slate-600 sm:pl-13">
-                        {item.answer}
-                      </p>
-                    </div>
-                  </div>
-                </details>
-              );
-            })}
-          </div>
-        ) : (
-          /* Empty Search State */
-          <div className="rounded-3xl border border-slate-200/90 bg-white p-10 text-center shadow-xs max-w-md mx-auto space-y-3">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-500">
-              <FileQuestion className="h-6 w-6 text-[#E63946]" />
-            </div>
-            <h3 className="text-base font-bold text-[#0B1220]">
-              Aucune question ne correspond à votre recherche
-            </h3>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              Essayez avec d’autres mots-clés ou parcourez directement l'ensemble des questions.
-            </p>
-            <div className="pt-2">
-              <button
-                type="button"
-                onClick={() => setSearchQuery('')}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-[#0B1220] px-4 py-2 text-xs font-bold text-white hover:bg-slate-800 transition-colors"
-              >
-                Réinitialiser la recherche
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* ─────────────────────────────────────────
-            SUPPORT CTA
-        ───────────────────────────────────────── */}
-        <section className="relative mt-12 overflow-hidden rounded-3xl bg-[#0B1220] px-6 py-10 text-center sm:px-10">
-          <div
+          <span
+            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-colors motion-reduce:transition-none ${
+              open ? 'bg-[#E63946] text-white' : 'bg-[#F5F6F8] text-slate-600'
+            }`}
+          >
+            <Icon className="h-4.5 w-4.5" aria-hidden="true" />
+          </span>
+          <span className="min-w-0 flex-1 text-[15px] font-bold leading-snug text-[#0B1220] sm:text-base">
+            <Highlight text={item.question} query={query} />
+          </span>
+          <ChevronDown
+            className={`h-5 w-5 shrink-0 text-slate-400 transition-transform duration-200 motion-reduce:transition-none ${
+              open ? 'rotate-180 text-[#E63946]' : ''
+            }`}
             aria-hidden="true"
-            className="absolute -right-20 -top-24 h-64 w-64 rounded-full bg-[#E63946]/15 blur-3xl"
           />
-
-          <div
-            aria-hidden="true"
-            className="absolute -bottom-24 -left-20 h-64 w-64 rounded-full bg-white/5 blur-3xl"
-          />
-
-          <div className="relative">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#E63946]/15 text-[#E63946]">
-              <MessageSquare className="h-5 w-5" />
-            </div>
-
-            <h2 className="mt-5 text-xl font-bold text-white sm:text-2xl">
-              Vous avez encore une question ?
-            </h2>
-
-            <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-slate-400">
-              Consultez les véhicules disponibles ou contactez directement
-              notre assistance conciergerie 7j/7 pour obtenir les informations spécifiques à
-              votre réservation.
-            </p>
-
-            <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <Magnet strength={0.25} className="w-full sm:w-auto">
-                <Link
-                  href="/search"
-                  className="group inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#E63946] px-5 py-3 text-sm font-bold text-white shadow-xs hover:-translate-y-0.5 hover:bg-[#C92F3B] hover:shadow-[0_4px_16px_rgba(230,57,70,0.3)] transition-all sm:w-auto"
-                >
-                  <Search className="h-4 w-4" />
-                  <span>Rechercher une voiture</span>
-                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-                </Link>
-              </Magnet>
-
-              <Magnet strength={0.2} className="w-full sm:w-auto">
-                <Link
-                  href="/contact"
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-700 bg-white/5 px-5 py-3 text-sm font-bold text-white hover:bg-white/10 transition-colors sm:w-auto"
-                >
-                  <span>Nous contacter</span>
-                </Link>
-              </Magnet>
-            </div>
-          </div>
-        </section>
-      </section>
-    </div>
+        </button>
+      </h3>
+      <div id={panelId} role="region" aria-labelledby={buttonId} hidden={!open}>
+        <div className="border-t border-slate-100 px-4 pb-5 pt-4 sm:px-6 sm:ps-20">
+          <p className="text-[15px] leading-7 text-slate-600">
+            <Highlight text={item.answer} query={query} />
+          </p>
+          <a
+            href={`#${item.id}`}
+            className="mt-3 inline-flex min-h-9 items-center gap-1.5 rounded-lg text-xs font-semibold text-slate-400 transition-colors hover:text-[#E63946] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E63946]"
+          >
+            <Link2 className="h-3.5 w-3.5" aria-hidden="true" />
+            Lien vers cette question
+          </a>
+        </div>
+      </div>
+    </li>
   );
 }
 
+export function FaqClient() {
+  const [query, setQuery] = useState('');
+  const [category, setCategory] = useState<CategoryFilter>('all');
+  const [openIds, setOpenIds] = useState<Set<string>>(() => new Set([FAQ_ITEMS[0].id]));
+  const [scrollTarget, setScrollTarget] = useState<{ id: string; at: number } | null>(null);
+
+  // Lien direct (/faq#caution) : ouvre la question ciblée, retire les filtres qui la masqueraient…
+  useEffect(() => {
+    const openFromHash = () => {
+      const id = decodeURIComponent(window.location.hash.slice(1));
+      if (!FAQ_ITEMS.some((item) => item.id === id)) return;
+      setCategory('all');
+      setQuery('');
+      setOpenIds((current) => new Set(current).add(id));
+      setScrollTarget({ id, at: Date.now() });
+    };
+    openFromHash();
+    window.addEventListener('hashchange', openFromHash);
+    return () => window.removeEventListener('hashchange', openFromHash);
+  }, []);
+
+  // …puis la fait défiler une fois la liste complète affichée
+  useEffect(() => {
+    if (!scrollTarget) return;
+    document.getElementById(scrollTarget.id)?.scrollIntoView({ block: 'start' });
+  }, [scrollTarget]);
+
+  const searching = query.trim().length > 0;
+
+  const results = useMemo(() => {
+    const q = normalize(query.trim());
+    return FAQ_ITEMS.filter(
+      (item) =>
+        (category === 'all' || item.category === category) &&
+        (!q || normalize(item.question).includes(q) || normalize(item.answer).includes(q))
+    );
+  }, [query, category]);
+
+  const countByCategory = useMemo(() => {
+    const counts = new Map<FaqCategoryId, number>();
+    for (const item of FAQ_ITEMS) counts.set(item.category, (counts.get(item.category) ?? 0) + 1);
+    return counts;
+  }, []);
+
+  const toggle = (id: string) =>
+    setOpenIds((current) => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+
+  // Sans recherche ni filtre : questions regroupées par thème
+  const groups =
+    !searching && category === 'all'
+      ? FAQ_CATEGORIES.map((cat) => ({ ...cat, items: results.filter((item) => item.category === cat.id) }))
+      : null;
+
+  const isOpen = (id: string) => searching || openIds.has(id);
+
+  const categoryButtons: { id: CategoryFilter; label: string; count: number }[] = [
+    { id: 'all', label: 'Toutes les questions', count: FAQ_ITEMS.length },
+    ...FAQ_CATEGORIES.map((cat) => ({ id: cat.id, label: cat.label, count: countByCategory.get(cat.id) ?? 0 })),
+  ];
+
+  return (
+    <div className="min-h-screen bg-[#F5F6F8] pb-20 text-[#0B1220]">
+      {/* ── Hero + recherche ─────────────────────────────────────────── */}
+      <section aria-labelledby="faq-title" className="relative overflow-hidden bg-[#0B1220] text-white">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 opacity-[0.06] [background-image:linear-gradient(to_right,#fff_1px,transparent_1px),linear-gradient(to_bottom,#fff_1px,transparent_1px)] [background-size:56px_56px]"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -end-24 -top-24 h-80 w-80 rounded-full bg-[#E63946]/20 blur-3xl"
+        />
+        <div className="relative mx-auto max-w-[1180px] px-4 pb-24 pt-12 sm:px-6 sm:pt-16 lg:px-8">
+          <p className="inline-flex items-center gap-2.5 text-[11px] font-bold uppercase tracking-[0.2em] text-[#FF6B76]">
+            <span className="h-px w-7 bg-current" aria-hidden="true" />
+            Centre d’aide
+          </p>
+          <h1
+            id="faq-title"
+            className="mt-4 max-w-3xl text-balance text-[34px] font-extrabold leading-[1.05] tracking-[-0.03em] sm:text-5xl lg:text-[56px]"
+          >
+            Questions fréquentes <span className="text-[#E63946]">CarDrive</span>
+          </h1>
+          <p className="mt-5 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg sm:leading-8">
+            Recherche, réservation, caution, prise en charge à Nador : retrouvez les réponses avant de louer votre
+            véhicule.
+          </p>
+        </div>
+      </section>
+
+      <div className="relative z-10 mx-auto -mt-10 max-w-[1180px] px-4 sm:px-6 lg:px-8">
+        <div role="search" className="rounded-2xl bg-white p-2 shadow-[0_18px_50px_-20px_rgba(11,18,32,0.35)] ring-1 ring-slate-200/70">
+          <div className="relative flex items-center">
+            <Search className="pointer-events-none absolute start-4 h-5 w-5 text-[#E63946]" aria-hidden="true" />
+            <label htmlFor="faq-search" className="sr-only">
+              Rechercher dans la FAQ
+            </label>
+            <input
+              id="faq-search"
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Caution, aéroport, assurance, annulation…"
+              className="h-14 w-full rounded-xl bg-[#F5F6F8] pe-12 ps-12 text-base font-medium text-[#0B1220] placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0B1220]/10 [&::-webkit-search-cancel-button]:hidden"
+            />
+            {query && (
+              <button
+                type="button"
+                onClick={() => setQuery('')}
+                aria-label="Effacer la recherche"
+                className="absolute end-2 flex h-10 w-10 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
+              >
+                <X className="h-4 w-4" aria-hidden="true" />
+              </button>
+            )}
+          </div>
+        </div>
+        <p className="mt-3 px-1 text-sm text-slate-500" aria-live="polite">
+          {searching
+            ? `${results.length} réponse${results.length > 1 ? 's' : ''} pour « ${query.trim()} »`
+            : ''}
+        </p>
+      </div>
+
+      {/* ── Catégories + questions ──────────────────────────────────── */}
+      <div className="mx-auto mt-6 max-w-[1180px] px-4 sm:px-6 lg:mt-10 lg:grid lg:grid-cols-[260px_minmax(0,1fr)] lg:gap-10 lg:px-8">
+        <aside aria-label="Thèmes" className="lg:sticky lg:top-28 lg:self-start">
+          {/* Mobile/tablette : puces défilantes — desktop : liste verticale */}
+          <ul className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-2 [scrollbar-width:none] sm:-mx-6 sm:px-6 lg:mx-0 lg:flex-col lg:gap-1 lg:overflow-visible lg:px-0 lg:pb-0">
+            {categoryButtons.map((cat) => {
+              const active = category === cat.id;
+              return (
+                <li key={cat.id} className="shrink-0">
+                  <button
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() => setCategory(cat.id)}
+                    className={`flex min-h-11 w-full items-center justify-between gap-3 whitespace-nowrap rounded-xl px-4 text-sm font-bold transition-colors motion-reduce:transition-none lg:whitespace-normal lg:text-start ${
+                      active
+                        ? 'bg-[#0B1220] text-white'
+                        : 'border border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:text-[#0B1220] lg:border-transparent lg:bg-transparent lg:hover:bg-white'
+                    }`}
+                  >
+                    {cat.label}
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-[11px] tabular-nums ${
+                        active ? 'bg-white/15 text-white' : 'bg-[#F5F6F8] text-slate-500'
+                      }`}
+                    >
+                      {cat.count}
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+
+          <div className="mt-6 hidden rounded-2xl border border-slate-200/80 bg-white p-5 lg:block">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#E63946]/10 text-[#E63946]">
+              <MessageSquare className="h-5 w-5" aria-hidden="true" />
+            </span>
+            <p className="mt-4 font-extrabold">Besoin d’une réponse précise ?</p>
+            <p className="mt-1.5 text-sm leading-6 text-slate-600">Notre équipe vous répond pour votre réservation.</p>
+            <Link
+              href="/contact"
+              className="mt-4 inline-flex min-h-10 items-center gap-1.5 text-sm font-bold text-[#E63946] hover:text-[#C92F3B]"
+            >
+              Nous contacter
+              <ArrowRight className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
+            </Link>
+          </div>
+        </aside>
+
+        <section aria-label="Questions et réponses" className="mt-6 min-w-0 lg:mt-0">
+          {results.length === 0 ? (
+            <div className="rounded-3xl border border-slate-200 bg-white px-6 py-12 text-center">
+              <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#F5F6F8] text-[#E63946]">
+                <FileQuestion className="h-7 w-7" aria-hidden="true" />
+              </span>
+              <h2 className="mt-4 text-lg font-extrabold">Aucune question ne correspond</h2>
+              <p className="mx-auto mt-1.5 max-w-sm text-sm text-slate-500">
+                Essayez un autre mot-clé, ou posez directement votre question à notre équipe.
+              </p>
+              <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setQuery('');
+                    setCategory('all');
+                  }}
+                  className="inline-flex h-11 items-center justify-center rounded-xl bg-[#0B1220] px-5 text-sm font-bold text-white transition-colors hover:bg-slate-800"
+                >
+                  Voir toutes les questions
+                </button>
+                <Link
+                  href="/contact"
+                  className="inline-flex h-11 items-center justify-center rounded-xl border border-slate-200 px-5 text-sm font-bold text-[#0B1220] transition-colors hover:bg-slate-50"
+                >
+                  Nous contacter
+                </Link>
+              </div>
+            </div>
+          ) : groups ? (
+            <div className="space-y-10">
+              {groups.map((group) => {
+                const Icon = group.icon;
+                return (
+                  <div key={group.id}>
+                    <h2 className="mb-4 flex items-center gap-2.5 text-lg font-extrabold">
+                      <Icon className="h-5 w-5 text-[#E63946]" aria-hidden="true" />
+                      {group.label}
+                    </h2>
+                    <ul className="space-y-3">
+                      {group.items.map((item) => (
+                        <FaqAccordionItem
+                          key={item.id}
+                          item={item}
+                          open={isOpen(item.id)}
+                          query={query}
+                          onToggle={() => toggle(item.id)}
+                        />
+                      ))}
+                    </ul>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <ul className="space-y-3">
+              {results.map((item) => (
+                <FaqAccordionItem
+                  key={item.id}
+                  item={item}
+                  open={isOpen(item.id)}
+                  query={query}
+                  onToggle={() => toggle(item.id)}
+                />
+              ))}
+            </ul>
+          )}
+
+          {/* ── Encore une question ? ─────────────────────────────── */}
+          <div className="relative mt-12 overflow-hidden rounded-3xl bg-[#0B1220] p-7 text-white sm:p-10">
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute -end-20 -top-24 h-64 w-64 rounded-full bg-[#E63946]/25 blur-3xl"
+            />
+            <div className="relative flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+              <div className="max-w-md">
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/10 text-[#FF6B76]">
+                  <HelpCircle className="h-5 w-5" aria-hidden="true" />
+                </span>
+                <h2 className="mt-4 text-2xl font-extrabold leading-tight">Vous avez encore une question ?</h2>
+                <p className="mt-2 text-sm leading-6 text-slate-300">
+                  Consultez les véhicules disponibles ou contactez notre équipe pour une information propre à votre
+                  réservation.
+                </p>
+              </div>
+              <div className="flex flex-col gap-3 sm:flex-row md:flex-col lg:flex-row">
+                <Link
+                  href="/search"
+                  className="group inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#E63946] px-6 text-sm font-bold text-white transition-colors hover:bg-[#C92F3B] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                >
+                  <Search className="h-4 w-4" aria-hidden="true" />
+                  Rechercher une voiture
+                </Link>
+                <Link
+                  href="/contact"
+                  className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-white/20 px-6 text-sm font-bold text-white transition-colors hover:border-white/40 hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                >
+                  <MessageSquare className="h-4 w-4" aria-hidden="true" />
+                  Nous contacter
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}
