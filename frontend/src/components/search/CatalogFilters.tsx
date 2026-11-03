@@ -1,0 +1,328 @@
+'use client';
+
+import React, { useId, useState } from 'react';
+import { ChevronDown, RotateCcw, Search, X } from 'lucide-react';
+import { CATEGORIES } from '@/lib/constants/catalog';
+import { cn, formatNumber } from '@/lib/utils';
+import type { Agency } from '@/types';
+
+export const ALL_CATEGORIES = 'Tous les types';
+export const PRICE_CEILING = 5000;
+const PRICE_FLOOR = 200;
+
+export type CatalogFilterState = {
+  category: string;
+  transmission: 'ALL' | 'AUTOMATIC' | 'MANUAL';
+  fuel: 'ALL' | 'DIESEL' | 'GASOLINE' | 'HYBRID';
+  brand: string;
+  brandQuery: string;
+  agency: string;
+  maxPrice: number;
+};
+
+export const DEFAULT_FILTERS: CatalogFilterState = {
+  category: ALL_CATEGORIES,
+  transmission: 'ALL',
+  fuel: 'ALL',
+  brand: 'ALL',
+  brandQuery: '',
+  agency: 'ALL',
+  maxPrice: PRICE_CEILING,
+};
+
+export const TRANSMISSION_LABELS: Record<Exclude<CatalogFilterState['transmission'], 'ALL'>, string> = {
+  AUTOMATIC: 'Automatique',
+  MANUAL: 'Manuelle',
+};
+
+export const FUEL_LABELS: Record<Exclude<CatalogFilterState['fuel'], 'ALL'>, string> = {
+  DIESEL: 'Diesel',
+  GASOLINE: 'Essence',
+  HYBRID: 'Hybride',
+};
+
+/** Nombre de critères actifs (le tri n'est pas un filtre). */
+export function countActiveFilters(filters: CatalogFilterState): number {
+  return [
+    filters.category !== ALL_CATEGORIES,
+    filters.transmission !== 'ALL',
+    filters.fuel !== 'ALL',
+    filters.brand !== 'ALL',
+    filters.brandQuery.trim() !== '',
+    filters.agency !== 'ALL',
+    filters.maxPrice < PRICE_CEILING,
+  ].filter(Boolean).length;
+}
+
+function FilterSection({
+  title,
+  summary,
+  defaultOpen = true,
+  children,
+}: {
+  title: string;
+  summary?: string;
+  defaultOpen?: boolean;
+  children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  const contentId = useId();
+
+  return (
+    <section className="border-b border-slate-200/80 py-4 last:border-b-0">
+      <h3>
+        <button
+          type="button"
+          aria-expanded={open}
+          aria-controls={contentId}
+          onClick={() => setOpen((value) => !value)}
+          className="flex w-full items-center justify-between gap-3 rounded-lg text-start focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#E63946]"
+        >
+          <span className="text-[13px] font-bold text-[#0B1220]">{title}</span>
+          <span className="flex min-w-0 items-center gap-2">
+            {summary && (
+              <span className="truncate text-xs font-semibold text-[#E63946]">{summary}</span>
+            )}
+            <ChevronDown
+              className={cn('h-4 w-4 shrink-0 text-slate-400 transition-transform duration-200', open && 'rotate-180')}
+              aria-hidden="true"
+            />
+          </span>
+        </button>
+      </h3>
+      <div id={contentId} hidden={!open} className="pt-3">
+        {children}
+      </div>
+    </section>
+  );
+}
+
+function OptionChip({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={active}
+      onClick={onClick}
+      className={cn(
+        'min-h-10 rounded-xl border px-3 text-[13px] font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#E63946]',
+        active
+          ? 'border-[#0B1220] bg-[#0B1220] text-white'
+          : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
+const selectClass =
+  'h-11 w-full cursor-pointer rounded-xl border border-slate-200 bg-white px-3 text-[13px] font-semibold text-slate-800 transition focus:border-[#0B1220] focus:outline-none focus:ring-2 focus:ring-[#0B1220]/10';
+
+interface CatalogFiltersProps {
+  filters: CatalogFilterState;
+  onChange: (patch: Partial<CatalogFilterState>) => void;
+  onReset: () => void;
+  brands: string[];
+  agencies: Agency[];
+  /** Masque l'en-tête (le tiroir mobile a le sien). */
+  hideHeader?: boolean;
+}
+
+export function CatalogFilters({
+  filters,
+  onChange,
+  onReset,
+  brands,
+  agencies,
+  hideHeader = false,
+}: CatalogFiltersProps) {
+  const uid = useId();
+  const activeCount = countActiveFilters(filters);
+  const selectedAgencyName = agencies.find((agency) => agency.id === filters.agency)?.name;
+
+  return (
+    <div>
+      {!hideHeader && (
+        <div className="flex items-center justify-between gap-3 pb-1">
+          <h2 className="text-base font-extrabold text-[#0B1220]">
+            Filtres
+            {activeCount > 0 && (
+              <span className="ms-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#E63946] px-1.5 text-[11px] font-bold text-white">
+                {activeCount}
+              </span>
+            )}
+          </h2>
+          <button
+            type="button"
+            onClick={onReset}
+            disabled={activeCount === 0}
+            className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-semibold text-slate-500 transition-colors hover:text-[#E63946] disabled:cursor-default disabled:opacity-40 disabled:hover:text-slate-500"
+          >
+            <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
+            Réinitialiser
+          </button>
+        </div>
+      )}
+
+      <FilterSection
+        title="Budget par jour"
+        summary={filters.maxPrice < PRICE_CEILING ? `≤ ${formatNumber(filters.maxPrice)} MAD` : undefined}
+      >
+        <label htmlFor={`${uid}-price`} className="sr-only">
+          Budget maximum par jour
+        </label>
+        <input
+          id={`${uid}-price`}
+          type="range"
+          min={PRICE_FLOOR}
+          max={PRICE_CEILING}
+          step={50}
+          value={filters.maxPrice}
+          onChange={(e) => onChange({ maxPrice: Number(e.target.value) })}
+          aria-valuetext={
+            filters.maxPrice >= PRICE_CEILING ? 'Tous les prix' : `${filters.maxPrice} MAD maximum`
+          }
+          className="w-full cursor-pointer accent-[#E63946]"
+        />
+        <div className="mt-2 flex items-center justify-between text-xs font-medium text-slate-500">
+          <span>{formatNumber(PRICE_FLOOR)} MAD</span>
+          <span className="font-bold text-[#0B1220]">
+            {filters.maxPrice >= PRICE_CEILING ? 'Tous les prix' : `${formatNumber(filters.maxPrice)} MAD`}
+          </span>
+        </div>
+      </FilterSection>
+
+      <FilterSection
+        title="Catégorie"
+        summary={filters.category !== ALL_CATEGORIES ? filters.category : undefined}
+      >
+        <div className="flex flex-wrap gap-2">
+          {CATEGORIES.map((category) => (
+            <OptionChip
+              key={category}
+              active={filters.category === category}
+              onClick={() => onChange({ category })}
+            >
+              {category === ALL_CATEGORIES ? 'Toutes' : category}
+            </OptionChip>
+          ))}
+        </div>
+      </FilterSection>
+
+      <FilterSection
+        title="Boîte de vitesse"
+        summary={filters.transmission !== 'ALL' ? TRANSMISSION_LABELS[filters.transmission] : undefined}
+      >
+        <div className="grid grid-cols-3 gap-2">
+          <OptionChip active={filters.transmission === 'ALL'} onClick={() => onChange({ transmission: 'ALL' })}>
+            Toutes
+          </OptionChip>
+          <OptionChip
+            active={filters.transmission === 'AUTOMATIC'}
+            onClick={() => onChange({ transmission: 'AUTOMATIC' })}
+          >
+            Auto
+          </OptionChip>
+          <OptionChip
+            active={filters.transmission === 'MANUAL'}
+            onClick={() => onChange({ transmission: 'MANUAL' })}
+          >
+            Manuelle
+          </OptionChip>
+        </div>
+      </FilterSection>
+
+      <FilterSection
+        title="Carburant"
+        summary={filters.fuel !== 'ALL' ? FUEL_LABELS[filters.fuel] : undefined}
+      >
+        <div className="grid grid-cols-2 gap-2">
+          <OptionChip active={filters.fuel === 'ALL'} onClick={() => onChange({ fuel: 'ALL' })}>
+            Tous
+          </OptionChip>
+          {(Object.keys(FUEL_LABELS) as (keyof typeof FUEL_LABELS)[]).map((fuel) => (
+            <OptionChip key={fuel} active={filters.fuel === fuel} onClick={() => onChange({ fuel })}>
+              {FUEL_LABELS[fuel]}
+            </OptionChip>
+          ))}
+        </div>
+      </FilterSection>
+
+      <FilterSection
+        title="Marque"
+        summary={filters.brand !== 'ALL' ? filters.brand : filters.brandQuery.trim() || undefined}
+      >
+        <div className="relative mb-2.5">
+          <Search
+            className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+            aria-hidden="true"
+          />
+          <label htmlFor={`${uid}-brand-query`} className="sr-only">
+            Rechercher une marque ou un modèle
+          </label>
+          <input
+            id={`${uid}-brand-query`}
+            type="search"
+            value={filters.brandQuery}
+            onChange={(e) => onChange({ brandQuery: e.target.value })}
+            placeholder="Marque ou modèle…"
+            className="h-11 w-full rounded-xl border border-slate-200 bg-white pe-9 ps-9 text-[13px] font-medium text-slate-800 placeholder:text-slate-400 focus:border-[#0B1220] focus:outline-none focus:ring-2 focus:ring-[#0B1220]/10"
+          />
+          {filters.brandQuery && (
+            <button
+              type="button"
+              onClick={() => onChange({ brandQuery: '' })}
+              className="absolute end-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+              aria-label="Effacer la recherche de marque"
+            >
+              <X className="h-3.5 w-3.5" aria-hidden="true" />
+            </button>
+          )}
+        </div>
+        <label htmlFor={`${uid}-brand`} className="sr-only">
+          Marque
+        </label>
+        <select
+          id={`${uid}-brand`}
+          value={filters.brand}
+          onChange={(e) => onChange({ brand: e.target.value })}
+          className={selectClass}
+        >
+          <option value="ALL">Toutes les marques</option>
+          {brands.map((brand) => (
+            <option key={brand} value={brand}>
+              {brand}
+            </option>
+          ))}
+        </select>
+      </FilterSection>
+
+      <FilterSection title="Agence de location" summary={selectedAgencyName}>
+        <label htmlFor={`${uid}-agency`} className="sr-only">
+          Agence de location
+        </label>
+        <select
+          id={`${uid}-agency`}
+          value={filters.agency}
+          onChange={(e) => onChange({ agency: e.target.value })}
+          className={selectClass}
+        >
+          <option value="ALL">Toutes les agences</option>
+          {agencies.map((agency) => (
+            <option key={agency.id} value={agency.id}>
+              {agency.name}
+            </option>
+          ))}
+        </select>
+      </FilterSection>
+    </div>
+  );
+}

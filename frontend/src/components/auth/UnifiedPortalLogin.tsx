@@ -4,7 +4,6 @@ import React, { Suspense, useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Bricolage_Grotesque, Instrument_Sans } from 'next/font/google';
 import {
   AlertCircle,
   ArrowLeft,
@@ -40,17 +39,6 @@ import {
 } from '@/lib/auth/login-portals';
 import { createClient, isSupabaseConfigured } from '@/lib/supabase/client';
 import { USER_ROLES } from '@cardrive/shared';
-
-const displayFont = Bricolage_Grotesque({
-  subsets: ['latin'],
-  variable: '--font-display',
-  display: 'swap',
-});
-const bodyFont = Instrument_Sans({
-  subsets: ['latin'],
-  variable: '--font-body',
-  display: 'swap',
-});
 
 const MAX_ATTEMPTS = 5;
 const LOCK_SECONDS = 30;
@@ -149,23 +137,25 @@ const URL_ERROR_MESSAGES: Record<string, string> = {
 
 const loginStyles = `
   .cd-login {
-    --cd-bg: #0d1016;
-    --cd-field: #181d26;
-    --cd-text: #f6f7f9;
-    --cd-muted: #a6adbb;
-    --cd-line: rgba(255,255,255,.12);
-    --cd-accent: #ff6673;
-    --cd-button: #d12e40;
-    --cd-button-hover: #bf2637;
-    color-scheme: dark;
+    --cd-graphite: #0B1220;
+    --cd-red: #E63946;
+    --cd-red-hover: #C92F3B;
+    --cd-bg: #F5F6F8;
+    --cd-surface: #FFFFFF;
+    --cd-text: #0B1220;
+    --cd-muted: #5B6474;
+    --cd-subtle: #8A93A3;
+    --cd-line: #E3E6EB;
+    --cd-field: #F5F6F8;
+    color-scheme: light;
     display: grid;
-    grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
     min-height: 100vh;
     min-height: 100svh;
     width: 100%;
     background: var(--cd-bg);
     color: var(--cd-text);
-    font-family: var(--font-body), Arial, sans-serif;
+    font-family: var(--font-sans), 'Plus Jakarta Sans', Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
   }
   .cd-login, .cd-login * { box-sizing: border-box; }
@@ -175,45 +165,45 @@ const loginStyles = `
   .cd-login :where(button) { cursor: pointer; }
   .cd-login svg { display: block; flex-shrink: 0; }
   .cd-login :is(a, button, summary):focus-visible {
-    outline: 2px solid var(--cd-accent);
-    outline-offset: 5px;
+    outline: 2px solid var(--cd-red);
+    outline-offset: 3px;
+    border-radius: 8px;
   }
+
+  /* ── Panneau de marque (graphite) ───────────────────────────── */
   .cd-brand {
     position: relative;
     isolation: isolate;
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    padding: clamp(32px, 4vw, 64px);
-    border-right: 1px solid var(--cd-line);
-    background:
-      radial-gradient(ellipse at 100% 0%, rgba(168,31,47,.36), transparent 63%),
-      linear-gradient(155deg, #18171c, #11141b 62%);
+    padding: clamp(32px, 4vw, 56px);
+    background: var(--cd-graphite);
+    color: #fff;
   }
-  .cd-brand::after {
+  .cd-brand::before {
     content: '';
     position: absolute;
     inset: 0;
     z-index: -1;
-    background-image: linear-gradient(rgba(255,255,255,.022) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,.022) 1px, transparent 1px);
-    background-size: 64px 64px;
-    mask-image: linear-gradient(to bottom, transparent 10%, #000);
+    background-image: linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px);
+    background-size: 56px 56px;
+    mask-image: radial-gradient(ellipse at 30% 40%, #000 20%, transparent 75%);
     pointer-events: none;
   }
-  .cd-brand-top { display: flex; align-items: center; justify-content: center; gap: 20px; }
-  .cd-logo {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    background: transparent;
-  }
-  .cd-logo img {
-    display: block;
-    width: 400px;
-    max-width: 100%;
-    height: auto;
+  .cd-brand::after {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    right: -140px;
+    bottom: -160px;
+    width: 460px;
+    height: 460px;
+    border-radius: 50%;
+    background: rgba(230,57,70,.28);
+    filter: blur(110px);
+    pointer-events: none;
   }
   .cd-road-art {
     position: absolute;
@@ -224,172 +214,190 @@ const loginStyles = `
     height: auto;
     pointer-events: none;
   }
+  .cd-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: #FF6B76;
+  }
+  .cd-eyebrow::before { content: ''; width: 26px; height: 1px; background: currentColor; }
   .cd-hero {
     display: flex;
     flex: 1;
     flex-direction: column;
     justify-content: center;
-    padding: 78px 0 88px;
-  }
-  .cd-eyebrow {
-    display: flex;
-    align-items: center;
-    gap: 11px;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 2px;
-    line-height: 1.6;
-    text-transform: uppercase;
-    color: #c9bac0;
-  }
-  .cd-eyebrow::before {
-    content: '';
-    width: 25px;
-    height: 2px;
-    background: var(--cd-accent);
+    padding: 48px 0;
   }
   .cd-hero-title {
-    margin-top: 25px;
-    max-width: 570px;
-    font-family: var(--font-display), Arial, sans-serif;
-    font-size: clamp(48px, 4.55vw, 76px);
+    margin-top: 22px;
+    max-width: 520px;
+    font-size: clamp(40px, 4vw, 62px);
     line-height: 1.04;
     font-weight: 800;
-    letter-spacing: -.055em;
+    letter-spacing: -.035em;
   }
-  .cd-hero-title span { color: var(--cd-accent); }
+  .cd-hero-title span { color: var(--cd-red); }
   .cd-hero-copy {
-    max-width: 355px;
-    margin-top: 26px;
-    color: #b4b7c2;
+    max-width: 400px;
+    margin-top: 22px;
+    color: #B7BECB;
     font-size: 16px;
     line-height: 1.75;
   }
   .cd-features {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 18px 25px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    max-width: 460px;
     margin-top: 36px;
-    color: #d2d4dc;
-    font-size: 12px;
   }
-  .cd-feature { display: inline-flex; align-items: center; gap: 8px; }
-  .cd-feature svg { width: 16px; height: 16px; color: var(--cd-accent); }
+  .cd-feature {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 16px;
+    background: rgba(255,255,255,.04);
+    color: #E6E9EF;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .cd-feature svg {
+    width: 34px;
+    height: 34px;
+    padding: 8px;
+    border-radius: 10px;
+    background: rgba(230,57,70,.16);
+    color: #FF6B76;
+  }
   .cd-brand-footer {
     display: flex;
     align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
-    gap: 16px;
-    padding-top: 22px;
-    border-top: 1px solid var(--cd-line);
+    gap: 12px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,.1);
     font-size: 12px;
-    line-height: 1.5;
-    color: var(--cd-muted);
+    color: #8F98A8;
   }
   .cd-location { display: inline-flex; align-items: center; gap: 7px; }
-  .cd-location svg { width: 14px; height: 14px; }
+  .cd-location svg { width: 14px; height: 14px; color: #FF6B76; }
+
+  /* ── Colonne formulaire (claire) ────────────────────────────── */
   .cd-access {
     display: flex;
     flex-direction: column;
     min-width: 0;
-    padding: 36px clamp(28px, 4.5vw, 76px) 26px;
-    background: radial-gradient(ellipse at 50% 30%, #151923 0%, #0d1016 70%);
+    padding: 24px clamp(20px, 4vw, 64px) 20px;
   }
-  .cd-topbar { display: flex; justify-content: flex-end; align-items: center; gap: 18px; }
-  .cd-mobile-brand { display: none; }
+  .cd-topbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+  .cd-logo { display: inline-flex; align-items: center; }
+  .cd-logo img { display: block; width: 168px; height: auto; }
   .cd-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 14px;
+    border: 1px solid var(--cd-line);
+    border-radius: 12px;
+    background: var(--cd-surface);
+    color: var(--cd-muted);
+    font-size: 13px;
+    font-weight: 600;
+    transition: color .2s ease, border-color .2s ease;
+  }
+  .cd-back svg { width: 16px; height: 16px; transition: transform .2s ease; }
+  .cd-back:hover { color: var(--cd-text); border-color: #C9CED6; }
+  .cd-back:hover svg { transform: translateX(-3px); }
+  .cd-form-content {
+    width: 100%;
+    max-width: 460px;
+    margin: auto;
+    padding: 36px 0 28px;
+    animation: cd-enter .45s ease both;
+  }
+  .cd-card {
+    padding: clamp(24px, 3vw, 36px);
+    border: 1px solid var(--cd-line);
+    border-radius: 24px;
+    background: var(--cd-surface);
+    box-shadow: 0 1px 2px rgba(11,18,32,.04), 0 24px 60px -32px rgba(11,18,32,.28);
+  }
+
+  /* Sélecteur de portail */
+  .cd-portal-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    margin-bottom: 26px;
+    padding: 4px;
+    border-radius: 14px;
+    background: var(--cd-field);
+  }
+  .cd-portal-tab {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    min-height: 44px;
+    min-height: 42px;
+    border-radius: 10px;
     color: var(--cd-muted);
-    font-size: 12px;
-    transition: color .2s ease;
+    font-size: 13px;
+    font-weight: 700;
+    transition: background .2s ease, color .2s ease;
   }
-  .cd-back svg { width: 15px; height: 15px; transition: transform .2s ease; }
-  .cd-back:hover { color: var(--cd-text); }
-  .cd-back:hover svg { transform: translateX(-3px); }
-  .cd-form-content {
-    width: 100%;
-    max-width: 410px;
-    margin: auto;
-    padding: 50px 0 44px;
-    animation: cd-enter .5s ease both;
+  .cd-portal-tab svg { width: 16px; height: 16px; }
+  .cd-portal-tab:hover { color: var(--cd-text); }
+  .cd-portal-tab[aria-current='page'] {
+    background: var(--cd-surface);
+    color: var(--cd-text);
+    box-shadow: 0 1px 3px rgba(11,18,32,.1);
   }
-  .cd-switch {
-    margin-bottom: 22px;
-    color: var(--cd-muted);
-    font-size: 12px;
-    text-align: right;
-  }
-  .cd-switch a {
-    display: inline-flex;
-    align-items: center;
-    min-height: 32px;
-    color: #ff9ca5;
-    font-weight: 600;
-  }
-  .cd-switch a:hover, .cd-join a:hover { text-decoration: underline; }
+  .cd-portal-tab[aria-current='page'] svg { color: var(--cd-red); }
   .cd-admin-note {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 8px;
     margin-bottom: 24px;
-    padding: 10px 14px;
-    border: 1px solid var(--cd-line);
-    border-radius: 10px;
-    background: rgba(255,255,255,.03);
-    color: var(--cd-muted);
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: var(--cd-graphite);
+    color: #C3C9D4;
     font-size: 12px;
   }
-  .cd-admin-note > span { display: inline-flex; align-items: center; gap: 8px; color: var(--cd-text); font-weight: 600; }
-  .cd-admin-note svg { width: 16px; height: 16px; color: var(--cd-accent); }
-  .cd-admin-note a { color: #ff9ca5; font-weight: 600; }
+  .cd-admin-note > span { display: inline-flex; align-items: center; gap: 8px; color: #fff; font-weight: 700; }
+  .cd-admin-note svg { width: 16px; height: 16px; color: #FF6B76; }
+  .cd-admin-note a { color: #FF9CA5; font-weight: 700; }
+
   .cd-form-header { margin-bottom: 24px; }
-  .cd-access-label {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 22px;
-    padding: 6px 10px;
-    border: 1px solid rgba(255,102,115,.22);
-    border-radius: 6px;
-    background: rgba(255,102,115,.055);
-    color: #ff9ca5;
-    font-size: 11px;
-    font-weight: 500;
-    line-height: 1.5;
-  }
-  .cd-access-label svg { width: 13px; height: 13px; }
   .cd-form-header h1 {
-    font-family: var(--font-display), Arial, sans-serif;
-    font-size: clamp(32px, 3vw, 42px);
-    font-weight: 700;
-    letter-spacing: -.04em;
+    font-size: clamp(28px, 2.6vw, 34px);
+    font-weight: 800;
+    letter-spacing: -.03em;
     line-height: 1.15;
   }
-  .cd-form-header p {
-    margin-top: 12px;
-    max-width: 350px;
-    color: var(--cd-muted);
-    font-size: 14px;
-    line-height: 1.7;
-  }
-  .cd-form { display: grid; gap: 23px; }
-  .cd-field label { display: block; margin-bottom: 10px; color: #e1e4eb; font-size: 13px; font-weight: 500; }
-  .cd-label-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+  .cd-form-header p { margin-top: 8px; color: var(--cd-muted); font-size: 14px; line-height: 1.65; }
+
+  .cd-form { display: grid; gap: 18px; }
+  .cd-field label { display: block; margin-bottom: 8px; color: var(--cd-text); font-size: 13px; font-weight: 700; }
+  .cd-label-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
   .cd-label-row label { margin-bottom: 0; }
   .cd-link-btn {
     min-height: 32px;
     padding: 0;
     border: 0;
     background: none;
-    color: #ff9ca5;
+    color: var(--cd-red);
     font-size: 12px;
-    font-weight: 500;
+    font-weight: 700;
   }
   .cd-link-btn:hover:not(:disabled) { text-decoration: underline; }
   .cd-link-btn:disabled { cursor: not-allowed; opacity: .55; }
@@ -397,161 +405,178 @@ const loginStyles = `
   .cd-input-icon {
     position: absolute;
     top: 50%;
-    left: 17px;
+    left: 16px;
     width: 18px;
     height: 18px;
     transform: translateY(-50%);
-    color: #929baa;
+    color: var(--cd-subtle);
     pointer-events: none;
     transition: color .2s ease;
   }
   .cd-input {
     display: block;
     width: 100%;
-    height: 56px;
-    padding: 0 16px 0 48px;
-    border: 1px solid rgba(255,255,255,.15);
-    border-radius: 10px;
+    height: 52px;
+    padding: 0 16px 0 46px;
+    border: 1px solid var(--cd-line);
+    border-radius: 12px;
     background: var(--cd-field);
     color: var(--cd-text);
     font-size: 16px;
-    line-height: 1.5;
+    font-weight: 500;
     outline: 2px solid transparent;
-    outline-offset: 2px;
     transition: border-color .2s ease, background .2s ease, box-shadow .2s ease;
   }
-  .cd-input::placeholder { color: #939cab; opacity: 1; }
-  .cd-input:hover:not(:disabled) { border-color: rgba(255,255,255,.28); }
+  .cd-input::placeholder { color: var(--cd-subtle); opacity: 1; font-weight: 400; }
+  .cd-input:hover:not(:disabled) { border-color: #C9CED6; }
   .cd-input:focus {
-    border-color: var(--cd-accent);
-    background: #1b202a;
-    box-shadow: 0 0 0 4px rgba(255,102,115,.11);
+    border-color: var(--cd-graphite);
+    background: var(--cd-surface);
+    box-shadow: 0 0 0 4px rgba(11,18,32,.08);
   }
   .cd-input:-webkit-autofill,
   .cd-input:-webkit-autofill:hover,
   .cd-input:-webkit-autofill:focus {
     -webkit-text-fill-color: var(--cd-text);
-    caret-color: var(--cd-text);
-    -webkit-box-shadow: 0 0 0 1000px var(--cd-field) inset;
+    -webkit-box-shadow: 0 0 0 1000px #EEF2F8 inset;
     transition: background-color 9999s ease-out 0s;
   }
-  .cd-input-wrap:focus-within .cd-input-icon { color: var(--cd-accent); }
-  .cd-input[aria-invalid='true'] { border-color: #ff8190; }
-  .cd-input:disabled { opacity: .65; cursor: not-allowed; }
-  .cd-input-password { padding-right: 56px; }
+  .cd-input-wrap:focus-within .cd-input-icon { color: var(--cd-graphite); }
+  .cd-input[aria-invalid='true'] { border-color: var(--cd-red); background: #FFF6F7; }
+  .cd-input:disabled { opacity: .6; cursor: not-allowed; }
+  .cd-input-password { padding-right: 54px; }
   .cd-toggle-password {
     position: absolute;
-    top: 6px;
-    right: 6px;
+    top: 4px;
+    right: 4px;
     display: grid;
     place-items: center;
     width: 44px;
     height: 44px;
     padding: 0;
     border: 0;
-    border-radius: 6px;
+    border-radius: 10px;
     background: transparent;
-    color: var(--cd-muted);
+    color: var(--cd-subtle);
     transition: color .2s ease, background .2s ease;
   }
-  .cd-toggle-password:hover:not(:disabled) { color: var(--cd-text); background: rgba(255,255,255,.06); }
+  .cd-toggle-password:hover:not(:disabled) { color: var(--cd-text); background: rgba(11,18,32,.05); }
   .cd-toggle-password svg { width: 18px; height: 18px; }
-  .cd-field-error, .cd-caps-hint, .cd-hint { margin-top: 9px; font-size: 12px; line-height: 1.6; }
-  .cd-field-error { color: #ff9ca5; }
-  .cd-caps-hint { color: #f0c773; }
+  .cd-field-error, .cd-caps-hint, .cd-hint { margin-top: 7px; font-size: 12px; line-height: 1.55; }
+  .cd-field-error { color: #C1121F; font-weight: 600; }
+  .cd-caps-hint { color: #A15C07; font-weight: 600; }
   .cd-hint { color: var(--cd-muted); }
   .cd-alert, .cd-notice {
     display: flex;
     align-items: flex-start;
     gap: 10px;
-    margin-bottom: 24px;
-    padding: 13px 14px;
-    border-radius: 10px;
+    margin-bottom: 20px;
+    padding: 12px 14px;
+    border-radius: 12px;
     font-size: 13px;
-    line-height: 1.6;
+    line-height: 1.55;
   }
-  .cd-alert { border: 1px solid rgba(255,102,115,.26); background: rgba(255,102,115,.07); color: #ffb9c0; }
-  .cd-notice { border: 1px solid rgba(61,220,151,.28); background: rgba(61,220,151,.07); color: #a4f0cc; }
-  .cd-alert svg, .cd-notice svg { width: 17px; height: 17px; margin-top: 2px; }
+  .cd-alert { border: 1px solid #F8C9CD; background: #FFF4F5; color: #9B1C26; }
+  .cd-notice { border: 1px solid #BFE8D3; background: #F0FBF5; color: #17603F; }
+  .cd-alert svg, .cd-notice svg { width: 17px; height: 17px; margin-top: 1px; }
   .cd-submit {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 10px;
     width: 100%;
-    min-height: 54px;
-    margin-top: 3px;
-    padding: 13px 18px;
-    border: 1px solid rgba(255,255,255,.1);
-    border-radius: 10px;
-    background: var(--cd-button);
+    min-height: 52px;
+    margin-top: 4px;
+    padding: 12px 18px;
+    border: 0;
+    border-radius: 12px;
+    background: var(--cd-red);
     color: #fff;
-    font-size: 14px;
-    font-weight: 600;
-    box-shadow: 0 5px 20px rgba(170,21,39,.14);
+    font-size: 15px;
+    font-weight: 700;
+    box-shadow: 0 14px 28px -14px rgba(230,57,70,.75);
     transition: background .2s ease, transform .1s ease;
   }
-  .cd-submit svg { transition: transform .2s ease; }
-  .cd-submit:hover:not(:disabled) { background: var(--cd-button-hover); }
+  .cd-submit svg { width: 18px; height: 18px; transition: transform .2s ease; }
+  .cd-submit:hover:not(:disabled) { background: var(--cd-red-hover); }
   .cd-submit:hover:not(:disabled) svg:last-child { transform: translateX(3px); }
   .cd-submit:active:not(:disabled) { transform: translateY(1px); }
-  .cd-submit:disabled { cursor: not-allowed; opacity: .7; }
-  .cd-submit[data-success='true'] { background: #24734b; opacity: 1; }
+  .cd-submit:disabled { cursor: not-allowed; opacity: .65; box-shadow: none; }
+  .cd-submit[data-success='true'] { background: #1F7A4D; opacity: 1; }
   .cd-spinner { animation: cd-spin .8s linear infinite; }
   .cd-countdown { color: var(--cd-muted); font-size: 12px; text-align: center; }
-  .cd-oauth { margin-top: 8px; display: grid; gap: 12px; }
+  .cd-oauth { margin-top: 20px; display: grid; gap: 14px; }
   .cd-oauth-divider {
     display: flex;
     align-items: center;
     gap: 12px;
-    color: var(--cd-muted);
+    color: var(--cd-subtle);
     font-size: 11px;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: .08em;
+    letter-spacing: .12em;
   }
-  .cd-oauth-divider::before, .cd-oauth-divider::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--cd-line);
-  }
-  .cd-join { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--cd-line); text-align: center; font-size: 13px; color: var(--cd-muted); }
-  .cd-join a { color: #ff9ca5; font-weight: 600; }
+  .cd-oauth-divider::before, .cd-oauth-divider::after { content: ''; flex: 1; height: 1px; background: var(--cd-line); }
+  .cd-join { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--cd-line); text-align: center; font-size: 13px; color: var(--cd-muted); }
+  .cd-join a { display: inline-flex; min-height: 32px; align-items: center; color: var(--cd-red); font-weight: 700; }
+  .cd-join a:hover { text-decoration: underline; }
   .cd-trust {
     display: flex;
     align-items: flex-start;
     gap: 10px;
-    margin-top: 30px;
-    padding-top: 23px;
-    border-top: 1px solid var(--cd-line);
+    margin-top: 20px;
+    padding: 0 4px;
     color: var(--cd-muted);
     font-size: 12px;
     line-height: 1.6;
   }
-  .cd-trust svg { width: 16px; height: 16px; margin-top: 2px; color: #c0c7d3; }
-  .cd-help { margin-top: 16px; color: var(--cd-muted); font-size: 12px; line-height: 1.7; }
-  .cd-help summary { display: inline-flex; align-items: center; gap: 5px; min-height: 44px; cursor: pointer; list-style: none; }
+  .cd-trust svg { width: 16px; height: 16px; margin-top: 1px; color: #1F7A4D; }
+  .cd-help { margin-top: 4px; padding: 0 4px; color: var(--cd-muted); font-size: 12px; line-height: 1.7; }
+  .cd-help summary { display: inline-flex; align-items: center; gap: 5px; min-height: 44px; font-weight: 700; color: var(--cd-text); cursor: pointer; list-style: none; }
   .cd-help summary::-webkit-details-marker { display: none; }
   .cd-help summary svg { width: 14px; height: 14px; transition: transform .2s ease; }
   .cd-help[open] summary svg { transform: rotate(180deg); }
-  .cd-access-footer { color: #929baa; font-size: 11px; text-align: center; }
-  .cd-skeleton { height: 56px; border: 1px solid var(--cd-line); border-radius: 10px; background: var(--cd-field); }
-  .cd-skeleton-label { height: 12px; width: 94px; margin-bottom: 12px; border-radius: 3px; background: #252c39; }
+  .cd-access-footer { color: var(--cd-subtle); font-size: 11px; text-align: center; }
+  .cd-mobile-hero { display: none; }
+  .cd-skeleton { height: 52px; border: 1px solid var(--cd-line); border-radius: 12px; background: var(--cd-surface); }
+  .cd-skeleton-label { height: 12px; width: 94px; margin-bottom: 12px; border-radius: 4px; background: var(--cd-line); }
   .cd-sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
-  @keyframes cd-enter { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes cd-enter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
   @keyframes cd-spin { to { transform: rotate(360deg); } }
+
+  /* RTL : icônes et bouton d'affichage du mot de passe côté début/fin logique */
+  [dir='rtl'] .cd-input-icon { left: auto; right: 16px; }
+  [dir='rtl'] .cd-input { padding: 0 46px 0 16px; }
+  [dir='rtl'] .cd-input-password { padding-left: 54px; }
+  [dir='rtl'] .cd-toggle-password { right: auto; left: 4px; }
+  [dir='rtl'] .cd-back svg, [dir='rtl'] .cd-submit svg:last-child { transform: scaleX(-1); }
+
+  /* ── Tablette & mobile : une seule colonne, bandeau de marque compact ── */
   @media (max-width: 959px) {
     .cd-login { display: block; }
     .cd-brand { display: none; }
-    .cd-access { min-height: 100svh; padding: 28px 28px 22px; }
-    .cd-topbar { flex-direction: column-reverse; align-items: stretch; gap: 14px; }
-    .cd-topbar .cd-back { align-self: flex-start; }
-    .cd-mobile-brand { display: inline-flex; align-self: center; }
-    .cd-mobile-brand img { width: 168px; }
-    .cd-form-content { padding-top: 30px; }
+    .cd-access { min-height: 100svh; padding: 16px 20px 20px; }
+    .cd-mobile-hero {
+      display: block;
+      width: 100%;
+      max-width: 520px;
+      margin: 18px auto 0;
+      padding: 22px 22px 50px;
+      border-radius: 22px;
+      background: var(--cd-graphite) radial-gradient(circle at 100% 0%, rgba(230,57,70,.35), transparent 55%);
+      color: #fff;
+    }
+    .cd-mobile-hero-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: #FF6B76; }
+    .cd-mobile-hero-title { margin-top: 8px; font-size: 24px; font-weight: 800; line-height: 1.2; letter-spacing: -.02em; }
+    .cd-mobile-hero-title span { color: var(--cd-red); }
+    .cd-form-content { max-width: 520px; margin: -30px auto 0; padding-top: 0; }
   }
   @media (max-width: 400px) {
-    .cd-access { padding-inline: 20px; }
+    .cd-access { padding-inline: 14px; }
+    .cd-card { padding: 22px 18px; border-radius: 20px; }
+    .cd-logo img { width: 140px; }
+    .cd-back span, .cd-tab-extra { display: none; }
+    .cd-back { padding: 0 12px; }
   }
   @media (prefers-reduced-motion: reduce) {
     .cd-form-content { animation: none; }
@@ -565,18 +590,12 @@ function LoginStyles() {
   return <style dangerouslySetInnerHTML={{ __html: loginStyles }} />;
 }
 
-function BrandLogo({ mobile = false }: { mobile?: boolean }) {
+/* Logo sur fond clair (le gris de « Drive » manque de contraste sur le panneau graphite) */
+function BrandLogo() {
   return (
-    <div className={`cd-logo${mobile ? ' cd-mobile-brand' : ''}`}>
-      <Image
-        src="/logo_12.png"
-        alt="CarDrive"
-        width={400}
-        height={400}
-        sizes={mobile ? '168px' : '400px'}
-        priority
-      />
-    </div>
+    <Link href="/" className="cd-logo" aria-label="CarDrive — Accueil">
+      <Image src="/logo_12.png" alt="CarDrive" width={851} height={229} sizes="168px" priority />
+    </Link>
   );
 }
 
@@ -586,15 +605,12 @@ function BrandPanel({ portal }: { portal: LoginPortal }) {
 
   return (
     <aside className="cd-brand" aria-label="CarDrive">
-      <div className="cd-brand-top">
-        <BrandLogo />
-      </div>
+      <div className="cd-eyebrow">{copy.eyebrow}</div>
       <svg className="cd-road-art" aria-hidden="true" viewBox="0 0 720 720" fill="none">
         <path d="M805 60H492c-112 0-202 90-202 202v63c0 84-68 152-152 152H-92" stroke="#e63946" strokeOpacity=".06" strokeWidth="148" />
         <path d="M805 60H492c-112 0-202 90-202 202v63c0 84-68 152-152 152H-92" stroke="#e63946" strokeOpacity=".2" strokeWidth="2" strokeDasharray="10 16" />
       </svg>
       <div className="cd-hero">
-        <div className="cd-eyebrow">{copy.eyebrow}</div>
         <p className="cd-hero-title">
           {copy.title}
           <br />
@@ -864,7 +880,6 @@ function PortalLoginForm() {
     }
   };
 
-  const AccessIcon = portal === 'agency' ? Building2 : portal === 'admin' ? LockKeyhole : UserRound;
 
   const liveMessage =
     status === 'submitting'
@@ -882,28 +897,49 @@ function PortalLoginForm() {
       : undefined;
 
   return (
-    <main lang="fr" className={`${displayFont.variable} ${bodyFont.variable} cd-login`}>
+    <main lang="fr" className={`cd-login`}>
       <LoginStyles />
       <BrandPanel portal={portal} />
       <section className="cd-access" aria-label="Connexion CarDrive">
         <div className="cd-topbar">
-          <BrandLogo mobile />
-          <Link href="/" className="cd-back">
+          <BrandLogo />
+          <Link href="/" className="cd-back" aria-label="Retour au site">
             <ArrowLeft aria-hidden="true" />
             <span>Retour au site</span>
           </Link>
         </div>
 
+        {/* Mobile / tablette : rappel compact du message de marque */}
+        <div className="cd-mobile-hero" aria-hidden="true">
+          <p className="cd-mobile-hero-eyebrow">{copy.eyebrow}</p>
+          <p className="cd-mobile-hero-title">
+            {copy.title} <span>{copy.titleAccent}</span>
+          </p>
+        </div>
+
         <div className="cd-form-content">
-          {portal === 'client' && (
-            <p className="cd-switch">
-              Vous êtes une agence ? <Link href={loginUrl('agency')}>Accès partenaire</Link>
-            </p>
-          )}
-          {portal === 'agency' && (
-            <p className="cd-switch">
-              Vous êtes un client ? <Link href={loginUrl('client')}>Espace client</Link>
-            </p>
+          <div className="cd-card">
+          {portal !== 'admin' && (
+            <nav className="cd-portal-tabs" aria-label="Type de compte">
+              <Link
+                href={loginUrl('client')}
+                className="cd-portal-tab"
+                aria-current={portal === 'client' ? 'page' : undefined}
+              >
+                <UserRound aria-hidden="true" />
+                Client
+              </Link>
+              <Link
+                href={loginUrl('agency')}
+                className="cd-portal-tab"
+                aria-current={portal === 'agency' ? 'page' : undefined}
+              >
+                <Building2 aria-hidden="true" />
+                <span>
+                  Agence<span className="cd-tab-extra"> partenaire</span>
+                </span>
+              </Link>
+            </nav>
           )}
           {portal === 'admin' && (
             <div className="cd-admin-note">
@@ -916,10 +952,6 @@ function PortalLoginForm() {
           )}
 
           <header className="cd-form-header">
-            <div className="cd-access-label">
-              <AccessIcon aria-hidden="true" />
-              {copy.accessLabel}
-            </div>
             <h1>{isRegistration ? 'Créer un compte client' : 'Connexion'}</h1>
             <p>{isRegistration ? 'Créez votre espace pour suivre vos demandes et réservations.' : copy.formSubtitle}</p>
           </header>
@@ -1101,6 +1133,13 @@ function PortalLoginForm() {
           </form>
 
           {portal === 'client' && (
+            <div className="cd-oauth">
+              <div className="cd-oauth-divider">ou</div>
+              <GoogleSignInButton variant="light" next={redirectUrl} label="Continuer avec Google" />
+            </div>
+          )}
+
+          {portal === 'client' && (
             <p className="cd-join">
               {isRegistration ? 'Vous avez déjà un compte ? ' : 'Nouveau sur CarDrive ? '}
               <Link href={isRegistration ? loginUrl('client') : `${LOGIN_PATH}?portal=client&mode=signup`}>
@@ -1109,18 +1148,12 @@ function PortalLoginForm() {
             </p>
           )}
 
-          {portal === 'client' && (
-            <div className="cd-oauth">
-              <div className="cd-oauth-divider">ou</div>
-              <GoogleSignInButton variant="dark" next={redirectUrl} label="Continuer avec Google" />
-            </div>
-          )}
-
           {portal === 'agency' && (
             <p className="cd-join">
               Pas encore partenaire ? <Link href="/agency/join">Rejoindre le réseau</Link>
             </p>
           )}
+          </div>
 
           <div className="cd-trust">
             <ShieldCheck aria-hidden="true" />
@@ -1143,7 +1176,7 @@ function PortalLoginForm() {
 
 function LoginFallback() {
   return (
-    <main className={`${displayFont.variable} ${bodyFont.variable} cd-login`}>
+    <main className={`cd-login`}>
       <LoginStyles />
       <div className="cd-access" style={{ gridColumn: '1 / -1', minHeight: '100svh' }} aria-hidden="true">
         <div className="cd-form-content">

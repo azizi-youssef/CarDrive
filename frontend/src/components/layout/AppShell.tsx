@@ -15,10 +15,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     pathname?.startsWith('/admin') ||
     pathname?.startsWith('/agency');
 
+  // La connexion est une page « focus » plein écran : sans navbar ni footer, avec son propre <main>
+  const isFocusedAuth = pathname === '/login';
+
   return (
     <LanguageProvider>
       {isAdminOrAgency ? (
         children
+      ) : isFocusedAuth ? (
+        <>
+          {children}
+          <CookieBanner />
+        </>
       ) : (
         <>
           <a

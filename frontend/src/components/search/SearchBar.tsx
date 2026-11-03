@@ -54,24 +54,25 @@ function Field({
   return (
     <div
       className={cn(
-        'flex min-w-0 items-center gap-2.5 sm:gap-3 rounded-xl border border-slate-100 bg-white px-3 sm:px-4 py-2.5 sm:py-3 transition-colors focus-within:border-[#E63946]/50 focus-within:ring-2 focus-within:ring-[#E63946]/20 hover:border-slate-200',
+        'flex h-full min-w-0 flex-col justify-center rounded-xl border border-transparent bg-[#F5F6F8] px-3.5 py-2.5 transition-colors hover:bg-[#EEF0F3] focus-within:border-[#0B1220]/25 focus-within:bg-white focus-within:ring-2 focus-within:ring-[#0B1220]/10',
         className
       )}
     >
-      <Icon className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
-      <div className="min-w-0 flex-1">
-        <label htmlFor={id} className="mb-0.5 block text-[11px] sm:text-xs font-medium text-slate-500">
-          {label}
-        </label>
-        {children}
-      </div>
+      <label
+        htmlFor={id}
+        className="mb-1 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.08em] text-slate-500"
+      >
+        <Icon className="h-3.5 w-3.5 shrink-0 text-[#E63946]" aria-hidden="true" />
+        <span className="truncate">{label}</span>
+      </label>
+      {children}
     </div>
   );
 }
 
 // text-base on mobile prevents iOS Safari from automatically zooming in when focusing selects/inputs
 const controlClass =
-  'w-full cursor-pointer truncate bg-transparent text-base sm:text-sm font-semibold text-slate-900 focus:outline-none';
+  'min-h-8 w-full min-w-0 cursor-pointer truncate bg-transparent text-base sm:text-sm font-bold text-[#0B1220] focus:outline-none';
 
 export function SearchBar({
   initialLocation = 'Aéroport Nador Al-Aroui (NDR)',
@@ -151,9 +152,16 @@ export function SearchBar({
       aria-label="Rechercher une voiture de location"
       className={`w-full ${isCompact ? '' : 'mx-auto max-w-5xl'}`}
     >
-      <div className="grid grid-cols-2 gap-1.5 sm:gap-1 rounded-2xl sm:rounded-3xl border border-slate-200/80 bg-white p-1.5 sm:grid-cols-2 lg:grid-cols-[1.3fr_1fr_1fr_1.1fr_1.1fr_auto]">
+      <div
+        className={cn(
+          'grid grid-cols-2 gap-2',
+          isCompact
+            ? 'md:grid-cols-4 lg:grid-cols-[1.5fr_1fr_1fr_1.1fr_auto]'
+            : 'rounded-2xl sm:rounded-3xl border border-slate-200/80 bg-white p-1.5 lg:grid-cols-[1.3fr_1fr_1fr_1.1fr_1.1fr_auto]'
+        )}
+      >
         {/* Lieu : pleine largeur sur mobile */}
-        <div className="col-span-2 sm:col-span-2 lg:col-span-1">
+        <div className={cn('col-span-2 lg:col-span-1', isCompact && 'md:col-span-4')}>
           <Field id={`${uid}-location`} label={t.searchBar.pickupLocation} icon={MapPin}>
             <select
               id={`${uid}-location`}
@@ -202,7 +210,8 @@ export function SearchBar({
           </Field>
         </div>
 
-        {/* Marque : côte à côte avec catégorie sur mobile */}
+        {/* Marque : masquée dans le catalogue (filtre dédié), conservée dans l'URL */}
+        {!isCompact && (
         <div className="col-span-1 sm:col-span-1 lg:col-span-1">
           <Field id={`${uid}-brand`} label="Marque" icon={CarFront}>
             <select
@@ -219,9 +228,10 @@ export function SearchBar({
             </select>
           </Field>
         </div>
+        )}
 
         {/* Catégorie : côte à côte avec marque sur mobile */}
-        <div className="col-span-1 sm:col-span-1 lg:col-span-1">
+        <div className={cn('lg:col-span-1', isCompact ? 'col-span-2 md:col-span-2' : 'col-span-1')}>
           <Field id={`${uid}-category`} label="Catégorie" icon={Car}>
             <select
               id={`${uid}-category`}
@@ -242,7 +252,7 @@ export function SearchBar({
         <button
           type="submit"
           disabled={!today}
-          className="col-span-2 lg:col-span-1 flex h-12 lg:h-auto items-center justify-center gap-2 rounded-xl bg-[#E63946] px-6 py-3.5 text-base lg:text-sm font-semibold text-white transition hover:bg-[#C92F3B] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0B1220] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 shadow-sm"
+          className="col-span-2 lg:col-span-1 flex min-h-12 lg:h-auto items-center justify-center gap-2 rounded-xl bg-[#E63946] px-7 py-3.5 text-base lg:text-sm font-bold text-white transition hover:bg-[#C92F3B] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0B1220] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 shadow-sm"
         >
           <Search className="h-4 w-4" aria-hidden="true" />
           {t.searchBar.searchBtn}

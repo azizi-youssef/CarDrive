@@ -925,7 +925,7 @@ export function Navbar() {
               <div
                 className={cn(
                   'relative sm:hidden transition-all duration-300',
-                  scrolled ? 'h-7 w-28' : 'h-8 w-32'
+                  scrolled ? 'h-8 w-[120px]' : 'h-9 w-[134px]'
                 )}
               >
                 <Image
@@ -942,9 +942,10 @@ export function Navbar() {
               <div
                 className={cn(
                   'relative hidden sm:block transition-all duration-300',
+                  // Proportions calées sur le logo (≈ 3,7:1) pour qu'il occupe toute la hauteur
                   scrolled
-                    ? 'h-7 w-32 sm:h-8 sm:w-36 lg:h-9 lg:w-40'
-                    : 'h-8 w-36 sm:h-9 sm:w-40 lg:h-10 lg:w-44'
+                    ? 'h-9 w-[134px] lg:h-10 lg:w-[149px]'
+                    : 'h-10 w-[149px] lg:h-12 lg:w-[179px]'
                 )}
               >
                 <Image
@@ -1287,7 +1288,8 @@ export function Navbar() {
                 href="/about"
                 aria-current={isNavActive('/about') ? 'page' : undefined}
                 className={cn(
-                  'relative whitespace-nowrap rounded-xl px-3 py-2 text-[13px] font-semibold transition-all duration-200 focus-visible:outline-2 focus-visible:outline-[#E63946]',
+                  // Liens secondaires masqués entre 1024 et 1280 px (menu trop large) ; présents dans le menu mobile
+                  'relative hidden xl:block whitespace-nowrap rounded-xl px-3 py-2 text-[13px] font-semibold transition-all duration-200 focus-visible:outline-2 focus-visible:outline-[#E63946]',
                   isNavActive('/about')
                     ? 'font-bold text-[#0B1220]'
                     : 'text-slate-600 hover:bg-slate-100/70 hover:text-[#0B1220]'
@@ -1304,7 +1306,7 @@ export function Navbar() {
                 href="/faq"
                 aria-current={isNavActive('/faq') ? 'page' : undefined}
                 className={cn(
-                  'relative whitespace-nowrap rounded-xl px-3 py-2 text-[13px] font-semibold transition-all duration-200 focus-visible:outline-2 focus-visible:outline-[#E63946]',
+                  'relative hidden xl:block whitespace-nowrap rounded-xl px-3 py-2 text-[13px] font-semibold transition-all duration-200 focus-visible:outline-2 focus-visible:outline-[#E63946]',
                   isNavActive('/faq')
                     ? 'font-bold text-[#0B1220]'
                     : 'text-slate-600 hover:bg-slate-100/70 hover:text-[#0B1220]'

@@ -1,35 +1,74 @@
 'use client';
 
-import React, { useState, useMemo, useEffect, useCallback, Suspense } from 'react';
+import React, { useState, useMemo, useEffect, useCallback, useRef, Suspense } from 'react';
+import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { VehicleCard } from '@/components/cars/VehicleCard';
+import { VehicleCard, VehicleCardSkeleton } from '@/components/cars/VehicleCard';
 import { SearchBar } from '@/components/search/SearchBar';
-import { CATEGORIES, POPULAR_BRANDS } from '@/lib/constants/catalog';
+import {
+  ALL_CATEGORIES,
+  CatalogFilters,
+  DEFAULT_FILTERS,
+  FUEL_LABELS,
+  PRICE_CEILING,
+  TRANSMISSION_LABELS,
+  countActiveFilters,
+  type CatalogFilterState,
+} from '@/components/search/CatalogFilters';
 import { apiFetch } from '@/lib/api/client';
 import { formatLocalDate, getEffectiveRentalDates } from '@/lib/utils/date-only';
 import { useRealtimeRefresh } from '@/lib/supabase/realtime';
+import { formatNumber } from '@/lib/utils';
 import type { Vehicle, Agency } from '@/types';
-import { Filter, SlidersHorizontal, ArrowUpDown, X, Car, CarFront, RefreshCw, Check, Search } from 'lucide-react';
-import { GsapReveal } from '@/components/ui/react-bits';
+import {
+  AlertTriangle,
+  ArrowUpDown,
+  CalendarDays,
+  Car,
+  ChevronRight,
+  MapPin,
+  RefreshCw,
+  SlidersHorizontal,
+  X,
+} from 'lucide-react';
+
+type SortOption = 'price_asc' | 'price_desc' | 'rating' | 'featured';
+
+const SORT_LABELS: Record<SortOption, string> = {
+  featured: 'Recommandés',
+  price_asc: 'Prix croissant',
+  price_desc: 'Prix décroissant',
+  rating: 'Meilleures agences',
+};
+
+function normalize(value: string): string {
+  return value.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+}
+
+function formatDisplayDate(value: string): string {
+  const [year, month, day] = value.split('-').map(Number);
+  if (!year || !month || !day) return value;
+  return new Date(year, month - 1, day).toLocaleDateString('fr-FR', {
+    day: 'numeric',
+    month: 'short',
+  });
+}
 
 function SearchPageContent() {
   const searchParams = useSearchParams();
 
-  const initialCategory = searchParams.get('category') || 'Tous les types';
+  const initialCategory = searchParams.get('category') || ALL_CATEGORIES;
   const initialBrand = searchParams.get('brand') || 'ALL';
   const initialStartDate = searchParams.get('startDate') || '';
   const initialEndDate = searchParams.get('endDate') || '';
   const initialLocation = searchParams.get('location') || '';
 
-  // Filter states
-  const [selectedCategory, setSelectedCategory] = useState(initialCategory);
-  const [selectedTransmission, setSelectedTransmission] = useState<string>('ALL');
-  const [selectedFuel, setSelectedFuel] = useState<string>('ALL');
-  const [selectedBrand, setSelectedBrand] = useState<string>(initialBrand);
-  const [brandSearchInput, setBrandSearchInput] = useState<string>('');
-  const [selectedAgency, setSelectedAgency] = useState<string>('ALL');
-  const [maxPrice, setMaxPrice] = useState<number>(5000);
-  const [sortBy, setSortBy] = useState<'price_asc' | 'price_desc' | 'rating' | 'featured'>('featured');
+  const [filters, setFilters] = useState<CatalogFilterState>({
+    ...DEFAULT_FILTERS,
+    category: initialCategory,
+    brand: initialBrand,
+  });
+  const [sortBy, setSortBy] = useState<SortOption>('featured');
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
   const [allVehicles, setAllVehicles] = useState<Vehicle[]>([]);
@@ -40,6 +79,10 @@ function SearchPageContent() {
   const [agencies, setAgencies] = useState<Agency[]>([]);
   const [vehiclesLoading, setVehiclesLoading] = useState(true);
   const [vehiclesError, setVehiclesError] = useState<string | null>(null);
+
+  const updateFilters = useCallback((patch: Partial<CatalogFilterState>) => {
+    setFilters((current) => ({ ...current, ...patch }));
+  }, []);
 
   const loadData = useCallback(async (isInitial = false) => {
     // Le chargement initial doit toujours aboutir, même dans un onglet ouvert en arrière-plan.
@@ -103,52 +146,39 @@ function SearchPageContent() {
     };
   }, []);
 
-  // Compute available brands
-  const brands = useMemo(() => {
-    const list = allVehicles.map((v) => v.brand);
-    return ['ALL', ...Array.from(new Set(list))];
-  }, [allVehicles]);
+  // Marques réellement présentes dans le catalogue
+  const brands = useMemo(
+    () => Array.from(new Set(allVehicles.map((v) => v.brand))).sort((a, b) => a.localeCompare(b, 'fr')),
+    [allVehicles]
+  );
 
-  // Filtered vehicles
   const filteredVehicles = useMemo(() => {
     let result = [...allVehicles];
 
-    if (selectedCategory && selectedCategory !== 'Tous les types') {
-      const normSelected = selectedCategory.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-      result = result.filter((v) => {
-        const normCat = (v.category || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-        return normCat === normSelected;
-      });
+    if (filters.category && filters.category !== ALL_CATEGORIES) {
+      const normSelected = normalize(filters.category);
+      result = result.filter((v) => normalize(v.category || '') === normSelected);
     }
-
-    if (selectedTransmission !== 'ALL') {
-      result = result.filter((v) => v.transmission === selectedTransmission);
+    if (filters.transmission !== 'ALL') {
+      result = result.filter((v) => v.transmission === filters.transmission);
     }
-
-    if (selectedFuel !== 'ALL') {
-      result = result.filter((v) => v.fuel === selectedFuel);
+    if (filters.fuel !== 'ALL') {
+      result = result.filter((v) => v.fuel === filters.fuel);
     }
-
-    if (selectedBrand !== 'ALL') {
-      result = result.filter((v) => v.brand.toLowerCase() === selectedBrand.toLowerCase());
+    if (filters.brand !== 'ALL') {
+      result = result.filter((v) => v.brand.toLowerCase() === filters.brand.toLowerCase());
     }
-
-    if (brandSearchInput.trim()) {
-      const q = brandSearchInput.trim().toLowerCase();
+    if (filters.brandQuery.trim()) {
+      const q = filters.brandQuery.trim().toLowerCase();
       result = result.filter(
-        (v) =>
-          v.brand.toLowerCase().includes(q) ||
-          v.model.toLowerCase().includes(q)
+        (v) => v.brand.toLowerCase().includes(q) || v.model.toLowerCase().includes(q)
       );
     }
-
-    if (selectedAgency !== 'ALL') {
-      result = result.filter((v) => v.agency_id === selectedAgency);
+    if (filters.agency !== 'ALL') {
+      result = result.filter((v) => v.agency_id === filters.agency);
     }
+    result = result.filter((v) => filters.maxPrice >= PRICE_CEILING || v.daily_price <= filters.maxPrice);
 
-    result = result.filter((v) => maxPrice >= 5000 || v.daily_price <= maxPrice);
-
-    // Sorting
     if (sortBy === 'price_asc') {
       result.sort((a, b) => a.daily_price - b.daily_price);
     } else if (sortBy === 'price_desc') {
@@ -158,540 +188,388 @@ function SearchPageContent() {
     }
 
     return result;
-  }, [
-    allVehicles,
-    selectedCategory,
-    selectedTransmission,
-    selectedFuel,
-    selectedBrand,
-    brandSearchInput,
-    selectedAgency,
-    maxPrice,
-    sortBy,
-  ]);
+  }, [allVehicles, filters, sortBy]);
 
-  const resetFilters = () => {
-    setSelectedCategory('Tous les types');
-    setSelectedTransmission('ALL');
-    setSelectedFuel('ALL');
-    setSelectedBrand('ALL');
-    setBrandSearchInput('');
-    setSelectedAgency('ALL');
-    setMaxPrice(5000);
+  const resetFilters = useCallback(() => {
+    setFilters(DEFAULT_FILTERS);
     setSortBy('featured');
-  };
+  }, []);
+
+  const activeFilterCount = countActiveFilters(filters);
+  const agencyName = agencies.find((agency) => agency.id === filters.agency)?.name;
+
+  // Puces des filtres actifs, chacune retirable individuellement
+  const activeChips: { key: string; label: string; clear: Partial<CatalogFilterState> }[] = [];
+  if (filters.category !== ALL_CATEGORIES) {
+    activeChips.push({ key: 'category', label: filters.category, clear: { category: ALL_CATEGORIES } });
+  }
+  if (filters.transmission !== 'ALL') {
+    activeChips.push({ key: 'transmission', label: TRANSMISSION_LABELS[filters.transmission], clear: { transmission: 'ALL' } });
+  }
+  if (filters.fuel !== 'ALL') {
+    activeChips.push({ key: 'fuel', label: FUEL_LABELS[filters.fuel], clear: { fuel: 'ALL' } });
+  }
+  if (filters.brand !== 'ALL') {
+    activeChips.push({ key: 'brand', label: filters.brand, clear: { brand: 'ALL' } });
+  }
+  if (filters.brandQuery.trim()) {
+    activeChips.push({ key: 'brandQuery', label: `« ${filters.brandQuery.trim()} »`, clear: { brandQuery: '' } });
+  }
+  if (filters.agency !== 'ALL') {
+    activeChips.push({ key: 'agency', label: agencyName ?? 'Agence', clear: { agency: 'ALL' } });
+  }
+  if (filters.maxPrice < PRICE_CEILING) {
+    activeChips.push({ key: 'price', label: `≤ ${formatNumber(filters.maxPrice)} MAD/jour`, clear: { maxPrice: PRICE_CEILING } });
+  }
+
+  const hasPeriod = Boolean(searchPeriod.startDate && searchPeriod.endDate);
+  const locationLabel = initialLocation || 'Nador et sa région';
 
   return (
-    <div className="bg-[#F8FAFC] min-h-screen pb-16">
-      
-      {/* Top Search Bar bar */}
-      <div className="bg-white border-b border-slate-200 py-4 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[#F5F6F8] pb-20">
+      {/* ── En-tête graphite + recherche ─────────────────────────────── */}
+      <section className="relative overflow-hidden bg-[#0B1220] text-white">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 opacity-[0.07] [background-image:linear-gradient(to_right,#fff_1px,transparent_1px),linear-gradient(to_bottom,#fff_1px,transparent_1px)] [background-size:48px_48px]"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -end-24 -top-24 h-72 w-72 rounded-full bg-[#E63946]/20 blur-3xl"
+        />
+        <div className="relative mx-auto max-w-[1360px] px-4 pb-20 pt-7 sm:px-6 sm:pt-9 lg:px-8 lg:pb-24">
+          <nav aria-label="Fil d’Ariane" className="mb-4 flex items-center gap-1.5 text-xs font-medium text-slate-400">
+            <Link href="/" className="transition-colors hover:text-white">Accueil</Link>
+            <ChevronRight className="h-3.5 w-3.5 rtl:rotate-180" aria-hidden="true" />
+            <span aria-current="page" className="text-slate-200">Véhicules</span>
+          </nav>
+
+          <p className="mb-2 inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-[#E63946]">
+            <span className="h-px w-6 bg-[#E63946]" aria-hidden="true" />
+            Catalogue CarDrive
+          </p>
+          <h1 className="text-[26px] font-extrabold leading-tight tracking-tight sm:text-4xl lg:text-[44px]">
+            Location de voiture à Nador
+          </h1>
+          <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-slate-300">
+            <span className="inline-flex min-w-0 items-center gap-1.5">
+              <MapPin className="h-4 w-4 shrink-0 text-[#E63946]" aria-hidden="true" />
+              <span className="truncate">{locationLabel}</span>
+            </span>
+            {hasPeriod && (
+              <span className="inline-flex items-center gap-1.5">
+                <CalendarDays className="h-4 w-4 shrink-0 text-[#E63946]" aria-hidden="true" />
+                Du {formatDisplayDate(searchPeriod.startDate)} au {formatDisplayDate(searchPeriod.endDate)}
+              </span>
+            )}
+          </div>
+        </div>
+      </section>
+
+      <div className="relative z-10 mx-auto -mt-14 max-w-[1360px] px-4 sm:px-6 lg:-mt-16 lg:px-8">
+        <div className="rounded-2xl bg-white p-2 shadow-[0_18px_50px_-20px_rgba(11,18,32,0.35)] ring-1 ring-slate-200/70 sm:p-2.5">
           <SearchBar
             initialLocation={initialLocation || undefined}
             initialStartDate={initialStartDate}
             initialEndDate={initialEndDate}
-            initialCategory={selectedCategory}
-            initialBrand={selectedBrand !== 'ALL' ? selectedBrand : undefined}
+            initialCategory={filters.category}
+            initialBrand={filters.brand !== 'ALL' ? filters.brand : undefined}
             isCompact
           />
         </div>
       </div>
 
-      {/* Main Content Layout */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-        
-        {/* Results Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-          <div>
-            <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
-              Location de voiture à Nador
-            </h1>
-            <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-              {vehiclesLoading ? (
-                'Vérification des disponibilités…'
-              ) : vehiclesError ? (
-                'Disponibilités non vérifiées'
-              ) : (
-                <>
-                  <strong>{filteredVehicles.length}</strong> véhicule{filteredVehicles.length > 1 ? 's' : ''} trouvé{filteredVehicles.length > 1 ? 's' : ''}
-                </>
-              )}
-              {!vehiclesLoading && !vehiclesError && searchPeriod.startDate && searchPeriod.endDate && (
-                <span> pour la période du {searchPeriod.startDate} au {searchPeriod.endDate}</span>
-              )}
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3">
-            {/* Mobile Filter Button */}
-            <button
-              onClick={() => setMobileFilterOpen(true)}
-              className="lg:hidden px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-2 shadow-sm"
-            >
-              <SlidersHorizontal className="w-4 h-4 text-[#0B1220]" />
-              <span>Filtres</span>
-            </button>
-
-            {/* Sort Selector */}
-            <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-slate-200 text-xs shadow-sm">
-              <ArrowUpDown className="w-3.5 h-3.5 text-slate-400" />
-              <label htmlFor="sort-select" className="text-slate-500 font-medium">Trier par :</label>
-              <select
-                id="sort-select"
-                aria-label="Trier par"
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as any)}
-                className="bg-transparent font-semibold text-slate-800 focus:outline-none cursor-pointer"
-              >
-                <option value="featured">Recommandés</option>
-                <option value="price_asc">Prix croissant</option>
-                <option value="price_desc">Prix décroissant</option>
-                <option value="rating">Meilleures notes agences</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        {/* 2-Columns Layout: Filters Sidebar + Results */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
-          
-          {/* DESKTOP FILTERS SIDEBAR */}
-          <aside className="hidden lg:block bg-white rounded-2xl border border-slate-200/90 p-5 shadow-sm space-y-6 sticky top-24">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <div className="flex items-center gap-2 font-bold text-sm text-[#0B1220]">
-                <SlidersHorizontal className="w-4 h-4 text-[#E63946]" />
-                <span>Filtres de recherche</span>
-              </div>
-              <button
-                onClick={resetFilters}
-                className="text-[11px] font-semibold text-slate-500 hover:text-[#E63946] flex items-center gap-1 transition-colors"
-              >
-                <RefreshCw className="w-3 h-3" />
-                Effacer
-              </button>
-            </div>
-
-            {/* Prix maximum */}
-            <div>
-              <div className="flex justify-between items-center text-xs font-semibold text-slate-700 mb-2">
-                <span>Budget max / jour</span>
-                <span className="text-[#E63946] font-bold">
-                  {maxPrice >= 5000 ? 'Tous les prix' : `${maxPrice} DH`}
-                </span>
-              </div>
-              <input
-                type="range"
-                min="200"
-                max="5000"
-                step="50"
-                value={maxPrice}
-                onChange={(e) => setMaxPrice(Number(e.target.value))}
-                className="w-full accent-[#E63946] cursor-pointer"
+      {/* ── Barre de résultats ───────────────────────────────────────── */}
+      <div className="mx-auto max-w-[1360px] px-4 pt-8 sm:px-6 lg:px-8">
+        <div className="lg:grid lg:grid-cols-[272px_minmax(0,1fr)] lg:gap-8">
+          {/* Sidebar filtres (desktop) */}
+          <aside className="hidden lg:block" aria-label="Filtres de recherche">
+            <div className="sticky top-28 max-h-[calc(100vh-8rem)] overflow-y-auto rounded-2xl border border-slate-200/80 bg-white px-5 py-4 shadow-[0_1px_2px_rgba(11,18,32,0.04)]">
+              <CatalogFilters
+                filters={filters}
+                onChange={updateFilters}
+                onReset={resetFilters}
+                brands={brands}
+                agencies={agencies}
               />
-              <div className="flex justify-between text-[10px] text-slate-400 mt-1">
-                <span>200 DH</span>
-                <span>5000+ DH</span>
-              </div>
             </div>
-
-            {/* Catégories */}
-            <div>
-              <h4 className="text-xs font-bold text-[#0B1220] uppercase tracking-wider mb-2">
-                Catégorie
-              </h4>
-              <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
-                {CATEGORIES.map((cat) => (
-                  <label
-                    key={cat}
-                    className="flex items-center gap-2 text-xs text-slate-700 hover:text-slate-900 cursor-pointer py-0.5"
-                  >
-                    <input
-                      type="radio"
-                      name="cat_radio"
-                      checked={selectedCategory === cat}
-                      onChange={() => setSelectedCategory(cat)}
-                      className="accent-[#E63946]"
-                    />
-                    <span>{cat}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* Transmission */}
-            <div>
-              <h4 className="text-xs font-bold text-[#0B1220] uppercase tracking-wider mb-2">
-                Boîte de vitesse
-              </h4>
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <button
-                  type="button"
-                  onClick={() => setSelectedTransmission('ALL')}
-                  className={`py-1.5 px-2 rounded-lg font-medium border text-center transition-colors ${
-                    selectedTransmission === 'ALL'
-                      ? 'bg-[#0B1220] border-[#0B1220] text-white font-bold shadow-2xs'
-                      : 'border-slate-200 text-slate-600 hover:bg-slate-50'
-                  }`}
-                >
-                  Toutes
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSelectedTransmission('AUTOMATIC')}
-                  className={`py-1.5 px-2 rounded-lg font-medium border text-center transition-colors ${
-                    selectedTransmission === 'AUTOMATIC'
-                      ? 'bg-[#0B1220] border-[#0B1220] text-white font-bold shadow-2xs'
-                      : 'border-slate-200 text-slate-600 hover:bg-slate-50'
-                  }`}
-                >
-                  Automatique
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSelectedTransmission('MANUAL')}
-                  className={`py-1.5 px-2 rounded-lg font-medium border text-center transition-colors col-span-2 ${
-                    selectedTransmission === 'MANUAL'
-                      ? 'bg-[#0B1220] border-[#0B1220] text-white font-bold shadow-2xs'
-                      : 'border-slate-200 text-slate-600 hover:bg-slate-50'
-                  }`}
-                >
-                  Manuelle
-                </button>
-              </div>
-            </div>
-
-            {/* Carburant */}
-            <div>
-              <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-2">
-                Carburant
-              </h4>
-              <select
-                value={selectedFuel}
-                onChange={(e) => setSelectedFuel(e.target.value)}
-                className="w-full text-xs p-2 rounded-lg border border-slate-200 font-medium text-slate-800 bg-white"
-              >
-                <option value="ALL">Tous les carburants</option>
-                <option value="DIESEL">Diesel</option>
-                <option value="GASOLINE">Essence</option>
-                <option value="HYBRID">Hybride</option>
-              </select>
-            </div>
-
-            {/* Marque */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-                  Marque
-                </h4>
-                {(selectedBrand !== 'ALL' || brandSearchInput) && (
-                  <button
-                    onClick={() => {
-                      setSelectedBrand('ALL');
-                      setBrandSearchInput('');
-                    }}
-                    className="text-[10px] text-red-600 hover:underline"
-                  >
-                    Effacer
-                  </button>
-                )}
-              </div>
-
-              {/* Saisie rapide de nom de marque / modèle */}
-              <div className="relative mb-2">
-                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
-                <input
-                  type="text"
-                  value={brandSearchInput}
-                  onChange={(e) => setBrandSearchInput(e.target.value)}
-                  placeholder="Rechercher marque..."
-                  className="w-full text-xs pl-8 pr-7 py-2 rounded-lg border border-slate-200 font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#E63946] focus:ring-1 focus:ring-[#E63946]/20 transition"
-                />
-                {brandSearchInput && (
-                  <button
-                    onClick={() => setBrandSearchInput('')}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5"
-                    aria-label="Effacer la recherche"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                )}
-              </div>
-
-              <select
-                aria-label="Sélectionner une marque"
-                value={selectedBrand}
-                onChange={(e) => setSelectedBrand(e.target.value)}
-                className="w-full text-xs p-2 rounded-lg border border-slate-200 font-medium text-slate-800 bg-white cursor-pointer"
-              >
-                {brands.map((b) => (
-                  <option key={b} value={b}>
-                    {b === 'ALL' ? 'Toutes les marques' : b}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Agence */}
-            <div>
-              <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-2">
-                Agence de location
-              </h4>
-              <select
-                value={selectedAgency}
-                onChange={(e) => setSelectedAgency(e.target.value)}
-                className="w-full text-xs p-2 rounded-lg border border-slate-200 font-medium text-slate-800 bg-white"
-              >
-                <option value="ALL">Toutes les agences</option>
-                {agencies.map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
           </aside>
 
-          {/* RESULTS GRID */}
-          <section className="lg:col-span-3" aria-label="Résultats de recherche">
-            {/* Quick Brand Pills */}
-            <div className="mb-5 flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-none">
-              <span className="text-xs font-semibold text-slate-500 shrink-0 mr-1 flex items-center gap-1">
-                <CarFront className="w-3.5 h-3.5 text-slate-400" />
-                Marques :
-              </span>
-              {['ALL', 'Dacia', 'Renault', 'Volkswagen', 'Hyundai', 'Kia', 'Mercedes-Benz', 'Land Rover'].map((b) => {
-                const isActive = (b === 'ALL' && selectedBrand === 'ALL') || selectedBrand.toLowerCase() === b.toLowerCase();
-                return (
-                  <button
-                    key={b}
-                    onClick={() => {
-                      setSelectedBrand(b);
-                      setBrandSearchInput('');
-                    }}
-                    className={`px-3 py-1.5 rounded-full text-xs font-semibold shrink-0 transition-all ${
-                      isActive
-                        ? 'bg-[#0B1220] text-white shadow-sm'
-                        : 'bg-white border border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
-                    }`}
-                  >
-                    {b === 'ALL' ? 'Toutes' : b}
-                  </button>
-                );
-              })}
-            </div>
-            {vehiclesError ? (
-              <div role="alert" className="rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-800">
-                {vehiclesError}
-              </div>
-            ) : vehiclesLoading ? (
-              <div role="status" className="rounded-2xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-500">
-                Vérification des disponibilités…
-              </div>
-            ) : filteredVehicles.length > 0 ? (
-              <GsapReveal stagger={0.05} className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {filteredVehicles.map((car, index) => (
-                  <VehicleCard
-                    key={car.id}
-                    vehicle={car}
-                    priority={index < 4}
-                    availabilityChecked={Boolean(initialStartDate && initialEndDate)}
-                  />
-                ))}
-              </GsapReveal>
-            ) : (
-              /* EMPTY STATE */
-              <div className="bg-white rounded-2xl border border-slate-200 p-8 sm:p-12 text-center max-w-xl mx-auto space-y-4">
-                <div className="w-16 h-16 rounded-2xl bg-slate-100 text-[#0B1220] flex items-center justify-center mx-auto">
-                  <Car className="w-8 h-8" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-slate-900">
-                    Aucune voiture ne correspond à vos filtres
-                  </h3>
-                  <p className="text-xs sm:text-sm text-slate-500 mt-1">
-                    Essayez d’élargir vos dates, d’augmenter le budget maximum ou de sélectionner une autre catégorie.
+          <section aria-labelledby="results-heading" className="min-w-0">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="min-w-0">
+                <h2 id="results-heading" className="text-lg font-extrabold text-[#0B1220] sm:text-xl">
+                  {vehiclesLoading ? (
+                    'Recherche des véhicules…'
+                  ) : vehiclesError ? (
+                    'Disponibilités non vérifiées'
+                  ) : (
+                    <>
+                      {filteredVehicles.length} véhicule{filteredVehicles.length > 1 ? 's' : ''}
+                      {hasPeriod ? ' disponible' + (filteredVehicles.length > 1 ? 's' : '') : ''}
+                    </>
+                  )}
+                </h2>
+                {!vehiclesLoading && !vehiclesError && (
+                  <p className="mt-0.5 text-[13px] text-slate-500" aria-live="polite">
+                    {hasPeriod
+                      ? 'Disponibilité vérifiée pour vos dates auprès des agences partenaires.'
+                      : 'Choisissez vos dates pour vérifier la disponibilité.'}
                   </p>
-                </div>
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-                  <button
-                    onClick={resetFilters}
-                    className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-[#0B1220] hover:bg-slate-800 text-white text-xs font-bold shadow-xs transition-colors"
+                )}
+              </div>
+
+              <div className="flex w-full items-center gap-2 sm:w-auto">
+                <button
+                  type="button"
+                  onClick={() => setMobileFilterOpen(true)}
+                  className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-[13px] font-bold text-[#0B1220] shadow-[0_1px_2px_rgba(11,18,32,0.04)] transition-colors hover:border-slate-300 sm:flex-none lg:hidden"
+                >
+                  <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
+                  Filtres
+                  {activeFilterCount > 0 && (
+                    <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#E63946] px-1.5 text-[11px] text-white">
+                      {activeFilterCount}
+                    </span>
+                  )}
+                </button>
+
+                <div className="relative flex-1 sm:flex-none">
+                  <ArrowUpDown
+                    className="pointer-events-none absolute start-3 top-1/2 hidden h-4 w-4 -translate-y-1/2 text-slate-400 sm:block"
+                    aria-hidden="true"
+                  />
+                  <label htmlFor="sort-select" className="sr-only">Trier par</label>
+                  <select
+                    id="sort-select"
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value as SortOption)}
+                    className="h-11 w-full cursor-pointer appearance-none rounded-xl border border-slate-200 bg-white pe-9 ps-3.5 text-[13px] font-bold text-[#0B1220] shadow-[0_1px_2px_rgba(11,18,32,0.04)] transition-colors hover:border-slate-300 focus:border-[#0B1220] focus:outline-none focus:ring-2 focus:ring-[#0B1220]/10 sm:w-56 sm:ps-9"
                   >
-                    Réinitialiser les filtres
-                  </button>
-                  <button
-                    onClick={() => setSelectedCategory('Tous les types')}
-                    className="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-semibold transition-colors"
-                  >
-                    Voir toutes les catégories
-                  </button>
+                    {(Object.keys(SORT_LABELS) as SortOption[]).map((option) => (
+                      <option key={option} value={option}>
+                        {SORT_LABELS[option]}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronRight
+                    className="pointer-events-none absolute end-3 top-1/2 h-4 w-4 -translate-y-1/2 rotate-90 text-slate-400"
+                    aria-hidden="true"
+                  />
                 </div>
+              </div>
+            </div>
+
+            {activeChips.length > 0 && (
+              <div className="mt-4 flex flex-wrap items-center gap-2" aria-label="Filtres actifs">
+                {activeChips.map((chip) => (
+                  <button
+                    key={chip.key}
+                    type="button"
+                    onClick={() => updateFilters(chip.clear)}
+                    className="inline-flex h-8 max-w-full items-center gap-1.5 rounded-full border border-slate-200 bg-white pe-2 ps-3 text-xs font-semibold text-slate-700 transition-colors hover:border-[#E63946]/40 hover:text-[#E63946]"
+                    aria-label={`Retirer le filtre ${chip.label}`}
+                  >
+                    <span className="truncate">{chip.label}</span>
+                    <X className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={resetFilters}
+                  className="h-8 px-2 text-xs font-bold text-[#E63946] hover:underline"
+                >
+                  Tout effacer
+                </button>
               </div>
             )}
-          </section>
 
+            {/* ── Résultats ─────────────────────────────────────────── */}
+            <div className="mt-5">
+              {vehiclesError ? (
+                <div
+                  role="alert"
+                  className="flex flex-col items-start gap-4 rounded-2xl border border-red-200 bg-white p-6 sm:flex-row sm:items-center"
+                >
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-red-50 text-[#E63946]">
+                    <AlertTriangle className="h-5 w-5" aria-hidden="true" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-bold text-[#0B1220]">Impossible de charger les véhicules</p>
+                    <p className="mt-0.5 text-sm text-slate-600">{vehiclesError}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => void loadData(true)}
+                    className="inline-flex h-11 items-center gap-2 rounded-xl bg-[#0B1220] px-4 text-[13px] font-bold text-white transition-colors hover:bg-slate-800"
+                  >
+                    <RefreshCw className="h-4 w-4" aria-hidden="true" />
+                    Réessayer
+                  </button>
+                </div>
+              ) : vehiclesLoading ? (
+                <div role="status" aria-label="Chargement des véhicules" className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                  {Array.from({ length: 6 }, (_, i) => (
+                    <VehicleCardSkeleton key={i} />
+                  ))}
+                </div>
+              ) : filteredVehicles.length > 0 ? (
+                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                  {filteredVehicles.map((car, index) => (
+                    <VehicleCard
+                      key={car.id}
+                      vehicle={car}
+                      priority={index < 3}
+                      availabilityChecked={Boolean(initialStartDate && initialEndDate)}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="mx-auto max-w-xl rounded-2xl border border-slate-200 bg-white px-6 py-12 text-center">
+                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#F5F6F8] text-[#0B1220]">
+                    <Car className="h-7 w-7" aria-hidden="true" />
+                  </div>
+                  <h3 className="mt-4 text-lg font-extrabold text-[#0B1220]">
+                    Aucun véhicule ne correspond à votre recherche
+                  </h3>
+                  <p className="mt-1.5 text-sm text-slate-500">
+                    {allVehicles.length === 0
+                      ? 'Aucun véhicule n’est disponible pour ces dates. Essayez une autre période.'
+                      : 'Élargissez votre budget, changez de catégorie ou retirez certains filtres.'}
+                  </p>
+                  {activeFilterCount > 0 && (
+                    <button
+                      type="button"
+                      onClick={resetFilters}
+                      className="mt-6 inline-flex h-11 items-center gap-2 rounded-xl bg-[#0B1220] px-5 text-[13px] font-bold text-white transition-colors hover:bg-slate-800"
+                    >
+                      <RefreshCw className="h-4 w-4" aria-hidden="true" />
+                      Réinitialiser les filtres
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          </section>
         </div>
       </div>
 
-      {/* MOBILE FILTER DRAWER */}
-      {mobileFilterOpen && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm lg:hidden flex justify-end">
-          <div className="w-full max-w-sm bg-white h-full p-5 flex flex-col justify-between overflow-y-auto">
-            <div className="space-y-6">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                <h3 className="font-bold text-base text-slate-900">Filtres de recherche</h3>
-                <button
-                  onClick={() => setMobileFilterOpen(false)}
-                  className="p-1 rounded-lg hover:bg-slate-100"
-                  aria-label="Fermer"
-                >
-                  <X className="w-5 h-5 text-slate-600" />
-                </button>
-              </div>
+      <MobileFilterDrawer
+        open={mobileFilterOpen}
+        onClose={() => setMobileFilterOpen(false)}
+        resultCount={filteredVehicles.length}
+        activeCount={activeFilterCount}
+        onReset={resetFilters}
+      >
+        <CatalogFilters
+          filters={filters}
+          onChange={updateFilters}
+          onReset={resetFilters}
+          brands={brands}
+          agencies={agencies}
+          hideHeader
+        />
+      </MobileFilterDrawer>
+    </div>
+  );
+}
 
-              {/* Budget */}
-              <div>
-                <div className="flex justify-between items-center text-xs font-semibold text-slate-700 mb-2">
-                  <span>Budget max / jour</span>
-                  <span className="text-[#E63946] font-bold">
-                    {maxPrice >= 5000 ? 'Tous les prix' : `${maxPrice} DH`}
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="200"
-                  max="5000"
-                  step="50"
-                  value={maxPrice}
-                  onChange={(e) => setMaxPrice(Number(e.target.value))}
-                  className="w-full accent-[#E63946]"
-                />
-              </div>
+function MobileFilterDrawer({
+  open,
+  onClose,
+  resultCount,
+  activeCount,
+  onReset,
+  children,
+}: {
+  open: boolean;
+  onClose: () => void;
+  resultCount: number;
+  activeCount: number;
+  onReset: () => void;
+  children: React.ReactNode;
+}) {
+  const closeRef = useRef<HTMLButtonElement>(null);
 
-              {/* Catégories */}
-              <div>
-                <h4 className="text-xs font-bold text-[#0B1220] uppercase tracking-wider mb-2">
-                  Catégorie
-                </h4>
-                <div className="grid grid-cols-2 gap-1.5 text-xs">
-                  {CATEGORIES.map((cat) => (
-                    <button
-                      key={cat}
-                      onClick={() => setSelectedCategory(cat)}
-                      className={`p-2 rounded-lg text-left border transition-colors ${
-                        selectedCategory === cat
-                          ? 'border-[#0B1220] bg-slate-900 font-bold text-white shadow-2xs'
-                          : 'border-slate-200 text-slate-700 hover:bg-slate-50'
-                      }`}
-                    >
-                      {cat}
-                    </button>
-                  ))}
-                </div>
-              </div>
+  useEffect(() => {
+    if (!open) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    closeRef.current?.focus();
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [open, onClose]);
 
-              {/* Marque */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-xs font-bold text-[#0B1220] uppercase tracking-wider">
-                    Marque
-                  </h4>
-                  {(selectedBrand !== 'ALL' || brandSearchInput) && (
-                    <button
-                      onClick={() => {
-                        setSelectedBrand('ALL');
-                        setBrandSearchInput('');
-                      }}
-                      className="text-[10px] text-[#E63946] hover:underline"
-                    >
-                      Effacer
-                    </button>
-                  )}
-                </div>
+  if (!open) return null;
 
-                <div className="relative mb-2">
-                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
-                  <input
-                    type="text"
-                    value={brandSearchInput}
-                    onChange={(e) => setBrandSearchInput(e.target.value)}
-                    placeholder="Nom de marque ou modèle..."
-                    className="w-full text-xs pl-8 pr-7 py-2 rounded-lg border border-slate-200 font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#E63946]"
-                  />
-                  {brandSearchInput && (
-                    <button
-                      onClick={() => setBrandSearchInput('')}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  )}
-                </div>
-
-                <select
-                  aria-label="Sélectionner une marque"
-                  value={selectedBrand}
-                  onChange={(e) => setSelectedBrand(e.target.value)}
-                  className="w-full text-xs p-2 rounded-lg border border-slate-200 font-medium text-slate-800 bg-white"
-                >
-                  {brands.map((b) => (
-                    <option key={b} value={b}>
-                      {b === 'ALL' ? 'Toutes les marques' : b}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Transmission */}
-              <div>
-                <h4 className="text-xs font-bold text-[#0B1220] uppercase tracking-wider mb-2">
-                  Boîte de vitesse
-                </h4>
-                <div className="grid grid-cols-3 gap-1.5 text-xs">
-                  {['ALL', 'AUTOMATIC', 'MANUAL'].map((mode) => (
-                    <button
-                      key={mode}
-                      onClick={() => setSelectedTransmission(mode)}
-                      className={`p-2 rounded-lg text-center border transition-colors ${
-                        selectedTransmission === mode
-                          ? 'border-[#0B1220] bg-slate-900 font-bold text-white shadow-2xs'
-                          : 'border-slate-200 text-slate-700 hover:bg-slate-50'
-                      }`}
-                    >
-                      {mode === 'ALL' ? 'Toutes' : mode === 'AUTOMATIC' ? 'Auto' : 'Manuelle'}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="pt-4 border-t border-slate-100 flex gap-2">
-              <button
-                onClick={resetFilters}
-                className="flex-1 py-3 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
-              >
-                Réinitialiser
-              </button>
-              <button
-                onClick={() => setMobileFilterOpen(false)}
-                className="flex-1 py-3 rounded-xl bg-[#E63946] hover:bg-[#C92F3B] text-white text-xs font-bold shadow-xs hover:shadow-[0_4px_16px_rgba(230,57,70,0.3)] transition-all"
-              >
-                Appliquer ({filteredVehicles.length})
-              </button>
-            </div>
-          </div>
+  return (
+    <div className="fixed inset-0 z-[60] lg:hidden">
+      <button
+        type="button"
+        aria-label="Fermer les filtres"
+        tabIndex={-1}
+        onClick={onClose}
+        className="absolute inset-0 bg-[#0B1220]/55 backdrop-blur-[2px] motion-safe:animate-[cd-fade-in_150ms_ease-out]"
+      />
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="mobile-filters-title"
+        className="absolute inset-x-0 bottom-0 flex max-h-[88dvh] flex-col rounded-t-3xl bg-white shadow-2xl sm:inset-y-0 sm:end-0 sm:start-auto sm:max-h-none sm:w-[400px] sm:rounded-none"
+      >
+        <div className="mx-auto mt-2.5 h-1 w-10 rounded-full bg-slate-200 sm:hidden" aria-hidden="true" />
+        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-3.5">
+          <h2 id="mobile-filters-title" className="text-base font-extrabold text-[#0B1220]">
+            Filtres
+          </h2>
+          <button
+            ref={closeRef}
+            type="button"
+            onClick={onClose}
+            className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100"
+            aria-label="Fermer"
+          >
+            <X className="h-5 w-5" aria-hidden="true" />
+          </button>
         </div>
-      )}
-
+        <div className="flex-1 overflow-y-auto overscroll-contain px-5">{children}</div>
+        <div className="flex gap-3 border-t border-slate-100 px-5 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+          <button
+            type="button"
+            onClick={onReset}
+            disabled={activeCount === 0}
+            className="h-12 flex-1 rounded-xl border border-slate-200 text-[13px] font-bold text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-40"
+          >
+            Réinitialiser
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            className="h-12 flex-[1.4] rounded-xl bg-[#E63946] text-[13px] font-bold text-white transition-colors hover:bg-[#C92F3B]"
+          >
+            Voir {resultCount} véhicule{resultCount > 1 ? 's' : ''}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
 
 export default function SearchPage() {
   return (
-    <Suspense fallback={<div className="p-8 text-center text-sm text-slate-500">Chargement des véhicules disponibles à Nador...</div>}>
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#F5F6F8] p-8 text-center text-sm text-slate-500">
+          Chargement des véhicules disponibles à Nador…
+        </div>
+      }
+    >
       <SearchPageContent />
     </Suspense>
   );
