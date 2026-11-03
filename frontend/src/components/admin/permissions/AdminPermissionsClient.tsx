@@ -9,7 +9,6 @@ import {
   Check,
   Minus,
   Key,
-  Lock,
   Search,
   Building2,
   RefreshCw,
@@ -123,7 +122,7 @@ export function AdminPermissionsClient() {
   useRealtimeRefresh({
     tables: ['profiles'],
     onRefresh: () => loadData(false),
-    pollingIntervalMs: 25_000,
+    pollingIntervalMs: 60_000, // Realtime pousse les changements ; le polling ne sert que de filet de sécurité
   });
 
   const handleRoleChange = async (userId: string, newRole: UserRole) => {
@@ -170,34 +169,38 @@ export function AdminPermissionsClient() {
   return (
     <div className="space-y-6">
       {/* KPIs RBAC */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <KpiCard
+          loading={loading && !data}
           label="Super Administrateurs"
           value={data?.kpis.superAdmins ?? 0}
           sub="Accès global complet"
           icon={ShieldCheck}
-          iconColor="text-red-600"
+          tone="danger"
         />
         <KpiCard
+          loading={loading && !data}
           label="Admins Plateforme"
           value={data?.kpis.platformAdmins ?? 0}
           sub="Équipe opérationnelle"
           icon={Key}
-          iconColor="text-blue-600"
+          tone="info"
         />
         <KpiCard
+          loading={loading && !data}
           label="Gestionnaires Agence"
           value={data?.kpis.agencyManagers ?? 0}
           sub="Propriétaires & Staff"
           icon={Building2}
-          iconColor="text-indigo-600"
+          tone="neutral"
         />
         <KpiCard
-          label="Politiques RLS Supabase"
-          value="Actives (100%)"
-          sub="Isolation PostgreSQL"
-          icon={Lock}
-          iconColor="text-emerald-600"
+          loading={loading && !data}
+          label="Clients inscrits"
+          value={data?.kpis.customers ?? 0}
+          sub={`sur ${data?.kpis.totalUsers ?? 0} comptes au total`}
+          icon={Users}
+          tone="neutral"
         />
       </div>
 

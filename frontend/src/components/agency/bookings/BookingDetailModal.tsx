@@ -219,7 +219,7 @@ export function BookingDetailModal({
               rows={3}
               value={reason}
               onChange={(event) => setReason(event.target.value)}
-              placeholder="Expliquez au client pourquoi la demande ne peut pas etre acceptee."
+              placeholder="Expliquez au client pourquoi la demande ne peut pas être acceptée."
               className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none transition-colors focus:border-[#E63946] focus:ring-2 focus:ring-[#E63946]/25"
             />
           </section>

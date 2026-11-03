@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import {
-  Calendar,
   Clock,
   Download,
   RefreshCw,
@@ -14,14 +13,9 @@ import {
   XCircle,
   Sparkles,
   ArrowUpRight,
-  TrendingUp,
-  Percent,
   Star,
-  ShieldCheck,
-  Activity,
-  Layers,
 } from 'lucide-react';
-import { AdminCard, Btn, ErrorBanner } from '@/components/admin/AdminUI';
+import { AdminCard, Btn, ErrorBanner, KpiCard } from '@/components/admin/AdminUI';
 import { useRealtimeRefresh } from '@/lib/supabase/realtime';
 import { cn, formatPrice } from '@/lib/utils';
 
@@ -101,7 +95,7 @@ export function AdminAnalyticsClient() {
   useRealtimeRefresh({
     tables: ['bookings', 'vehicles', 'agencies'],
     onRefresh: () => loadData(false),
-    pollingIntervalMs: 25_000,
+    pollingIntervalMs: 60_000, // Realtime pousse les changements ; le polling ne sert que de filet de sécurité
   });
 
   const exportCSV = () => {
@@ -191,6 +185,18 @@ export function AdminAnalyticsClient() {
   const adoptionRate =
     kpis.totalAgencies > 0 ? Math.round((subs.activeSubscribers / kpis.totalAgencies) * 100) : 0;
 
+  // Évolution des demandes : dernier mois complet comparé au précédent (le mois en cours est partiel)
+  const trends = data?.monthlyTrends ?? [];
+  const lastFull = trends[trends.length - 2];
+  const beforeLast = trends[trends.length - 3];
+  const bookingsTrend =
+    lastFull && beforeLast && beforeLast.bookings > 0
+      ? {
+          value: Math.round(((lastFull.bookings - beforeLast.bookings) / beforeLast.bookings) * 100),
+          label: `demandes en ${lastFull.month}`,
+        }
+      : null;
+
   return (
     <div className="space-y-6">
       {/* ── Top Bar (Actions & Refresh) ─────────────────────────────────── */}
@@ -249,7 +255,7 @@ export function AdminAnalyticsClient() {
           </div>
 
           <Link
-            href="/admin/subscriptions"
+            href="/admin/finance"
             className="inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 px-4 py-3 text-xs sm:text-sm font-bold text-white transition self-start sm:self-auto shadow-xs"
           >
             <Sparkles className="h-4 w-4 text-amber-300" />
@@ -260,80 +266,44 @@ export function AdminAnalyticsClient() {
       </section>
 
       {/* ── 4 Cartes Performance Opérationnelle ────────────────────────── */}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {/* Taux de confirmation */}
-        <div className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 transition-shadow hover:shadow-sm">
-          <div className="flex items-start justify-between gap-2">
-            <p className="text-sm font-medium text-slate-500">Taux de confirmation</p>
-            <div className="rounded-lg bg-emerald-50 p-2 text-emerald-600">
-              <CheckCircle2 aria-hidden="true" className="h-4 w-4" />
-            </div>
-          </div>
-          <p className="mt-2.5 text-3xl font-extrabold tracking-tight tabular-nums text-slate-900">
-            {kpis.confirmationRate}%
-          </p>
-          <div className="mt-2 flex items-center justify-between text-xs text-slate-500">
-            <span>{kpis.confirmedBookings} validées</span>
-            <span>sur {kpis.totalBookings} dossiers</span>
-          </div>
-          <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
-            <div
-              className="h-full rounded-full bg-emerald-500 transition-all duration-500"
-              style={{ width: `${kpis.confirmationRate}%` }}
-            />
-          </div>
-        </div>
-
-        {/* Durée moyenne de location */}
-        <div className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 transition-shadow hover:shadow-sm">
-          <div className="flex items-start justify-between gap-2">
-            <p className="text-sm font-medium text-slate-500">Durée moyenne de location</p>
-            <div className="rounded-lg bg-blue-50 p-2 text-blue-600">
-              <Clock aria-hidden="true" className="h-4 w-4" />
-            </div>
-          </div>
-          <p className="mt-2.5 text-3xl font-extrabold tracking-tight tabular-nums text-slate-900">
-            {kpis.averageRentalDays} <span className="text-lg font-normal text-slate-500">jours</span>
-          </p>
-          <p className="mt-2 text-xs text-slate-500">Moyenne observée par contrat validé</p>
-        </div>
-
-        {/* Taux d'annulation */}
-        <div className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 transition-shadow hover:shadow-sm">
-          <div className="flex items-start justify-between gap-2">
-            <p className="text-sm font-medium text-slate-500">Taux d’annulation</p>
-            <div className="rounded-lg bg-slate-100 p-2 text-slate-600">
-              <XCircle aria-hidden="true" className="h-4 w-4" />
-            </div>
-          </div>
-          <p className="mt-2.5 text-3xl font-extrabold tracking-tight tabular-nums text-slate-900">
-            {kpis.cancellationRate}%
-          </p>
-          <p className="mt-2 text-xs text-slate-500">{kpis.cancelledBookings} réservations annulées ou refusées</p>
-        </div>
-
-        {/* Taux d'adoption forfait */}
-        <div className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 transition-shadow hover:shadow-sm">
-          <div className="flex items-start justify-between gap-2">
-            <p className="text-sm font-medium text-slate-500">Taux d’adoption abonnements</p>
-            <div className="rounded-lg bg-indigo-50 p-2 text-indigo-600">
-              <Building2 aria-hidden="true" className="h-4 w-4" />
-            </div>
-          </div>
-          <p className="mt-2.5 text-3xl font-extrabold tracking-tight tabular-nums text-slate-900">
-            {adoptionRate}%
-          </p>
-          <div className="mt-2 flex items-center justify-between text-xs text-slate-500">
-            <span>{subs.activeSubscribers} / {kpis.totalAgencies} agences</span>
-            <span>{kpis.totalVehicles} voitures</span>
-          </div>
-          <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
-            <div
-              className="h-full rounded-full bg-indigo-600 transition-all duration-500"
-              style={{ width: `${adoptionRate}%` }}
-            />
-          </div>
-        </div>
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
+        <KpiCard
+          label="Taux de confirmation"
+          value={kpis.confirmationRate}
+          unit="%"
+          icon={CheckCircle2}
+          tone="success"
+          progress={kpis.confirmationRate}
+          trend={bookingsTrend}
+          sub={`${kpis.confirmedBookings} validées sur ${kpis.totalBookings}`}
+        />
+        <KpiCard
+          label="Durée moyenne de location"
+          value={kpis.averageRentalDays}
+          unit={kpis.averageRentalDays > 1 ? 'jours' : 'jour'}
+          icon={Clock}
+          tone="info"
+          sub="Par contrat validé"
+        />
+        <KpiCard
+          label="Taux d’annulation"
+          value={kpis.cancellationRate}
+          unit="%"
+          icon={XCircle}
+          tone={kpis.cancellationRate >= 20 ? 'danger' : 'neutral'}
+          progress={kpis.cancellationRate}
+          sub={`${kpis.cancelledBookings} annulées ou refusées`}
+        />
+        <KpiCard
+          label="Adoption des forfaits"
+          value={adoptionRate}
+          unit="%"
+          icon={Building2}
+          tone="neutral"
+          progress={adoptionRate}
+          href="/admin/finance"
+          sub={`${subs.activeSubscribers} / ${kpis.totalAgencies} agences abonnées`}
+        />
       </div>
 
       {/* ── Graphique des Tendances Mensuelles ─────────────────────────── */}

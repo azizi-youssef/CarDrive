@@ -1,12 +1,11 @@
-
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import {
   Building2,
   Search,
-  ShieldCheck,
+  BadgeCheck,
   MapPin,
   ArrowRight,
   X,
@@ -14,27 +13,36 @@ import {
   CarFront,
   ChevronRight,
   AlertCircle,
-  CheckCircle2,
-  SlidersHorizontal,
+  ArrowUpDown,
 } from 'lucide-react';
 
 import { AgencyCard } from '@/components/agencies/AgencyCard';
 import type { Agency } from '@/types';
-import { ShinyText, Magnet, GsapReveal } from '@/components/ui/react-bits';
+import { Magnet, GsapReveal } from '@/components/ui/react-bits';
 
 type AgencyResponse = {
   success: boolean;
   data: Agency[];
 };
 
-type SortOption = 'name' | 'fleet';
+type SortOption = 'name' | 'fleet' | 'rating';
+
+const SORT_LABEL: Record<SortOption, string> = {
+  name: 'Nom (A → Z)',
+  fleet: 'Plus grande flotte',
+  rating: 'Mieux notées',
+};
 
 function normalizeText(value?: string | null): string {
   return (value ?? '')
     .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[̀-ͯ]/g, '')
     .toLocaleLowerCase()
     .trim();
+}
+
+function plural(count: number, singular: string, pluralForm = `${singular}s`) {
+  return `${count} ${count > 1 ? pluralForm : singular}`;
 }
 
 export function AgenciesClient() {
@@ -45,6 +53,7 @@ export function AgenciesClient() {
   const [allAgencies, setAllAgencies] = useState<Agency[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const directoryRef = useRef<HTMLElement>(null);
 
   const fetchAgencies = useCallback(async (signal?: AbortSignal) => {
     setLoading(true);
@@ -54,56 +63,45 @@ export function AgenciesClient() {
       const response = await fetch('/api/agencies', {
         cache: 'no-store',
         signal,
-        headers: {
-          Accept: 'application/json',
-        },
+        headers: { Accept: 'application/json' },
       });
-
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
-      }
+      if (!response.ok) throw new Error(`API error: ${response.status}`);
 
       const result: AgencyResponse = await response.json();
-
-      if (!result.success || !Array.isArray(result.data)) {
-        throw new Error('Invalid agencies response');
-      }
+      if (!result.success || !Array.isArray(result.data)) throw new Error('Invalid agencies response');
 
       setAllAgencies(result.data);
     } catch (err) {
-      if (err instanceof Error && err.name === 'AbortError') {
-        return;
-      }
-
+      if (err instanceof Error && err.name === 'AbortError') return;
       console.error('Agencies loading error:', err);
       setError(true);
     } finally {
-      if (!signal?.aborted) {
-        setLoading(false);
-      }
+      if (!signal?.aborted) setLoading(false);
     }
   }, []);
 
   useEffect(() => {
     const controller = new AbortController();
-
     void fetchAgencies(controller.signal);
-
     return () => controller.abort();
   }, [fetchAgencies]);
 
-  // Available cities from real agency data
+  // Villes réellement couvertes, avec le nombre d'agences
   const cities = useMemo(() => {
-    return Array.from(
-      new Set(
-        allAgencies
-          .map((agency) => agency.city?.trim())
-          .filter((city): city is string => Boolean(city))
-      )
-    ).sort((a, b) => a.localeCompare(b, 'fr'));
+    const counts = new Map<string, number>();
+    for (const agency of allAgencies) {
+      const city = agency.city?.trim();
+      if (city) counts.set(city, (counts.get(city) ?? 0) + 1);
+    }
+    return Array.from(counts, ([name, count]) => ({ name, count })).sort((a, b) => a.name.localeCompare(b.name, 'fr'));
   }, [allAgencies]);
 
-  // Search and filtering
+  const totalVehicles = useMemo(
+    () => allAgencies.reduce((total, agency) => total + (agency.vehicle_count ?? 0), 0),
+    [allAgencies]
+  );
+  const verifiedCount = useMemo(() => allAgencies.filter((agency) => agency.verified).length, [allAgencies]);
+
   const filteredAgencies = useMemo(() => {
     const query = normalizeText(searchQuery);
 
@@ -113,19 +111,17 @@ export function AgenciesClient() {
         normalizeText(agency.name).includes(query) ||
         normalizeText(agency.address).includes(query) ||
         normalizeText(agency.city).includes(query);
-
-      const matchesCity =
-        cityFilter === 'all' ||
-        normalizeText(agency.city) === normalizeText(cityFilter);
-
+      const matchesCity = cityFilter === 'all' || normalizeText(agency.city) === normalizeText(cityFilter);
       return matchesSearch && matchesCity;
     });
 
     return [...results].sort((a, b) => {
-      if (sortBy === 'fleet') {
-        return (b.vehicle_count ?? 0) - (a.vehicle_count ?? 0);
+      if (sortBy === 'fleet') return (b.vehicle_count ?? 0) - (a.vehicle_count ?? 0);
+      if (sortBy === 'rating') {
+        const ra = a.review_count > 0 ? a.rating : 0;
+        const rb = b.review_count > 0 ? b.rating : 0;
+        return rb - ra || a.name.localeCompare(b.name, 'fr');
       }
-
       return a.name.localeCompare(b.name, 'fr');
     });
   }, [allAgencies, searchQuery, cityFilter, sortBy]);
@@ -137,477 +133,395 @@ export function AgenciesClient() {
     setCityFilter('all');
   };
 
-  const handleRetry = () => {
-    void fetchAgencies();
+  // La recherche du hero filtre l'annuaire : on y amène l'utilisateur pour qu'il voie le résultat
+  const scrollToDirectory = () => {
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    directoryRef.current?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
   };
 
+  const handleSearchSubmit = (event: FormEvent) => {
+    event.preventDefault();
+    scrollToDirectory();
+  };
+
+  const selectCity = (city: string) => {
+    setCityFilter(city);
+  };
+
+  const stats = [
+    { value: allAgencies.length, label: allAgencies.length > 1 ? 'Agences partenaires' : 'Agence partenaire' },
+    { value: totalVehicles, label: totalVehicles > 1 ? 'Véhicules proposés' : 'Véhicule proposé' },
+    { value: cities.length, label: cities.length > 1 ? 'Villes couvertes' : 'Ville couverte' },
+  ];
+
   return (
-    <main className="min-h-screen bg-[#F8FAFC]">
-
-      {/* =========================================
-          HERO SECTION
-      ========================================= */}
+    <main className="min-h-screen bg-[#F5F6F8]">
+      {/* ═══════════ HERO ═══════════ */}
       <section className="relative isolate overflow-hidden bg-[#0B1220] text-white">
-
-        {/* Decorative background */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 overflow-hidden"
-        >
-          <div className="absolute -right-40 -top-40 h-125 w-125 rounded-full border border-white/4" />
-          <div className="absolute -right-20 -top-20 h-87.5 w-87.5 rounded-full border border-white/5" />
-          <div className="absolute right-0 top-0 h-full w-1/2 bg-linear-to-l from-[#E63946]/7 to-transparent" />
-          <div className="absolute bottom-0 left-0 h-px w-full bg-linear-to-r from-transparent via-white/10 to-transparent" />
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute -end-40 -top-40 h-125 w-125 rounded-full border border-white/4" />
+          <div className="absolute -end-20 -top-20 h-87.5 w-87.5 rounded-full border border-white/5" />
+          <div className="absolute end-0 top-0 h-full w-1/2 bg-linear-to-l from-[#E63946]/10 to-transparent" />
         </div>
 
-        <div className="relative mx-auto max-w-7xl px-4 pb-12 pt-14 sm:px-6 sm:pb-16 sm:pt-20 lg:px-8 lg:pt-24">
-
-          {/* Eyebrow */}
-          <div className="mb-6 flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#E63946]/30 bg-[#E63946]/10">
-              <ShieldCheck className="h-4 w-4 text-[#E63946]" />
-            </div>
-
-            <div className="flex flex-col gap-0.5">
-              <ShinyText
-                text="RÉSEAU PARTENAIRES CARDRIVE"
-                className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-300"
-              />
-              <span className="text-[10px] font-medium uppercase tracking-widest text-slate-500">
-                Nador & Oriental · Maroc
+        <div className="relative mx-auto grid max-w-7xl gap-10 px-4 pb-12 pt-12 sm:px-6 sm:pb-14 sm:pt-16 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-end lg:px-8 lg:pb-16">
+          <div>
+            <nav aria-label="Fil d'Ariane" className="mb-6 flex items-center gap-1.5 text-xs font-medium text-slate-400">
+              <Link href="/" className="rounded transition-colors hover:text-white">
+                Accueil
+              </Link>
+              <ChevronRight className="h-3.5 w-3.5 text-slate-600 rtl:rotate-180" aria-hidden="true" />
+              <span aria-current="page" className="text-slate-200">
+                Agences
               </span>
-            </div>
-          </div>
+            </nav>
 
-          {/* Main heading */}
-          <div className="max-w-3xl">
-            <h1 className="text-4xl font-black leading-[1.08] tracking-tight sm:text-5xl lg:text-6xl">
-              Trouvez votre
-              <span className="block text-[#E63946]">
-                agence de location de confiance.
-              </span>
+            <h1 className="max-w-2xl text-[34px] font-black leading-[1.08] tracking-tight sm:text-5xl">
+              Trouvez votre <span className="text-[#E63946]">agence de location</span> de confiance.
             </h1>
-
-            <p className="mt-6 max-w-xl text-sm leading-7 text-slate-400 sm:text-base">
-              Découvrez les agences de location à Nador et dans l’Oriental.
-              Comparez les partenaires locaux et trouvez le véhicule adapté à votre séjour.
+            <p className="mt-4 max-w-xl text-[15px] leading-7 text-slate-400">
+              Comparez les loueurs locaux de Nador et de l’Oriental, parcourez leurs flottes et réservez directement en
+              ligne.
             </p>
-          </div>
 
-          {/* Search bar */}
-          <div className="mt-9 max-w-3xl rounded-2xl border border-white/10 bg-white/6 p-2 shadow-2xl backdrop-blur-md sm:flex sm:items-center">
-
-            <div className="flex min-w-0 flex-1 items-center gap-3 px-3 py-2">
-              <Search className="h-5 w-5 shrink-0 text-[#E63946]" />
-
-              <input
-                type="search"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Rechercher une agence, une ville ou un lieu…"
-                aria-label="Rechercher une agence de location"
-                className="w-full min-w-0 bg-transparent text-sm text-white outline-none placeholder:text-slate-500"
-              />
-
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery('')}
-                  aria-label="Effacer la recherche"
-                  className="rounded-full p-1 text-slate-400 transition hover:text-white"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              )}
-            </div>
-
-            <Link
-              href="/search"
-              className="mt-2 flex items-center justify-center gap-2 rounded-xl bg-[#E63946] px-6 py-3 text-sm font-bold text-white transition hover:bg-[#C92F3B] sm:mt-0"
+            <form
+              role="search"
+              onSubmit={handleSearchSubmit}
+              className="mt-8 flex max-w-2xl flex-col gap-2 rounded-2xl bg-white p-2 shadow-[0_30px_60px_-30px_rgba(0,0,0,0.6)] sm:flex-row sm:items-center"
             >
-              Voir les véhicules
-              <ArrowRight className="h-4 w-4" />
-            </Link>
+              <label htmlFor="agency-search" className="sr-only">
+                Rechercher une agence
+              </label>
+              <div className="flex min-h-12 min-w-0 flex-1 items-center gap-3 px-3">
+                <Search className="h-5 w-5 shrink-0 text-slate-400" aria-hidden="true" />
+                <input
+                  id="agency-search"
+                  type="search"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Nom d’agence, ville ou quartier…"
+                  autoComplete="off"
+                  enterKeyHint="search"
+                  className="w-full min-w-0 bg-transparent text-[15px] text-[#0B1220] outline-none placeholder:text-slate-400 [&::-webkit-search-cancel-button]:hidden"
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery('')}
+                    aria-label="Effacer la recherche"
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-[#0B1220]"
+                  >
+                    <X className="h-4 w-4" aria-hidden="true" />
+                  </button>
+                )}
+              </div>
+              <button
+                type="submit"
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#E63946] px-6 text-sm font-bold text-white outline-none transition-colors hover:bg-[#C92F3B] focus-visible:ring-2 focus-visible:ring-[#0B1220] focus-visible:ring-offset-2"
+              >
+                Rechercher
+                <ArrowRight className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
+              </button>
+            </form>
+
+            {cities.length > 1 && (
+              <div className="mt-4 flex flex-wrap items-center gap-2">
+                <span className="text-xs font-medium text-slate-500">Villes :</span>
+                {cities.slice(0, 5).map((city) => (
+                  <button
+                    key={city.name}
+                    type="button"
+                    onClick={() => {
+                      selectCity(city.name);
+                      scrollToDirectory();
+                    }}
+                    className="inline-flex min-h-8 items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 text-xs font-semibold text-slate-200 transition-colors hover:border-white/25 hover:bg-white/10"
+                  >
+                    <MapPin className="h-3 w-3 text-[#E63946]" aria-hidden="true" />
+                    {city.name}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
-          {/* Trust information */}
-          <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
-            {[
-              'Réseau de partenaires',
-              'Informations agences',
-              'Couverture locale',
-            ].map((item) => (
-              <div key={item} className="flex items-center gap-2">
-                <CheckCircle2 className="h-3.5 w-3.5 text-[#E63946]" />
-                <span className="text-xs font-medium text-slate-400">
-                  {item}
-                </span>
+          {/* Chiffres réels du réseau */}
+          <dl className="grid grid-cols-3 gap-px overflow-hidden rounded-2xl border border-white/10 bg-white/10 lg:grid-cols-1">
+            {stats.map((stat) => (
+              <div key={stat.label} className="bg-[#0B1220]/90 px-4 py-4 sm:px-5 lg:flex lg:items-center lg:justify-between lg:gap-4">
+                <dt className="order-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400 lg:order-1 lg:text-xs">
+                  {stat.label}
+                </dt>
+                <dd className="order-1 text-2xl font-black tabular-nums tracking-tight text-white sm:text-3xl lg:order-2">
+                  {loading ? <span className="inline-block h-7 w-10 animate-pulse rounded-md bg-white/10 align-middle" /> : stat.value}
+                </dd>
               </div>
             ))}
-          </div>
-
-          {/* Dynamic statistics */}
-          <div className="mt-12 grid max-w-3xl grid-cols-2 gap-4 border-t border-white/10 pt-7 sm:grid-cols-3">
-
-            <div>
-              <p className="text-3xl font-black tracking-tight text-white">
-                {loading ? '—' : allAgencies.length}
-              </p>
-              <p className="mt-1 text-[10px] font-semibold uppercase tracking-widest text-slate-500">
-                Agences partenaires
-              </p>
-            </div>
-
-            <div>
-              <p className="text-3xl font-black tracking-tight text-white">
-                {loading
-                  ? '—'
-                  : allAgencies.reduce(
-                    (total, agency) => total + (agency.vehicle_count ?? 0),
-                    0
-                  )}
-              </p>
-              <p className="mt-1 text-[10px] font-semibold uppercase tracking-widest text-slate-500">
-                Véhicules proposés
-              </p>
-            </div>
-
-            <div className="col-span-2 sm:col-span-1">
-              <p className="text-3xl font-black tracking-tight text-[#E63946]">
-                NDR
-              </p>
-              <p className="mt-1 text-[10px] font-semibold uppercase tracking-widest text-slate-500">
-                Réseau local
-              </p>
-            </div>
-
-          </div>
+          </dl>
         </div>
       </section>
 
-      {/* =========================================
-          ANNUAIRE DES AGENCES
-      ========================================= */}
-      <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
-
-        {/* Section heading */}
-        <div className="mb-8 flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
+      {/* ═══════════ ANNUAIRE ═══════════ */}
+      <section
+        ref={directoryRef}
+        id="annuaire"
+        aria-labelledby="annuaire-title"
+        className="mx-auto max-w-7xl scroll-mt-24 px-4 py-10 sm:px-6 lg:px-8 lg:py-14"
+      >
+        <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <div className="mb-3 flex items-center gap-2">
-              <span className="h-1 w-7 rounded-full bg-[#E63946]" />
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#E63946]">
-                Découvrez nos partenaires
-              </span>
-            </div>
-
-            <h2 className="text-2xl font-black tracking-tight text-[#0B1220] sm:text-3xl">
+            <h2 id="annuaire-title" className="text-2xl font-black tracking-tight text-[#0B1220] sm:text-3xl">
               Agences de location
             </h2>
-
-            <p className="mt-2 max-w-xl text-sm leading-6 text-slate-500">
-              Découvrez les loueurs locaux et parcourez leurs flottes disponibles.
+            <p className="mt-1 text-sm text-slate-500" aria-live="polite">
+              {loading
+                ? 'Chargement de l’annuaire…'
+                : error
+                  ? 'Annuaire indisponible'
+                  : hasFilters
+                    ? `${plural(filteredAgencies.length, 'agence')} sur ${allAgencies.length}`
+                    : `${plural(allAgencies.length, 'agence')}${verifiedCount > 0 ? ` · ${plural(verifiedCount, 'vérifiée')}` : ''}`}
             </p>
           </div>
-
-          {!loading && !error && (
-            <div className="flex items-center gap-2 self-start rounded-xl border border-slate-200 bg-white px-4 py-2.5 sm:self-auto">
-              <Building2 className="h-4 w-4 text-[#E63946]" />
-              <span className="text-sm font-bold tabular-nums text-[#0B1220]">
-                {filteredAgencies.length}
-              </span>
-              <span className="text-xs text-slate-500">
-                {filteredAgencies.length === 1 ? 'agence' : 'agences'}
-              </span>
-            </div>
-          )}
         </div>
 
-        {/* Filters */}
+        {/* Barre de filtres */}
         {!loading && !error && allAgencies.length > 0 && (
-          <div className="mb-7 flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
-
-            <div className="flex items-center gap-2">
-              <SlidersHorizontal className="h-4 w-4 text-slate-400" />
-              <span className="text-xs font-bold text-slate-700">
-                Affiner la recherche
-              </span>
+          <div className="mt-6 flex flex-col gap-3 rounded-2xl border border-slate-200/80 bg-white p-3 shadow-[0_1px_2px_rgba(11,18,32,0.04)] lg:flex-row lg:items-center">
+            <div
+              role="group"
+              aria-label="Filtrer par ville"
+              className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1 [scrollbar-width:none] lg:flex-1 lg:pb-0"
+            >
+              {[{ name: 'all', label: 'Toutes les villes', count: allAgencies.length }, ...cities.map((c) => ({ ...c, label: c.name }))].map(
+                (city) => {
+                  const active = cityFilter === city.name;
+                  return (
+                    <button
+                      key={city.name}
+                      type="button"
+                      onClick={() => selectCity(city.name)}
+                      aria-pressed={active}
+                      className={
+                        active
+                          ? 'inline-flex min-h-10 shrink-0 items-center gap-2 rounded-xl bg-[#0B1220] px-3.5 text-sm font-bold text-white'
+                          : 'inline-flex min-h-10 shrink-0 items-center gap-2 rounded-xl px-3.5 text-sm font-semibold text-slate-600 transition-colors hover:bg-[#F5F6F8] hover:text-[#0B1220]'
+                      }
+                    >
+                      {city.label}
+                      <span
+                        className={
+                          active
+                            ? 'rounded-md bg-white/15 px-1.5 text-[11px] tabular-nums'
+                            : 'rounded-md bg-[#F5F6F8] px-1.5 text-[11px] tabular-nums text-slate-500'
+                        }
+                      >
+                        {city.count}
+                      </span>
+                    </button>
+                  );
+                }
+              )}
             </div>
 
-            <div className="flex flex-col gap-3 sm:flex-row">
-
-              {/* City filter */}
+            <div className="flex items-center gap-2 border-t border-slate-100 pt-3 lg:border-s lg:border-t-0 lg:ps-3 lg:pt-0">
+              <label htmlFor="agency-sort" className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
+                <ArrowUpDown className="h-3.5 w-3.5" aria-hidden="true" />
+                Trier
+              </label>
               <select
-                value={cityFilter}
-                onChange={(e) => setCityFilter(e.target.value)}
-                aria-label="Filtrer les agences par ville"
-                className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs font-medium text-slate-700 outline-none transition focus:border-[#E63946]"
+                id="agency-sort"
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as SortOption)}
+                className="min-h-10 flex-1 cursor-pointer rounded-xl border border-slate-200 bg-white ps-3 pe-8 text-sm font-semibold text-[#0B1220] outline-none transition-colors hover:border-slate-300 focus:border-[#0B1220] focus:ring-4 focus:ring-[#0B1220]/8 lg:flex-none"
               >
-                <option value="all">Toutes les villes</option>
-                {cities.map((city) => (
-                  <option key={city} value={city}>
-                    {city}
+                {(Object.keys(SORT_LABEL) as SortOption[]).map((option) => (
+                  <option key={option} value={option}>
+                    {SORT_LABEL[option]}
                   </option>
                 ))}
               </select>
-
-              {/* Sorting */}
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as SortOption)}
-                aria-label="Trier les agences"
-                className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs font-medium text-slate-700 outline-none transition focus:border-[#E63946]"
-              >
-                <option value="name">Nom : A à Z</option>
-                <option value="fleet">Plus grande flotte</option>
-              </select>
-
               {hasFilters && (
                 <button
                   type="button"
                   onClick={clearFilters}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs font-bold text-[#E63946] transition hover:bg-red-50"
+                  className="inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-xl px-3 text-sm font-bold text-[#E63946] transition-colors hover:bg-red-50"
                 >
-                  <X className="h-3.5 w-3.5" />
-                  Réinitialiser
+                  <X className="h-4 w-4" aria-hidden="true" />
+                  Effacer
                 </button>
               )}
             </div>
           </div>
         )}
 
-        {/* =====================================
-            LOADING STATE
-        ===================================== */}
-        {loading && (
-          <div
-            className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3"
-            aria-label="Chargement des agences"
-          >
-            {[1, 2, 3, 4, 5, 6].map((item) => (
-              <div
-                key={item}
-                className="overflow-hidden rounded-2xl border border-slate-200 bg-white"
+        {/* Recherche active */}
+        {!loading && !error && searchQuery.trim() && (
+          <p className="mt-4 flex flex-wrap items-center gap-2 text-sm text-slate-600">
+            Résultats pour
+            <span className="inline-flex items-center gap-1 rounded-full bg-white px-3 py-1 font-semibold text-[#0B1220] ring-1 ring-slate-200">
+              « {searchQuery.trim()} »
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                aria-label="Retirer la recherche"
+                className="-me-1 flex h-5 w-5 items-center justify-center rounded-full text-slate-400 hover:bg-slate-100 hover:text-[#0B1220]"
               >
-                <div className="skeleton h-36 w-full" />
-                <div className="space-y-4 p-5">
-                  <div className="skeleton h-5 w-2/3 rounded" />
-                  <div className="skeleton h-3 w-1/2 rounded" />
-                  <div className="skeleton h-3 w-3/4 rounded" />
-                  <div className="skeleton h-10 w-full rounded-xl" />
+                <X className="h-3 w-3" aria-hidden="true" />
+              </button>
+            </span>
+          </p>
+        )}
+
+        <div className="mt-6">
+          {/* Chargement */}
+          {loading && (
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3" role="status" aria-label="Chargement des agences">
+              {[1, 2, 3].map((item) => (
+                <div key={item} className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white">
+                  <div className="skeleton h-36 w-full" />
+                  <div className="space-y-3 p-5 pt-10">
+                    <div className="skeleton h-5 w-2/3 rounded" />
+                    <div className="skeleton h-3 w-1/2 rounded" />
+                    <div className="skeleton h-3 w-full rounded" />
+                    <div className="skeleton mt-6 h-11 w-full rounded-xl" />
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* =====================================
-            ERROR STATE
-        ===================================== */}
-        {!loading && error && (
-          <div className="rounded-3xl border border-red-100 bg-white px-6 py-16 text-center">
-
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-red-50">
-              <AlertCircle className="h-6 w-6 text-[#E63946]" />
+              ))}
             </div>
+          )}
 
-            <h3 className="mt-5 text-lg font-bold text-[#0B1220]">
-              Impossible de charger les agences
-            </h3>
-
-            <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-slate-500">
-              Nous n’avons pas pu récupérer l’annuaire des agences. Vérifiez votre connexion et réessayez.
-            </p>
-
-            <button
-              type="button"
-              onClick={handleRetry}
-              className="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#0B1220] px-5 py-3 text-sm font-bold text-white transition hover:bg-slate-800"
-            >
-              <RefreshCw className="h-4 w-4" />
-              Réessayer
-            </button>
-          </div>
-        )}
-
-        {/* =====================================
-            EMPTY PLATFORM STATE
-        ===================================== */}
-        {!loading && !error && allAgencies.length === 0 && (
-          <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white">
-
-            <div className="relative flex flex-col items-center px-6 py-16 text-center sm:py-20">
-
-              <div className="absolute right-0 top-0 h-48 w-48 rounded-full bg-[#E63946]/4 blur-3xl" />
-
-              <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-[#0B1220]">
-                <Building2 className="h-7 w-7 text-white" />
+          {/* Erreur */}
+          {!loading && error && (
+            <div role="alert" className="rounded-3xl border border-red-100 bg-white px-6 py-16 text-center">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-red-50">
+                <AlertCircle className="h-6 w-6 text-[#E63946]" aria-hidden="true" />
               </div>
-
-              <span className="mt-6 text-[10px] font-bold uppercase tracking-[0.2em] text-[#E63946]">
-                Bientôt disponible
-              </span>
-
-              <h3 className="mt-3 text-xl font-black text-[#0B1220] sm:text-2xl">
-                Notre réseau s’agrandit.
-              </h3>
-
-              <p className="mt-3 max-w-md text-sm leading-7 text-slate-500">
-                Nous constituons notre réseau de partenaires à Nador et dans l’Oriental.
-                Les nouvelles agences apparaîtront ici dès leur arrivée sur la plateforme.
+              <h3 className="mt-5 text-lg font-bold text-[#0B1220]">Impossible de charger les agences</h3>
+              <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-slate-500">
+                Nous n’avons pas pu récupérer l’annuaire. Vérifiez votre connexion et réessayez.
               </p>
+              <button
+                type="button"
+                onClick={() => void fetchAgencies()}
+                className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-xl bg-[#0B1220] px-5 text-sm font-bold text-white transition-colors hover:bg-slate-800"
+              >
+                <RefreshCw className="h-4 w-4" aria-hidden="true" />
+                Réessayer
+              </button>
+            </div>
+          )}
 
-              <div className="mt-8 flex w-full flex-col justify-center gap-3 sm:w-auto sm:flex-row">
-
+          {/* Plateforme sans agence */}
+          {!loading && !error && allAgencies.length === 0 && (
+            <div className="rounded-3xl border border-slate-200/80 bg-white px-6 py-16 text-center sm:py-20">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-[#0B1220]">
+                <Building2 className="h-7 w-7 text-white" aria-hidden="true" />
+              </div>
+              <h3 className="mt-6 text-xl font-black text-[#0B1220] sm:text-2xl">Notre réseau s’agrandit.</h3>
+              <p className="mx-auto mt-3 max-w-md text-sm leading-7 text-slate-500">
+                Les agences de Nador et de l’Oriental apparaîtront ici dès leur arrivée sur la plateforme.
+              </p>
+              <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
                 <Link
                   href="/search"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#E63946] px-6 py-3 text-sm font-bold text-white transition hover:bg-[#C92F3B]"
+                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#E63946] px-6 text-sm font-bold text-white transition-colors hover:bg-[#C92F3B]"
                 >
-                  <CarFront className="h-4 w-4" />
+                  <CarFront className="h-4 w-4" aria-hidden="true" />
                   Voir les véhicules
                 </Link>
-
                 <Link
                   href="/agency/join"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-6 py-3 text-sm font-bold text-[#0B1220] transition hover:bg-slate-50"
+                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 px-6 text-sm font-bold text-[#0B1220] transition-colors hover:bg-slate-50"
                 >
                   Inscrire votre agence
-                  <ArrowRight className="h-4 w-4" />
+                  <ArrowRight className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
                 </Link>
               </div>
-
-              {/* Local locations */}
-              <div className="mt-12 border-t border-slate-100 pt-7">
-                <p className="mb-4 text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                  Notre zone de couverture
-                </p>
-
-                <div className="flex flex-wrap justify-center gap-2">
-                  {[
-                    'Aéroport Nador-Al Aroui',
-                    'Port Beni Ansar',
-                    'Nador Centre',
-                    'Marchica',
-                  ].map((location) => (
-                    <span
-                      key={location}
-                      className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-2 text-[11px] font-medium text-slate-600"
-                    >
-                      <MapPin className="h-3 w-3 text-[#E63946]" />
-                      {location}
-                    </span>
-                  ))}
-                </div>
-              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* =====================================
-            NO SEARCH RESULTS
-        ===================================== */}
-        {!loading &&
-          !error &&
-          allAgencies.length > 0 &&
-          filteredAgencies.length === 0 && (
-            <div className="rounded-3xl border border-slate-200 bg-white px-6 py-16 text-center">
-
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100">
-                <Search className="h-6 w-6 text-slate-400" />
+          {/* Aucun résultat */}
+          {!loading && !error && allAgencies.length > 0 && filteredAgencies.length === 0 && (
+            <div className="rounded-3xl border border-slate-200/80 bg-white px-6 py-14 text-center">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#F5F6F8]">
+                <Search className="h-6 w-6 text-slate-400" aria-hidden="true" />
               </div>
-
-              <h3 className="mt-5 text-lg font-bold text-[#0B1220]">
-                Aucune agence trouvée
-              </h3>
-
-              <p className="mt-2 text-sm text-slate-500">
-                Essayez un autre nom d’agence, une autre ville ou un autre lieu.
-              </p>
-
+              <h3 className="mt-5 text-lg font-bold text-[#0B1220]">Aucune agence ne correspond</h3>
+              <p className="mt-2 text-sm text-slate-500">Essayez un autre nom, une autre ville ou effacez les filtres.</p>
               <button
                 type="button"
                 onClick={clearFilters}
-                className="mt-6 inline-flex items-center gap-2 rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-bold text-[#0B1220] transition hover:bg-slate-50"
+                className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-200 px-5 text-sm font-bold text-[#0B1220] transition-colors hover:bg-slate-50"
               >
-                <X className="h-4 w-4" />
+                <X className="h-4 w-4" aria-hidden="true" />
                 Effacer les filtres
               </button>
             </div>
           )}
 
-        {/* =====================================
-            AGENCY GRID
-        ===================================== */}
-        {!loading && !error && filteredAgencies.length > 0 && (
-          <GsapReveal
-            stagger={0.06}
-            className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3"
-          >
-            {filteredAgencies.map((agency) => (
-              <AgencyCard
-                key={agency.id}
-                agency={agency}
-                carCount={agency.vehicle_count ?? 0}
-              />
-            ))}
-          </GsapReveal>
-        )}
+          {/* Grille */}
+          {!loading && !error && filteredAgencies.length > 0 && (
+            <GsapReveal stagger={0.06} className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {filteredAgencies.map((agency) => (
+                <AgencyCard key={agency.id} agency={agency} carCount={agency.vehicle_count ?? 0} />
+              ))}
+            </GsapReveal>
+          )}
+        </div>
 
-        {/* =====================================
-            B2B PARTNER SECTION
-        ===================================== */}
+        {/* ═══════════ PARTENARIAT ═══════════ */}
         {!loading && !error && (
-          <section className="relative mt-16 overflow-hidden rounded-3xl bg-[#0B1220] p-7 text-white sm:p-10 lg:p-12">
-
-            {/* Decorative element */}
+          <section
+            aria-labelledby="partner-title"
+            className="relative mt-14 overflow-hidden rounded-3xl bg-[#0B1220] p-7 text-white sm:p-10 lg:p-12"
+          >
             <div
               aria-hidden="true"
-              className="pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full border-40 border-white/3"
+              className="pointer-events-none absolute -end-20 -top-24 h-72 w-72 rounded-full border-40 border-white/3"
             />
-
-            <div className="relative flex flex-col justify-between gap-8 lg:flex-row lg:items-center">
-
+            <div className="relative grid gap-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
               <div className="max-w-xl">
-                <div className="mb-4 flex items-center gap-2">
-                  <Building2 className="h-4 w-4 text-[#E63946]" />
-                  <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#E63946]">
-                    Partenariat professionnel
-                  </span>
-                </div>
-
-                <h2 className="text-2xl font-black tracking-tight sm:text-3xl">
+                <span className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-[#E63946]">
+                  <Building2 className="h-4 w-4" aria-hidden="true" />
+                  Vous êtes loueur ?
+                </span>
+                <h2 id="partner-title" className="mt-3 text-2xl font-black tracking-tight sm:text-3xl">
                   Développez votre activité de location avec CarDrive.
                 </h2>
-
-                <p className="mt-4 text-sm leading-7 text-slate-400">
-                  Rejoignez notre réseau automobile local, mettez en avant votre flotte
-                  et gérez votre agence depuis un espace numérique dédié.
-                </p>
+                <ul className="mt-5 grid gap-2.5 text-sm text-slate-300 sm:grid-cols-2">
+                  {['Vitrine en ligne pour votre flotte', 'Demandes de réservation centralisées', 'Calendrier et disponibilités', 'Contact client direct par WhatsApp'].map(
+                    (item) => (
+                      <li key={item} className="flex items-start gap-2">
+                        <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" aria-hidden="true" />
+                        {item}
+                      </li>
+                    )
+                  )}
+                </ul>
               </div>
-
               <Magnet strength={0.15} className="shrink-0">
                 <Link
                   href="/agency/join"
-                  className="inline-flex w-full items-center justify-center gap-3 rounded-xl bg-[#E63946] px-7 py-4 text-sm font-bold text-white transition hover:bg-[#C92F3B] sm:w-auto"
+                  className="inline-flex min-h-12 w-full items-center justify-center gap-3 rounded-xl bg-[#E63946] px-7 text-sm font-bold text-white transition-colors hover:bg-[#C92F3B] sm:w-auto"
                 >
                   Devenir partenaire
-                  <ArrowRight className="h-4 w-4" />
+                  <ArrowRight className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
                 </Link>
               </Magnet>
             </div>
           </section>
         )}
 
-        {/* Bottom navigation */}
         <div className="mt-8 flex justify-center">
           <Link
             href="/search"
-            className="group inline-flex items-center gap-2 text-xs font-bold text-slate-500 transition hover:text-[#E63946]"
+            className="group inline-flex min-h-10 items-center gap-2 text-sm font-bold text-slate-500 transition-colors hover:text-[#E63946]"
           >
-            Découvrir les véhicules disponibles
-            <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            Découvrir tous les véhicules disponibles
+            <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1 motion-reduce:transition-none rtl:rotate-180" aria-hidden="true" />
           </Link>
         </div>
-
       </section>
     </main>
   );

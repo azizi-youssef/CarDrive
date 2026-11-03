@@ -7,16 +7,16 @@ export const BRAND = {
   navy: '#0B1220',
   red: '#E63946',
   white: '#FFFFFF',
-  surface: '#F1F5F9',
+  surface: '#F5F6F8',
   text: '#0F172A',
   textMuted: '#64748B',
 } as const;
 
 /** Classes Tailwind reutilisables (bordures, etats, focus). */
 export const shell = {
-  page: 'min-h-screen bg-[#F1F5F9] text-[#0F172A]',
+  page: 'min-h-screen bg-[#F5F6F8] text-[#0F172A]',
   sidebar: 'bg-[#0B1220] text-white',
-  card: 'rounded-2xl border border-slate-200 bg-white',
+  card: 'rounded-2xl border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(11,18,32,0.04)]',
   cardPad: 'p-5 sm:p-6',
   heading: 'text-lg font-bold tracking-tight text-[#0F172A]',
   subtle: 'text-sm text-[#64748B]',
@@ -25,9 +25,9 @@ export const shell = {
 
 export const button = {
   primary:
-    'inline-flex items-center justify-center gap-2 rounded-xl bg-[#E63946] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#C92F3B] disabled:cursor-not-allowed disabled:opacity-50',
+    'inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-[#E63946] px-4 py-2.5 text-sm font-bold text-white shadow-[0_10px_20px_-12px_rgba(230,57,70,0.8)] transition-colors hover:bg-[#C92F3B] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B1220] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none',
   secondary:
-    'inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50',
+    'inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-[#0B1220] transition-colors hover:border-slate-300 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E63946] disabled:cursor-not-allowed disabled:opacity-50',
   ghost:
     'inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 disabled:opacity-50',
   danger:
@@ -35,7 +35,7 @@ export const button = {
 } as const;
 
 export const input =
-  'w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-[#0F172A] outline-none transition-colors placeholder:text-[#64748B] focus:border-[#E63946] focus:ring-2 focus:ring-[#E63946]/25 disabled:bg-slate-100 disabled:text-slate-500';
+  'min-h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-[#0F172A] outline-none transition-colors placeholder:text-slate-400 hover:border-slate-300 focus:border-[#0B1220] focus:ring-4 focus:ring-[#0B1220]/8 disabled:bg-slate-100 disabled:text-slate-500';
 
 /** Presets de periode pour les filtres du dashboard. */
 export type RangePreset = 'today' | '7d' | '30d' | '90d' | 'ytd' | 'all';

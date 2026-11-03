@@ -86,6 +86,13 @@ export class VehiclesService {
 
     // Date-specific availability is computed in PostgreSQL to share one source of truth.
     if (filters?.startDate && filters?.endDate) {
+      // Nettoyage des locations terminées (statuts véhicules), séparé de la vérification
+      // en lecture seule. Facultatif : la disponibilité ignore déjà les réservations passées.
+      const { error: expireError } = await supabase.rpc('expire_completed_bookings');
+      if (expireError) {
+        console.warn('[VehiclesService] Booking expiry skipped:', expireError.message);
+      }
+
       const availability: { vehicle_id: string; available: boolean }[] = [];
       for (let offset = 0; offset < mapped.length; offset += 500) {
         const { data, error: availabilityError } = await supabase.rpc(

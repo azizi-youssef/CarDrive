@@ -204,7 +204,7 @@ export function ConfirmDialog({
             onClick={onConfirm}
             disabled={blocked}
           >
-            {busy ? 'Traitement...' : confirmLabel}
+            {busy ? 'Traitement…' : confirmLabel}
           </button>
         </div>
       </div>

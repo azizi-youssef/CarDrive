@@ -74,7 +74,6 @@ export function AgencyCustomersPanel({ agencyId }: { agencyId: string }) {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[#0B1220]">Répertoire Clients</h1>
           <p className="text-sm text-slate-500">
             {totalCount} dossier{totalCount > 1 ? 's' : ''} client{totalCount > 1 ? 's' : ''} associé{totalCount > 1 ? 's' : ''} aux réservations de votre agence.
           </p>

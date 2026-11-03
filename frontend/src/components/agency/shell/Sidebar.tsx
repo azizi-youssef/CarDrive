@@ -46,17 +46,24 @@ export const AGENCY_SECTIONS: readonly {
   icon: LucideIcon;
 }[] = [
   { id: 'overview', label: "Vue d'ensemble", icon: LayoutDashboard },
+  { id: 'bookings', label: 'Réservations', icon: ClipboardList },
+  { id: 'rentals', label: 'Départs & Retours', icon: KeyRound },
+  { id: 'calendar', label: 'Calendrier & Dispos', icon: CalendarDays },
   { id: 'fleet', label: 'Flotte de véhicules', icon: Car },
   { id: 'add_vehicle', label: 'Ajouter un véhicule', icon: PlusCircle },
   { id: 'subscription', label: 'Forfait & Capacité', icon: Sparkles },
-  { id: 'calendar', label: 'Calendrier & Dispos', icon: CalendarDays },
-  { id: 'bookings', label: 'Réservations', icon: ClipboardList },
-  { id: 'rentals', label: 'Départs & Retours', icon: KeyRound },
   { id: 'customers', label: 'Clients', icon: Users },
   { id: 'finances', label: 'Revenus locatifs', icon: CircleDollarSign },
   { id: 'access', label: 'Équipe & Permissions', icon: ShieldCheck },
   { id: 'settings', label: 'Paramètres agence', icon: Settings },
 ] as const;
+
+/** Regroupement visuel de la navigation (les sections absentes selon le rôle sont ignorées). */
+const SECTION_GROUPS: { title: string; ids: string[] }[] = [
+  { title: 'Pilotage', ids: ['overview', 'bookings', 'rentals', 'calendar'] },
+  { title: 'Flotte', ids: ['fleet', 'add_vehicle', 'subscription'] },
+  { title: 'Agence', ids: ['customers', 'finances', 'access', 'settings'] },
+];
 
 export function Sidebar({
   sections,
@@ -112,48 +119,70 @@ export function Sidebar({
         )}
       </div>
 
-      <nav className="flex-1 space-y-1 overflow-y-auto p-3">
-        <ul className="space-y-1">
-          {sections.map((section) => {
-            const Icon = section.icon;
-            const isActive = active === section.id;
-            return (
-              <li key={section.id}>
-                <button
-                  type="button"
-                  onClick={() => onNavigate(section.id)}
-                  aria-current={isActive ? 'page' : undefined}
-                  title={collapsed ? section.label : undefined}
-                  className={cn(
-                    'flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-[#E63946]',
-                    isActive
-                      ? 'bg-white/10 text-white'
-                      : 'text-slate-400 hover:bg-white/5 hover:text-white',
-                    collapsed && 'justify-center px-0'
-                  )}
-                >
-                  <Icon aria-hidden="true" className="h-4.5 w-4.5 shrink-0" />
-                  {!collapsed && (
-                    <>
-                      <span className="min-w-0 flex-1 text-left">{section.label}</span>
-                      {typeof section.count === 'number' && (
-                        <span className="shrink-0 text-xs tabular-nums text-slate-500">
-                          {section.count}
-                        </span>
-                      )}
-                      {section.badge === 'alert' && (
-                        <span
-                          aria-label="Action requise"
-                          className="h-2 w-2 shrink-0 rounded-full bg-[#E63946]"
-                        />
-                      )}
-                    </>
-                  )}
-                </button>
-              </li>
-            );
-          })}
-        </ul>
+      <nav className="flex-1 overflow-y-auto px-3 py-4">
+        {SECTION_GROUPS.map((group, groupIndex) => {
+          const items = group.ids
+            .map((id) => sections.find((section) => section.id === id))
+            .filter((section): section is AgencySection => Boolean(section));
+          if (items.length === 0) return null;
+          return (
+            <div key={group.title} className={cn(groupIndex > 0 && 'mt-5')}>
+              {collapsed ? (
+                groupIndex > 0 && <div className="mx-3 mb-3 h-px bg-white/10" aria-hidden="true" />
+              ) : (
+                <p className="mb-1.5 px-3 text-[11px] font-bold uppercase tracking-[0.16em] text-slate-500">{group.title}</p>
+              )}
+              <ul className="space-y-0.5">
+                {items.map((section) => {
+                  const Icon = section.icon;
+                  const isActive = active === section.id;
+                  return (
+                    <li key={section.id}>
+                      <button
+                        type="button"
+                        onClick={() => onNavigate(section.id)}
+                        aria-current={isActive ? 'page' : undefined}
+                        title={collapsed ? section.label : undefined}
+                        className={cn(
+                          'relative flex min-h-10 w-full items-center gap-3 rounded-xl px-3 text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-[#E63946]',
+                          isActive ? 'bg-white font-bold text-[#0B1220] shadow-sm' : 'font-medium text-slate-400 hover:bg-white/5 hover:text-white',
+                          collapsed && 'justify-center px-0'
+                        )}
+                      >
+                        <Icon aria-hidden="true" className={cn('h-4.5 w-4.5 shrink-0', isActive && 'text-[#E63946]')} />
+                        {!collapsed && (
+                          <>
+                            <span className="min-w-0 flex-1 truncate text-left">{section.label}</span>
+                            {typeof section.count === 'number' && section.count > 0 && (
+                              <span
+                                className={cn(
+                                  'shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold tabular-nums',
+                                  section.badge === 'alert'
+                                    ? 'bg-[#E63946] text-white'
+                                    : isActive
+                                      ? 'bg-slate-100 text-slate-600'
+                                      : 'bg-white/10 text-slate-300'
+                                )}
+                              >
+                                {section.count}
+                              </span>
+                            )}
+                            {section.badge === 'alert' && typeof section.count !== 'number' && (
+                              <span aria-label="Action requise" className="h-2 w-2 shrink-0 rounded-full bg-[#E63946]" />
+                            )}
+                          </>
+                        )}
+                        {collapsed && section.badge === 'alert' && (
+                          <span aria-label="Action requise" className="absolute end-2.5 top-2 h-2 w-2 rounded-full bg-[#E63946]" />
+                        )}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          );
+        })}
       </nav>
 
       <div className="space-y-1 border-t border-white/10 p-3">

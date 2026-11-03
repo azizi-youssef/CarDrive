@@ -10,13 +10,14 @@ function failure(message: string, status: number) {
 }
 
 const settingsUpdateSchema = z.object({
-  name: z.string().trim().min(2, 'Le nom commercial est requis').optional(),
-  description: z.string().trim().optional(),
-  phone: z.string().trim().min(8, 'Numéro de téléphone requis').optional(),
-  whatsapp: z.string().trim().optional(),
-  email: z.string().email('Email invalide').optional(),
-  address: z.string().trim().optional(),
-  city: z.string().trim().optional(),
+  name: z.string().trim().min(2, 'Le nom commercial est requis').max(120).optional(),
+  description: z.string().trim().max(1000, 'Description limitée à 1000 caractères').optional(),
+  phone: z.string().trim().min(8, 'Numéro de téléphone requis').max(30).optional(),
+  whatsapp: z.string().trim().max(30).optional(),
+  // Champ facultatif : une chaîne vide efface l'e-mail au lieu d'être refusée
+  email: z.union([z.literal(''), z.string().trim().email('Email invalide').max(160)]).optional(),
+  address: z.string().trim().max(240).optional(),
+  city: z.string().trim().max(80).optional(),
 });
 
 export async function GET(request: NextRequest, context: RouteContext) {
@@ -72,7 +73,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 
   if (error) {
     console.error('[AgencySettings] Update error:', error.message);
-    return failure(`Erreur mise à jour paramètres: ${error.message}`, 500);
+    return failure('Les paramètres n’ont pas pu être enregistrés. Réessayez.', 500);
   }
 
   return NextResponse.json({

@@ -12,6 +12,9 @@ function loadLogoDataUrl(): string | null {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const path = require('path');
     const candidatePaths = [
+      // Logo actuel du site (les anciens fichiers Logo-CarDrive*.png ont été supprimés)
+      path.join(process.cwd(), 'frontend', 'public', 'logo_12.png'),
+      path.join(process.cwd(), 'public', 'logo_12.png'),
       path.join(process.cwd(), 'frontend', 'public', 'Logo-CarDrive2.png'),
       path.join(process.cwd(), 'public', 'Logo-CarDrive2.png'),
       path.join(process.cwd(), 'frontend', 'public', 'Logo_CarDrive1.png'),
@@ -79,7 +82,8 @@ export class PdfService {
         doc.roundedRect(margin + 4, currentY + 4, 52, 18, 2, 2, 'F');
 
         const format = logoData.includes('image/jpeg') || logoData.includes('image/jpg') ? 'JPEG' : 'PNG';
-        doc.addImage(logoData, format, margin + 6, currentY + 5.5, 48, 15);
+        // Logo 851×229 (≈ 3,7:1) : 48 × 13 mm, centré verticalement dans la tuile
+        doc.addImage(logoData, format, margin + 6, currentY + 6.5, 48, 13);
 
         textStartX = margin + 60;
       } catch (err) {

@@ -183,7 +183,7 @@ export function Pagination({
           type="button"
           onClick={() => onPage(page - 1)}
           disabled={page <= 1}
-          aria-label="Page precedente"
+          aria-label="Page précédente"
           className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-600 transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E63946] disabled:opacity-40"
         >
           <ChevronLeft aria-hidden="true" className="h-4 w-4" />

@@ -49,6 +49,7 @@ import { EditAgencyModal } from './EditAgencyModal';
 import { ResetPasswordModal } from './ResetPasswordModal';
 import { DeleteAgencyModal } from './DeleteAgencyModal';
 import { AgencyCredentialsSuccessModal } from './AgencyCredentialsSuccessModal';
+import { ConfirmDialog } from '@/components/agency/shell/Dialog';
 
 const PAGE_SIZE = 15;
 
@@ -72,7 +73,7 @@ const CITY_OPTIONS = [
   { value: 'Casablanca', label: 'Casablanca' },
 ];
 
-export function AdminAgenciesClient() {
+export function AdminAgenciesClient({ initialStatus = 'ALL' }: { initialStatus?: string }) {
   const [agencies, setAgencies] = useState<AdminAgency[]>([]);
   const [subscriptionsMap, setSubscriptionsMap] = useState<Record<string, AgencySubscription>>({});
   const [totalAgencies, setTotalAgencies] = useState(0);
@@ -83,7 +84,9 @@ export function AdminAgenciesClient() {
 
   // Filters & Pagination
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('ALL');
+  const [statusFilter, setStatusFilter] = useState(
+    STATUS_OPTIONS.some((option) => option.value === initialStatus) ? initialStatus : 'ALL'
+  );
   const [cityFilter, setCityFilter] = useState('ALL');
   const [page, setPage] = useState(0);
 
@@ -104,6 +107,8 @@ export function AdminAgenciesClient() {
 
   // Action status
   const [actionInProgressId, setActionInProgressId] = useState<string | null>(null);
+  // Agence dont la suspension attend une confirmation explicite
+  const [pendingSuspension, setPendingSuspension] = useState<AdminAgency | null>(null);
   const [toast, setToast] = useState<{ message: string; type?: 'success' | 'info' | 'error' } | null>(null);
 
   const abortRef = useRef<AbortController | null>(null);
@@ -172,11 +177,13 @@ export function AdminAgenciesClient() {
     setPage(0);
   }, [search, statusFilter, cityFilter]);
 
-  const handleToggleStatus = async (agency: AdminAgency) => {
+  const handleToggleStatus = async (agency: AdminAgency, confirmed = false) => {
     const isActivating = agency.status !== 'ACTIVE';
-    if (!isActivating && !window.confirm(`Confirmez-vous la suspension de l'accès pour l'agence "${agency.name}" ?`)) {
+    if (!isActivating && !confirmed) {
+      setPendingSuspension(agency);
       return;
     }
+    setPendingSuspension(null);
 
     setActionInProgressId(agency.id);
     try {
@@ -583,6 +590,17 @@ export function AdminAgenciesClient() {
         onClose={() => setCredentialsModal({ isOpen: false, data: null })}
         credentials={credentialsModal.data}
       />
+      {pendingSuspension && (
+        <ConfirmDialog
+          title="Suspendre cette agence ?"
+          message={`« ${pendingSuspension.name} » perdra l’accès à son espace et ses véhicules ne seront plus proposés. Vous pourrez la réactiver à tout moment.`}
+          confirmLabel="Suspendre l’agence"
+          destructive
+          busy={actionInProgressId === pendingSuspension.id}
+          onConfirm={() => void handleToggleStatus(pendingSuspension, true)}
+          onCancel={() => setPendingSuspension(null)}
+        />
+      )}
     </div>
   );
 }

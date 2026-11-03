@@ -185,7 +185,6 @@ export function AgencyRentalsPanel({
       {/* Title banner */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[#0B1220]">Départs & Retours</h1>
           <p className="text-sm text-slate-500">
             Gestion de la remise des clés, états des lieux de départ et restitutions avec caution.
           </p>

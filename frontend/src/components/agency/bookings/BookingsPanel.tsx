@@ -131,7 +131,7 @@ export function BookingsPanel({
           <SearchField
             value={search}
             onChange={onSearchChange}
-            label="Rechercher une reservation"
+            label="Rechercher une réservation"
             placeholder="Dossier, client..."
           />
           <SelectField value={status} onChange={onStatusChange} label="Filtrer par statut">
@@ -141,7 +141,7 @@ export function BookingsPanel({
               </option>
             ))}
           </SelectField>
-          <SelectField value={sort} onChange={onSortChange} label="Trier les reservations">
+          <SelectField value={sort} onChange={onSortChange} label="Trier les réservations">
             {SORTS.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
@@ -158,7 +158,7 @@ export function BookingsPanel({
       ) : rows.length === 0 ? (
         <div className="rounded-2xl border border-slate-200 bg-white">
           <EmptyState
-            title="Aucune reservation"
+            title="Aucune réservation"
             text="Aucun dossier ne correspond a ces criteres pour votre agence."
           />
         </div>
@@ -171,18 +171,18 @@ export function BookingsPanel({
         >
           <div className="overflow-x-auto">
             <table className="w-full min-w-[960px] text-left text-sm">
-              <caption className="sr-only">Reservations de votre agence</caption>
+              <caption className="sr-only">Réservations de votre agence</caption>
               <thead className="border-b border-slate-200 bg-slate-50">
                 <tr>
                   <Th>Dossier</Th>
                   <Th>Client</Th>
                   <Th>Vehicule</Th>
-                  <Th>Periode</Th>
+                  <Th>Période</Th>
                   <Th align="right" numeric>Montant</Th>
                   <Th align="right" numeric>Commission</Th>
                   <Th align="right" numeric>Net agence</Th>
                   <Th>Statut</Th>
-                  <Th align="right">Detail</Th>
+                  <Th align="right">Détail</Th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -235,7 +235,7 @@ export function BookingsPanel({
             total={meta.total}
             pageSize={meta.pageSize}
             onPage={onPageChange}
-            label="reservations"
+            label="réservations"
           />
         </div>
       )}
@@ -249,7 +249,7 @@ export function BookingsPanel({
 
       {!canAct && (
         <p className="text-xs text-[#64748B]">
-          Votre role ne permet pas de traiter les demandes de reservation.
+          Votre rôle ne permet pas de traiter les demandes de réservation.
         </p>
       )}
 

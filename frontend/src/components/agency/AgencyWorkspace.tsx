@@ -269,7 +269,7 @@ export function AgencyWorkspace({
       } catch (error) {
         if (controller.signal.aborted) return;
         setBookingsError(
-          error instanceof Error ? error.message : 'Impossible de charger les reservations.'
+          error instanceof Error ? error.message : 'Impossible de charger les réservations.'
         );
         setBookings(null);
       } finally {
@@ -384,7 +384,7 @@ export function AgencyWorkspace({
           ok ? 'success' : 'error',
           ok
             ? 'Demande mise a jour. Le client est informe.'
-            : "L'action n'a pas pu etre appliquee."
+            : "L'action n'a pas pu être appliquée."
         );
         if (ok) {
           setPendingAction(null);
@@ -452,7 +452,7 @@ export function AgencyWorkspace({
   const canBookings = canActOnBookings(profile?.role);
 
   return (
-    <div className="flex min-h-screen bg-[#F1F5F9] text-[#0F172A]">
+    <div className="flex min-h-screen bg-[#F5F6F8] text-[#0F172A]">
       <a
         href="#agency-content"
         className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-white focus:p-3"
@@ -485,7 +485,7 @@ export function AgencyWorkspace({
                   {
                     id: 'pending',
                     tone: 'alert',
-                    label: `${pending} demande(s) de reservation a traiter`,
+                    label: `${pending} demande${pending > 1 ? 's' : ''} de réservation à traiter`,
                   },
                 ]
               : []
@@ -500,18 +500,22 @@ export function AgencyWorkspace({
           onNavigate={setSection}
           sections={sections}
           activeSection={section}
+          pendingCount={pending}
         />
 
         <main
           id="agency-content"
-          className="mx-auto max-w-350 space-y-6 px-4 py-6 sm:px-6 lg:px-10 lg:py-8"
+          className="mx-auto max-w-350 space-y-6 px-4 pt-6 pb-28 sm:px-6 lg:px-10 lg:py-8"
         >
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight text-[#0F172A] sm:text-3xl">
+            <div className="min-w-0">
+              <p className="truncate text-xs font-bold uppercase tracking-[0.16em] text-[#E63946]">{agency.name}</p>
+              <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-[#0B1220] sm:text-[32px]">
                 {currentLabel}
               </h1>
-              <p className="mt-1 text-sm text-[#64748B]">{agency.name}</p>
+              <p className="mt-1 text-sm capitalize text-slate-500">
+                {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+              </p>
             </div>
 
             {section === 'overview' && (
@@ -523,7 +527,7 @@ export function AgencyWorkspace({
                     setRangePreset(value);
                     setRangeInput(resolveRange(value));
                   }}
-                  label="Periode des indicateurs"
+                  label="Période des indicateurs"
                 />
                 <DateRangeInputs
                   value={{ from: rangeInput.from ?? '', to: rangeInput.to ?? '' }}
@@ -567,6 +571,7 @@ export function AgencyWorkspace({
                 onOpenFleet={() => setSection('fleet')}
                 onOpenCalendar={() => setSection('calendar')}
                 onOpenSubscription={() => setSection('subscription')}
+                onAddVehicle={canEditFleet(profile?.role) ? () => setSection('add_vehicle') : undefined}
               />
             </div>
           )}
@@ -587,15 +592,11 @@ export function AgencyWorkspace({
 
           {section === 'fleet' && (
             <div className="space-y-6">
-              <FleetCapacityCard
-                subscription={subscription}
-                loading={subscriptionLoading}
-                onOpenUpgradeModal={() => setSection('subscription')}
-              />
               <AgencyFleetPanel
                 agencyId={agency.id}
                 canManage={canEditFleet(profile?.role)}
                 onOpenCalendar={() => setSection('calendar')}
+                onNotify={notify}
               />
             </div>
           )}
@@ -618,6 +619,7 @@ export function AgencyWorkspace({
             <AgencyCalendarPanel
               agencyId={agency.id}
               canManage={canEditFleet(profile?.role)}
+              onNotify={notify}
             />
           )}
 
@@ -695,11 +697,11 @@ export function AgencyWorkspace({
           title={
             pendingAction.action === 'reject'
               ? 'Refuser cette demande ?'
-              : 'Proposer un vehicule alternatif ?'
+              : 'Proposer un véhicule alternatif ?'
           }
           message={
             pendingAction.action === 'reject'
-              ? 'Le client sera informe du refus et du motif saisi. Cette action est journalisee.'
+              ? 'Le client sera informé du refus et du motif saisi. Cette action est journalisée.'
               : "Le client recevra une proposition de remplacement qu'il pourra accepter ou refuser."
           }
           confirmLabel={

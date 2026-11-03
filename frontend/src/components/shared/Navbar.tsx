@@ -122,19 +122,19 @@ const STRINGS: Record<string, NavStrings> = {
     signingOut: 'Déconnexion…',
     destinationsTitle: 'Destinations & Prise en charge',
     destinationsSubtitle: "Trouvez un véhicule selon votre point d'arrivée à Nador",
-    arrivalHubs: "Points d'arrivée majeurs",
+    arrivalHubs: 'Lieux de prise en charge',
     arrivalHubsDesc: 'Aéroport, port & Marchica',
-    categoriesHubs: 'Catégories & Flotte',
+    categoriesHubs: 'Par type de véhicule',
     categoriesHubsDesc: 'Flotte disponible immédiatement',
-    viewAllCars: 'Voir tous les véhicules disponibles',
+    viewAllCars: 'Voir tous les véhicules',
     searchFleet: 'Explorer la flotte',
-    allAgenciesVerified: 'Agences 100% locales et certifiées',
+    allAgenciesVerified: 'Agences locales vérifiées par CarDrive avant leur mise en ligne',
     navigation: 'Navigation principale',
     closeMenu: 'Fermer le menu',
     openMenu: 'Ouvrir le menu de navigation',
     myAccount: 'Mon espace',
-    partnerFleetNotice: "Besoin d'un modèle spécifique ?",
-    partnerFleetDesc: 'Comparez 50+ véhicules auprès de nos agences certifiées à Nador.',
+    partnerFleetNotice: 'Pas encore fixé ?',
+    partnerFleetDesc: 'Comparez la flotte de toutes les agences partenaires de Nador.',
     needAssistance: 'Assistance client directe',
     whatsappHelp: 'Assistance WhatsApp CarDrive',
     badgeVerified: 'Partenaires vérifiés',
@@ -169,19 +169,19 @@ const STRINGS: Record<string, NavStrings> = {
     signingOut: 'جاري الخروج…',
     destinationsTitle: 'الوجهات ونقاط الاستلام',
     destinationsSubtitle: 'ابحث عن سيارة متوفرة حسب نقطة وصولك إلى الناظور',
-    arrivalHubs: 'نقاط الوصول الرئيسية',
+    arrivalHubs: 'أماكن الاستلام',
     arrivalHubsDesc: 'المطار، الميناء ووسط المدينة',
-    categoriesHubs: 'فئات السيارات',
+    categoriesHubs: 'حسب نوع السيارة',
     categoriesHubsDesc: 'أسطول جاهز للاستلام الفوري',
-    viewAllCars: 'عرض جميع السيارات المتوفرة',
+    viewAllCars: 'عرض جميع السيارات',
     searchFleet: 'تصفح الأسطول',
-    allAgenciesVerified: 'وكالات محلية 100% ومعتمدة',
+    allAgenciesVerified: 'وكالات محلية تتحقق منها CarDrive قبل نشرها',
     navigation: 'القائمة الرئيسية',
     closeMenu: 'إغلاق القائمة',
     openMenu: 'فتح قائمة التنقل',
     myAccount: 'حسابي',
-    partnerFleetNotice: 'تبحث عن طراز أو فئة معينة؟',
-    partnerFleetDesc: 'قارن أكثر من 50 سيارة متوفرة لدى وكالاتنا المعتمدة في الناظور.',
+    partnerFleetNotice: 'لم تحدد بعد؟',
+    partnerFleetDesc: 'قارن أساطيل جميع الوكالات الشريكة في الناظور.',
     needAssistance: 'مساعدة فورية',
     whatsappHelp: 'مساعدة واتساب كاردرايف',
     badgeVerified: 'وكالات معتمدة',
@@ -216,19 +216,19 @@ const STRINGS: Record<string, NavStrings> = {
     signingOut: 'Signing out…',
     destinationsTitle: 'Destinations & Pickup Points',
     destinationsSubtitle: 'Find an available vehicle based on your arrival point in Nador',
-    arrivalHubs: 'Major Arrival Hubs',
+    arrivalHubs: 'Pickup locations',
     arrivalHubsDesc: 'Airport, Port & Marchica',
-    categoriesHubs: 'Fleet Categories',
+    categoriesHubs: 'By vehicle type',
     categoriesHubsDesc: 'Immediately available vehicles',
-    viewAllCars: 'View all available vehicles',
+    viewAllCars: 'See all vehicles',
     searchFleet: 'Browse Fleet',
-    allAgenciesVerified: '100% verified local agencies',
+    allAgenciesVerified: 'Local agencies checked by CarDrive before going live',
     navigation: 'Main navigation',
     closeMenu: 'Close menu',
     openMenu: 'Open navigation menu',
     myAccount: 'My space',
-    partnerFleetNotice: 'Need a specific model?',
-    partnerFleetDesc: 'Compare 50+ vehicles across verified agencies in Nador.',
+    partnerFleetNotice: 'Not sure yet?',
+    partnerFleetDesc: 'Compare the fleets of every partner agency in Nador.',
     needAssistance: 'Direct customer support',
     whatsappHelp: 'CarDrive WhatsApp Support',
     badgeVerified: 'Verified Partners',
@@ -405,11 +405,6 @@ const DESTINATION_ITEMS: DestinationDef[] = [
       ar: 'مثالي لوصول البواخر ومغاربة العالم',
       en: 'Ideal for ferry arrivals and travelers',
     },
-    tag: {
-      fr: 'Ferry / MRE',
-      ar: 'بواخر / مغتربين',
-      en: 'Ferry / MRE',
-    },
   },
   {
     id: 'nador-center',
@@ -430,11 +425,6 @@ const DESTINATION_ITEMS: DestinationDef[] = [
       fr: 'Véhicules disponibles au cœur de la ville',
       ar: 'سيارات متوفرة في قلب المدينة والمحلات',
       en: 'Vehicles available in the city center',
-    },
-    tag: {
-      fr: 'Centre-ville',
-      ar: 'وسط المدينة',
-      en: 'City Center',
     },
   },
   {
@@ -457,11 +447,6 @@ const DESTINATION_ITEMS: DestinationDef[] = [
       ar: 'داستر، توسان وسيارات للطرق الوعرة',
       en: 'Duster, Tucson & crossover vehicles',
     },
-    tag: {
-      fr: 'Tout-terrain',
-      ar: 'طرق وعرة',
-      en: 'All-Terrain',
-    },
   },
   {
     id: 'auto',
@@ -482,11 +467,6 @@ const DESTINATION_ITEMS: DestinationDef[] = [
       fr: 'Conduite souple et confort optimal',
       ar: 'سياقة سلسة وراحة تامة في السياقة',
       en: 'Smooth driving and effortless comfort',
-    },
-    tag: {
-      fr: 'Confort',
-      ar: 'راحة',
-      en: 'Comfort',
     },
   },
 ];
@@ -740,7 +720,8 @@ export function Navbar() {
   };
 
   const handleDestinationsMenuKeyDown = (e: React.KeyboardEvent) => {
-    const total = DESTINATION_ITEMS.length;
+    // + la carte « toute la flotte », dernier élément focalisable du menu
+    const total = DESTINATION_ITEMS.length + 1;
     const currentIndex = destinationLinkRefs.current.findIndex(
       (el) => el === document.activeElement
     );
@@ -1064,46 +1045,22 @@ export function Navbar() {
                     aria-labelledby="destinations-menu-button"
                     onKeyDown={handleDestinationsMenuKeyDown}
                     className={cn(
-                      'absolute top-full z-50 mt-2.5 w-145 xl:w-155 overflow-hidden rounded-2xl border border-slate-200/90 bg-white p-4 shadow-[0_24px_64px_rgba(11,18,32,0.14),0_4px_16px_rgba(11,18,32,0.06)] backdrop-blur-xl animate-cd-dropdown',
+                      'absolute top-full z-50 mt-3 w-[min(680px,calc(100vw-2rem))] overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-[0_32px_80px_-24px_rgba(11,18,32,0.35),0_4px_16px_rgba(11,18,32,0.06)] animate-cd-dropdown',
                       isRTL ? 'right-0' : 'left-1/2 -translate-x-1/2'
                     )}
                   >
-                    {/* Header */}
-                    <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <Compass className="h-4 w-4 text-[#E63946]" aria-hidden="true" />
-                          <p className="text-xs font-bold uppercase tracking-wider text-[#0B1220]">
-                            {strings.destinationsTitle}
-                          </p>
-                        </div>
-                        <p className="mt-0.5 text-[11px] text-slate-500">
-                          {strings.destinationsSubtitle}
-                        </p>
-                      </div>
-
-                      <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600">
-                        <MapPin className="h-3 w-3 text-slate-500" aria-hidden="true" />
-                        <span>Nador</span>
-                      </span>
-                    </div>
-
-                    {/* Content Columns */}
-                    <div className="grid grid-cols-2 gap-3 pt-3">
-                      {/* Column 1: Transit Hubs */}
-                      <div className="space-y-1">
-                        <p className="px-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    <div className="grid grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
+                      {/* Colonne 1 : lieux de prise en charge */}
+                      <div className="p-5">
+                        <p className="flex items-center gap-2 px-2 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
+                          <MapPin className="h-3.5 w-3.5 text-[#E63946]" aria-hidden="true" />
                           {strings.arrivalHubs}
                         </p>
-
-                        {DESTINATION_ITEMS.filter((item) => item.section === 'arrival').map(
-                          (item, index) => {
+                        <div className="mt-2 space-y-0.5">
+                          {DESTINATION_ITEMS.filter((item) => item.section === 'arrival').map((item, index) => {
                             const Icon = item.icon;
                             const active = pathname === item.href;
-                            const title = getLocalized(item.title, locale);
-                            const desc = getLocalized(item.desc, locale);
                             const tag = item.tag ? getLocalized(item.tag, locale) : null;
-
                             return (
                               <Link
                                 key={item.href}
@@ -1112,172 +1069,129 @@ export function Navbar() {
                                 }}
                                 href={item.href}
                                 role="menuitem"
+                                aria-current={active ? 'page' : undefined}
                                 onClick={() => setDestinationsOpen(false)}
                                 className={cn(
-                                  'group flex items-start gap-3 rounded-xl p-2.5 transition-all duration-200 focus-visible:outline-2 focus-visible:outline-[#E63946]',
-                                  active
-                                    ? 'border border-slate-200 bg-slate-100/90'
-                                    : 'hover:bg-slate-50/90'
+                                  'group flex items-start gap-3 rounded-2xl p-2.5 outline-none transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-[#E63946]',
+                                  active ? 'bg-[#F5F6F8]' : 'hover:bg-[#F5F6F8]'
                                 )}
                               >
                                 <span
                                   className={cn(
-                                    'flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-colors duration-200',
+                                    'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-colors duration-200',
                                     active
-                                      ? 'bg-[#E63946] text-white shadow-xs'
-                                      : 'bg-slate-100 text-slate-600 group-hover:bg-[#E63946]/10 group-hover:text-[#E63946]'
+                                      ? 'bg-[#E63946] text-white'
+                                      : 'bg-[#F5F6F8] text-[#0B1220] group-hover:bg-[#0B1220] group-hover:text-white'
                                   )}
                                 >
-                                  <Icon className="h-4 w-4" aria-hidden="true" />
+                                  <Icon className="h-4.5 w-4.5" aria-hidden="true" />
                                 </span>
-
-                                <span className="min-w-0 flex-1">
-                                  <span className="flex items-center gap-1.5">
-                                    <span className="truncate text-xs font-bold text-slate-900 group-hover:text-[#0B1220]">
-                                      {title}
+                                <span className="min-w-0 flex-1 pt-0.5">
+                                  <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                                    <span className="text-[13px] font-bold leading-snug text-[#0B1220]">
+                                      {getLocalized(item.title, locale)}
                                     </span>
                                     {tag && (
-                                      <span className="shrink-0 rounded-full bg-[#E63946]/10 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-tight text-[#E63946]">
+                                      <span className="rounded-full bg-[#E63946]/10 px-2 py-0.5 text-[10px] font-bold text-[#C92F3B]">
                                         {tag}
                                       </span>
                                     )}
                                   </span>
-                                  <span className="mt-0.5 block line-clamp-1 text-[10px] text-slate-500">
-                                    {desc}
+                                  <span className="mt-0.5 block text-xs leading-relaxed text-slate-500">
+                                    {getLocalized(item.desc, locale)}
                                   </span>
                                 </span>
-
-                                <ArrowRight
-                                  className={cn(
-                                    'h-3.5 w-3.5 shrink-0 text-slate-300 opacity-0 transition-all duration-200 group-hover:opacity-100 group-hover:text-[#E63946]',
-                                    isRTL
-                                      ? 'rotate-180 group-hover:-translate-x-0.5'
-                                      : 'group-hover:translate-x-0.5'
-                                  )}
-                                  aria-hidden="true"
-                                />
                               </Link>
                             );
-                          }
-                        )}
+                          })}
+                        </div>
                       </div>
 
-                      {/* Column 2: Vehicle Categories & Quick Action Card */}
-                      <div className="space-y-1">
-                        <p className="px-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                      {/* Colonne 2 : types de véhicule + accès à toute la flotte */}
+                      <div className="flex flex-col border-s border-slate-100 bg-[#FAFAFB] p-5">
+                        <p className="flex items-center gap-2 px-2 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
+                          <CarFront className="h-3.5 w-3.5 text-[#E63946]" aria-hidden="true" />
                           {strings.categoriesHubs}
                         </p>
-
-                        {DESTINATION_ITEMS.filter((item) => item.section === 'category').map(
-                          (item, index) => {
-                            const globalIndex = 3 + index;
+                        <div className="mt-2 space-y-0.5">
+                          {DESTINATION_ITEMS.filter((item) => item.section === 'category').map((item, index) => {
                             const Icon = item.icon;
                             const active = pathname === item.href;
-                            const title = getLocalized(item.title, locale);
-                            const desc = getLocalized(item.desc, locale);
-                            const tag = item.tag ? getLocalized(item.tag, locale) : null;
-
                             return (
                               <Link
                                 key={item.href}
                                 ref={(el) => {
-                                  destinationLinkRefs.current[globalIndex] = el;
+                                  destinationLinkRefs.current[3 + index] = el;
                                 }}
                                 href={item.href}
                                 role="menuitem"
+                                aria-current={active ? 'page' : undefined}
                                 onClick={() => setDestinationsOpen(false)}
                                 className={cn(
-                                  'group flex items-start gap-3 rounded-xl p-2.5 transition-all duration-200 focus-visible:outline-2 focus-visible:outline-[#E63946]',
-                                  active
-                                    ? 'border border-slate-200 bg-slate-100/90'
-                                    : 'hover:bg-slate-50/90'
+                                  'group flex items-center gap-3 rounded-2xl p-2.5 outline-none transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-[#E63946]',
+                                  active ? 'bg-white shadow-sm' : 'hover:bg-white hover:shadow-sm'
                                 )}
                               >
                                 <span
                                   className={cn(
-                                    'flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-colors duration-200',
+                                    'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border transition-colors duration-200',
                                     active
-                                      ? 'bg-[#E63946] text-white shadow-xs'
-                                      : 'bg-slate-100 text-slate-600 group-hover:bg-[#E63946]/10 group-hover:text-[#E63946]'
+                                      ? 'border-[#E63946] bg-[#E63946] text-white'
+                                      : 'border-slate-200 bg-white text-[#0B1220] group-hover:border-[#0B1220] group-hover:bg-[#0B1220] group-hover:text-white'
                                   )}
                                 >
-                                  <Icon className="h-4 w-4" aria-hidden="true" />
+                                  <Icon className="h-4.5 w-4.5" aria-hidden="true" />
                                 </span>
-
                                 <span className="min-w-0 flex-1">
-                                  <span className="flex items-center gap-1.5">
-                                    <span className="truncate text-xs font-bold text-slate-900 group-hover:text-[#0B1220]">
-                                      {title}
-                                    </span>
-                                    {tag && (
-                                      <span className="shrink-0 rounded-full bg-slate-200 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-tight text-slate-700">
-                                        {tag}
-                                      </span>
-                                    )}
+                                  <span className="block text-[13px] font-bold leading-snug text-[#0B1220]">
+                                    {getLocalized(item.title, locale)}
                                   </span>
-                                  <span className="mt-0.5 block line-clamp-1 text-[10px] text-slate-500">
-                                    {desc}
+                                  <span className="mt-0.5 block text-xs leading-relaxed text-slate-500">
+                                    {getLocalized(item.desc, locale)}
                                   </span>
                                 </span>
-
                                 <ArrowRight
-                                  className={cn(
-                                    'h-3.5 w-3.5 shrink-0 text-slate-300 opacity-0 transition-all duration-200 group-hover:opacity-100 group-hover:text-[#E63946]',
-                                    isRTL
-                                      ? 'rotate-180 group-hover:-translate-x-0.5'
-                                      : 'group-hover:translate-x-0.5'
-                                  )}
+                                  className="h-4 w-4 shrink-0 text-slate-300 transition-[color,transform] duration-200 group-hover:translate-x-0.5 group-hover:text-[#E63946] rtl:rotate-180 rtl:group-hover:-translate-x-0.5 motion-reduce:transition-none"
                                   aria-hidden="true"
                                 />
                               </Link>
                             );
-                          }
-                        )}
+                          })}
+                        </div>
 
-                        {/* Quick Fleet Search Mini-Card */}
-                        <div className="rounded-xl border border-slate-200/80 bg-linear-to-br from-slate-50 to-slate-100/80 p-3">
-                          <p className="text-[11px] font-bold text-[#0B1220]">
-                            {strings.partnerFleetNotice}
-                          </p>
-                          <p className="mt-0.5 text-[10px] text-slate-500">
+                        {/* Carte « toute la flotte » */}
+                        <Link
+                          href="/search"
+                          role="menuitem"
+                          ref={(el) => {
+                            destinationLinkRefs.current[5] = el;
+                          }}
+                          onClick={() => setDestinationsOpen(false)}
+                          className="group relative mt-auto block overflow-hidden rounded-2xl bg-[#0B1220] p-4 text-white outline-none focus-visible:ring-2 focus-visible:ring-[#E63946] focus-visible:ring-offset-2"
+                        >
+                          <span
+                            aria-hidden="true"
+                            className="pointer-events-none absolute -end-8 -top-10 h-28 w-28 rounded-full bg-[#E63946]/25 blur-2xl"
+                          />
+                          <span className="relative block text-[13px] font-bold">{strings.partnerFleetNotice}</span>
+                          <span className="relative mt-1 block text-xs leading-relaxed text-slate-400">
                             {strings.partnerFleetDesc}
-                          </p>
-                          <Link
-                            href="/search"
-                            onClick={() => setDestinationsOpen(false)}
-                            className="mt-2 inline-flex items-center gap-1.5 text-[11px] font-bold text-[#E63946] transition-colors hover:text-[#C92F3B]"
-                          >
-                            <span>{strings.searchFleet}</span>
+                          </span>
+                          <span className="relative mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-white">
+                            {strings.viewAllCars}
                             <ArrowRight
-                              className={cn('h-3 w-3', isRTL && 'rotate-180')}
+                              className="h-3.5 w-3.5 text-[#E63946] transition-transform group-hover:translate-x-0.5 rtl:rotate-180 rtl:group-hover:-translate-x-0.5 motion-reduce:transition-none"
                               aria-hidden="true"
                             />
-                          </Link>
-                        </div>
+                          </span>
+                        </Link>
                       </div>
                     </div>
 
-                    {/* Footer */}
-                    <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-3 text-[11px]">
-                      <span className="flex items-center gap-1.5 text-slate-500">
-                        <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" aria-hidden="true" />
-                        <span>{strings.allAgenciesVerified}</span>
-                      </span>
-
-                      <Link
-                        href="/search"
-                        onClick={() => setDestinationsOpen(false)}
-                        className="group flex items-center gap-1 font-bold text-[#E63946] transition-colors hover:text-[#C92F3B]"
-                      >
-                        <span>{strings.viewAllCars}</span>
-                        <ArrowRight
-                          className={cn(
-                            'h-3 w-3 transition-transform',
-                            isRTL ? 'rotate-180 group-hover:-translate-x-0.5' : 'group-hover:translate-x-0.5'
-                          )}
-                          aria-hidden="true"
-                        />
-                      </Link>
+                    {/* Pied : réassurance factuelle */}
+                    <div className="flex items-center gap-2 border-t border-slate-100 px-7 py-3 text-xs text-slate-500">
+                      <ShieldCheck className="h-4 w-4 text-emerald-600" aria-hidden="true" />
+                      {strings.allAgenciesVerified}
                     </div>
                   </div>
                 )}

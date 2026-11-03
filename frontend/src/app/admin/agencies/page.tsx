@@ -4,10 +4,17 @@ import { AdminAgenciesClient } from '@/components/admin/agencies/AdminAgenciesCl
 
 export const metadata: Metadata = { title: 'Agences' };
 
-export default function AdminAgenciesPage() {
+export default async function AdminAgenciesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ filter?: string | string[] }>;
+}) {
+  const { filter } = await searchParams;
+  const initialStatus = typeof filter === 'string' ? filter.toUpperCase() : undefined;
+
   return (
     <AdminShell title="Agences partenaires" subtitle="Gérez les agences de la marketplace CarDrive">
-      <AdminAgenciesClient />
+      <AdminAgenciesClient initialStatus={initialStatus} />
     </AdminShell>
   );
 }

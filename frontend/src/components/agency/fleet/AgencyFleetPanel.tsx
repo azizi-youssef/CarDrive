@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { ConfirmDialog } from '@/components/agency/shell/Dialog';
 import Image from 'next/image';
 import {
   Car,
@@ -58,11 +59,16 @@ export function AgencyFleetPanel({
   agencyId,
   canManage,
   onOpenCalendar,
+  onNotify,
 }: {
   agencyId: string;
   canManage: boolean;
   onOpenCalendar?: (vehicleId?: string) => void;
+  /** Retour utilisateur (bandeau de notification du portail) */
+  onNotify?: (kind: 'success' | 'error', message: string) => void;
 }) {
+  const [pendingDelete, setPendingDelete] = useState<VehicleRow | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const [vehicles, setVehicles] = useState<VehicleRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -133,8 +139,8 @@ export function AgencyFleetPanel({
         throw new Error(data.error || 'Échec du téléversement de la photo');
       }
       await loadVehicles();
-    } catch (err: any) {
-      alert(err.message || 'Erreur lors du téléversement de la photo.');
+    } catch (err: unknown) {
+      onNotify?.('error', err instanceof Error && err.message ? err.message : 'Erreur lors du téléversement de la photo.');
     } finally {
       setUploadingVehicleId(null);
     }
@@ -182,30 +188,33 @@ export function AgencyFleetPanel({
         body: JSON.stringify({ published: !vehicle.published }),
       });
       if (!res.ok) throw new Error('Échec de la mise à jour');
+      onNotify?.('success', vehicle.published ? 'Véhicule retiré du catalogue.' : 'Véhicule publié dans le catalogue.');
       void loadVehicles();
-    } catch (err: any) {
-      alert(err.message || 'Erreur lors de la mise à jour de la publication');
+    } catch (err: unknown) {
+      onNotify?.('error', err instanceof Error && err.message ? err.message : 'Erreur lors de la mise à jour de la publication.');
     }
   };
 
-  const deleteVehicle = async (vehicle: VehicleRow) => {
+  const deleteVehicle = async (vehicle: VehicleRow, confirmed = false) => {
     if (!canManage) return;
-    if (
-      !confirm(
-        `Êtes-vous sûr de vouloir supprimer ou archiver le véhicule ${vehicle.brand} ${vehicle.model} ?`
-      )
-    ) {
+    if (!confirmed) {
+      setPendingDelete(vehicle);
       return;
     }
+    setDeleting(true);
     try {
       const res = await fetch(`/api/agencies/${agencyId}/vehicles/${vehicle.id}`, {
         method: 'DELETE',
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Échec de la suppression');
+      onNotify?.('success', `${vehicle.brand} ${vehicle.model} supprimé ou archivé.`);
       void loadVehicles();
-    } catch (err: any) {
-      alert(err.message || 'Erreur lors de la suppression');
+    } catch (err: unknown) {
+      onNotify?.('error', err instanceof Error && err.message ? err.message : 'Erreur lors de la suppression.');
+    } finally {
+      setDeleting(false);
+      setPendingDelete(null);
     }
   };
 
@@ -243,7 +252,6 @@ export function AgencyFleetPanel({
       {/* Top Banner & Action */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[#0B1220]">Flotte de véhicules</h1>
           <p className="text-sm text-slate-500">
             {totalCount} véhicule{totalCount > 1 ? 's' : ''} enregistré{totalCount > 1 ? 's' : ''} au
             catalogue de votre agence.
@@ -725,6 +733,17 @@ export function AgencyFleetPanel({
             </form>
           </div>
         </div>
+      )}
+      {pendingDelete && (
+        <ConfirmDialog
+          title="Supprimer ce véhicule ?"
+          message={`${pendingDelete.brand} ${pendingDelete.model} sera supprimé, ou archivé s’il a déjà des réservations. Il ne sera plus proposé aux clients.`}
+          confirmLabel="Supprimer"
+          destructive
+          busy={deleting}
+          onConfirm={() => void deleteVehicle(pendingDelete, true)}
+          onCancel={() => setPendingDelete(null)}
+        />
       )}
     </div>
   );

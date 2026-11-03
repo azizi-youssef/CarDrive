@@ -130,7 +130,6 @@ export function AgencyFinancesPanel({ agencyId }: { agencyId: string }) {
       {/* Title & Action */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[#0B1220]">Revenus Locatifs & Abonnement</h1>
           <p className="text-sm text-slate-500">
             Modèle par abonnement mensuel : <strong>0% de commission CarDrive</strong>. Vous conservez 100% de vos montants de location.
           </p>

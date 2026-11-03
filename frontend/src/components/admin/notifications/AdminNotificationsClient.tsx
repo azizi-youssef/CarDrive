@@ -146,7 +146,7 @@ export function AdminNotificationsClient() {
   useRealtimeRefresh({
     tables: ['bookings'],
     onRefresh: () => loadData(false),
-    pollingIntervalMs: 15_000,
+    pollingIntervalMs: 60_000, // Realtime pousse les changements ; le polling ne sert que de filet de sécurité
   });
 
   const handleSendBroadcast = async (e: React.FormEvent) => {
@@ -253,34 +253,38 @@ export function AdminNotificationsClient() {
   return (
     <div className="space-y-6">
       {/* KPIs Notifications */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <KpiCard
+          loading={loading && !data}
           label="Messages traités"
           value={data?.kpis.totalSent ?? 0}
           sub="Entrants & Sortants"
           icon={MessageSquare}
-          iconColor="text-blue-600"
+          tone="info"
         />
         <KpiCard
+          loading={loading && !data}
           label="Livrées & Validées"
           value={data?.kpis.deliveredCount ?? 0}
           sub="Statut confirmé"
           icon={CheckCircle2}
-          iconColor="text-emerald-600"
+          tone="success"
         />
         <KpiCard
+          loading={loading && !data}
           label="Échecs d'envoi"
           value={data?.kpis.failedCount ?? 0}
           sub="Numéros invalides"
           icon={AlertCircle}
-          iconColor="text-red-600"
+          tone="danger"
         />
         <KpiCard
+          loading={loading && !data}
           label="API WhatsApp Business"
           value={data?.isWhatsAppConfigured ? 'Connecté' : 'Mode Simulé'}
-          sub={data?.isWhatsAppConfigured ? 'Meta Cloud API v21.0' : 'Fallback local actif'}
+          sub={data?.isWhatsAppConfigured ? 'API Meta Cloud connectée' : 'Messages simulés en local'}
           icon={Smartphone}
-          iconColor={data?.isWhatsAppConfigured ? 'text-emerald-600' : 'text-amber-600'}
+          tone={data?.isWhatsAppConfigured ? 'success' : 'warning'}
         />
       </div>
 

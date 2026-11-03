@@ -2,9 +2,13 @@
  * Logos des constructeurs (tracés SVG 24×24).
  * Source : Simple Icons v16.36.0 (https://simpleicons.org) — fichiers sous licence CC0-1.0.
  * Les logos restent des marques déposées de leurs propriétaires : usage limité à identifier les marques proposées.
- * Mercedes-Benz et Land Rover ne sont pas disponibles dans Simple Icons (retirés à la demande des marques).
+ * Mercedes-Benz et Land Rover ne sont pas disponibles dans Simple Icons (retirés à la demande des marques) :
+ * emblème Mercedes redessiné (étoile à trois branches dans un cercle) ; Land Rover rendu en ovale typographique
+ * par BrandMarquee.
  */
 export const BRAND_LOGO_PATHS: Record<string, string> = {
+  "Mercedes-Benz":
+    "M12 1a11 11 0 1 0 0 22 11 11 0 1 0 0-22Zm0 1.3a9.7 9.7 0 1 1 0 19.4 9.7 9.7 0 1 1 0-19.4Zm0 0 1.15 9.04 7.25 5.51L12 13.35l-8.4 3.5 7.25-5.51Z",
   "Dacia":
     "M0 8.646v2.23h8.252v2.248H0v2.23h9.112a.62.62 0 00.489-.201L12 12.819l2.399 2.334a.62.62 0 00.49.201H24v-2.23h-8.252v-2.248H24v-2.23h-9.112a.62.62 0 00-.489.201L12 11.181 9.601 8.847a.62.62 0 00-.49-.201Z",
   "Renault":

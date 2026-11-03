@@ -1,25 +1,22 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import {
-  CalendarClock,
-  Car,
-  ClipboardList,
-  Clock,
-  Clock3,
-  PlusCircle,
-  Settings,
-  CheckCircle2,
   AlertTriangle,
-  Wrench,
-  TrendingUp,
-  ArrowUpRight,
+  ArrowRight,
+  CalendarClock,
   CalendarCheck,
   CalendarX,
+  Car,
+  CheckCircle2,
   ChevronRight,
-  Zap,
+  CircleDollarSign,
+  ClipboardList,
+  Clock3,
+  PlusCircle,
+  Sparkles,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, formatNumber } from '@/lib/utils';
 import { CardSkeleton, EmptyState, ErrorBanner, KpiSkeleton } from '@/components/agency/shell/Feedback';
 
 /* ─────────────────────────────────────────────────────────────────────────
@@ -61,6 +58,13 @@ export type AgendaResource =
    HELPERS
 ───────────────────────────────────────────────────────────────────────── */
 
+function formatShortDate(value?: string): string {
+  if (!value) return '—';
+  const [y, m, d] = value.slice(0, 10).split('-').map(Number);
+  if (!y || !m || !d) return value;
+  return new Date(y, m - 1, d).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
+}
+
 function Panel({
   title,
   subtitle,
@@ -75,11 +79,11 @@ function Panel({
   className?: string;
 }) {
   return (
-    <section className={cn('overflow-hidden rounded-2xl border border-slate-200 bg-white', className)}>
-      <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
-        <div>
-          <h3 className="text-sm font-bold text-[#0F172A]">{title}</h3>
-          {subtitle && <p className="mt-0.5 text-xs text-[#64748B]">{subtitle}</p>}
+    <section className={cn('flex flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(11,18,32,0.04)]', className)}>
+      <div className="flex items-center justify-between gap-3 px-5 pb-3 pt-4">
+        <div className="min-w-0">
+          <h3 className="text-[15px] font-extrabold text-[#0B1220]">{title}</h3>
+          {subtitle && <p className="mt-0.5 text-xs text-slate-500">{subtitle}</p>}
         </div>
         {action}
       </div>
@@ -88,26 +92,33 @@ function Panel({
   );
 }
 
+function PanelLink({ onClick, children }: { onClick: () => void; children: ReactNode }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="inline-flex min-h-9 shrink-0 items-center gap-1 rounded-lg px-2 text-xs font-bold text-[#E63946] transition-colors hover:bg-[#FFF4F5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E63946]"
+    >
+      {children}
+      <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
+    </button>
+  );
+}
+
 function KpiCard({
   label,
   value,
   hint,
   icon: Icon,
-  iconBg,
-  iconColor,
-  loading,
+  urgent,
   onClick,
-  accent,
 }: {
   label: string;
   value: string | number;
   hint?: string;
   icon: typeof Car;
-  iconBg: string;
-  iconColor: string;
-  loading?: boolean;
+  urgent?: boolean;
   onClick?: () => void;
-  accent?: boolean;
 }) {
   const Tag = onClick ? 'button' : 'article';
   return (
@@ -115,124 +126,79 @@ function KpiCard({
       type={onClick ? 'button' : undefined}
       onClick={onClick}
       className={cn(
-        'group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 text-left transition-all',
-        onClick && 'cursor-pointer hover:border-slate-300 hover:shadow-sm active:scale-[0.99]',
-        accent && 'border-[#E63946]/20 bg-linear-to-br from-[#E63946]/5 via-white to-white'
+        'group relative flex flex-col overflow-hidden rounded-2xl border bg-white p-4 text-left shadow-[0_1px_2px_rgba(11,18,32,0.04)] transition-[border-color,box-shadow] sm:p-5',
+        urgent ? 'border-[#E63946]/30' : 'border-slate-200/80',
+        onClick && 'cursor-pointer hover:border-slate-300 hover:shadow-[0_12px_28px_-18px_rgba(11,18,32,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E63946]'
       )}
     >
-      {/* Subtle accent line */}
-      {accent && (
+      {urgent && <span aria-hidden="true" className="absolute inset-x-0 top-0 h-1 bg-[#E63946]" />}
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-xs font-bold uppercase tracking-[0.08em] text-slate-500">{label}</span>
         <span
           aria-hidden="true"
-          className="absolute left-0 top-0 h-full w-1 rounded-l-2xl bg-[#E63946]"
-        />
-      )}
-      <div className="flex items-start justify-between gap-3">
-        <span
-          aria-hidden="true"
-          className={cn('flex h-9 w-9 shrink-0 items-center justify-center rounded-xl', iconBg, iconColor)}
+          className={cn(
+            'flex h-9 w-9 shrink-0 items-center justify-center rounded-xl',
+            urgent ? 'bg-[#E63946] text-white' : 'bg-[#F5F6F8] text-[#0B1220]'
+          )}
         >
           <Icon className="h-4.5 w-4.5" />
         </span>
-        {onClick && (
-          <ChevronRight
-            className="h-4 w-4 shrink-0 text-slate-300 transition group-hover:text-slate-500"
-            aria-hidden="true"
-          />
-        )}
       </div>
-      {loading ? (
-        <div className="mt-3 space-y-2">
-          <div className="h-8 w-20 animate-pulse rounded-lg bg-slate-100" />
-          <div className="h-3 w-28 animate-pulse rounded bg-slate-100" />
-        </div>
-      ) : (
-        <>
-          <p className="mt-3 text-2xl font-extrabold tabular-nums tracking-tight text-[#0F172A] sm:text-3xl">
-            {value}
-          </p>
-          {hint && <p className="mt-1 text-xs text-[#64748B]">{hint}</p>}
-        </>
+      <p className={cn('mt-3 text-[28px] font-extrabold leading-none tracking-tight tabular-nums sm:text-[32px]', urgent ? 'text-[#E63946]' : 'text-[#0B1220]')}>
+        {value}
+      </p>
+      {hint && <p className="mt-2 text-xs text-slate-500">{hint}</p>}
+      {onClick && (
+        <ChevronRight
+          className="absolute bottom-4 end-4 h-4 w-4 text-slate-300 transition-colors group-hover:text-slate-500"
+          aria-hidden="true"
+        />
       )}
     </Tag>
   );
 }
 
-function StatusBar({
-  label,
-  value,
-  total,
-  color,
-  textColor,
-}: {
-  label: string;
-  value: number;
-  total: number;
-  color: string;
-  textColor: string;
-}) {
-  const pct = total > 0 ? Math.round((value / total) * 100) : 0;
+/** Anneau d'occupation (part des véhicules en location) */
+function OccupancyRing({ rate }: { rate: number }) {
+  const clamped = Math.max(0, Math.min(100, rate));
+  const radius = 42;
+  const circumference = 2 * Math.PI * radius;
   return (
-    <div className="space-y-1.5">
-      <div className="flex items-center justify-between text-xs">
-        <span className="font-medium text-[#334155]">{label}</span>
-        <span className={cn('font-bold tabular-nums', textColor)}>
-          {value} <span className="font-normal text-slate-400">({pct}%)</span>
-        </span>
-      </div>
-      <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
-        <div
-          className={cn('h-full rounded-full transition-all duration-700', color)}
-          style={{ width: `${pct}%` }}
+    <div className="relative h-28 w-28 shrink-0" role="img" aria-label={`Taux d’occupation : ${clamped} %`}>
+      <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90" aria-hidden="true">
+        <circle cx="50" cy="50" r={radius} fill="none" stroke="#EEF0F3" strokeWidth="10" />
+        <circle
+          cx="50"
+          cy="50"
+          r={radius}
+          fill="none"
+          stroke="#E63946"
+          strokeWidth="10"
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={circumference * (1 - clamped / 100)}
+          className="transition-[stroke-dashoffset] duration-700 motion-reduce:transition-none"
         />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className="text-2xl font-extrabold tabular-nums text-[#0B1220]">{clamped}%</span>
+        <span className="text-[11px] font-semibold text-slate-500">occupation</span>
       </div>
     </div>
   );
 }
 
-function AgendaRow({
-  primary,
-  secondary,
-  meta,
-  icon: Icon,
-  iconBg,
-  iconColor,
-}: {
-  primary: string;
-  secondary: string;
-  meta: string;
-  icon: typeof CalendarClock;
-  iconBg: string;
-  iconColor: string;
-}) {
-  return (
-    <li className="flex items-center gap-3 px-5 py-3.5">
-      <span
-        aria-hidden="true"
-        className={cn('flex h-9 w-9 shrink-0 items-center justify-center rounded-xl', iconBg, iconColor)}
-      >
-        <Icon className="h-4 w-4" />
-      </span>
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-semibold text-[#0F172A]">{primary}</p>
-        <p className="truncate text-xs text-[#64748B]">{secondary}</p>
-      </div>
-      <span className="shrink-0 rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-semibold tabular-nums text-[#0F172A]">
-        {meta}
-      </span>
-    </li>
-  );
-}
-
 const BOOKING_STATUS_LABELS: Record<string, { label: string; cls: string }> = {
-  PENDING: { label: 'En attente', cls: 'bg-amber-100 text-amber-800' },
-  REQUESTED: { label: 'Demandée', cls: 'bg-amber-100 text-amber-800' },
-  CONFIRMED: { label: 'Confirmée', cls: 'bg-emerald-100 text-emerald-800' },
-  APPROVED: { label: 'Approuvée', cls: 'bg-emerald-100 text-emerald-800' },
-  ACTIVE: { label: 'En cours', cls: 'bg-blue-100 text-blue-800' },
-  COMPLETED: { label: 'Terminée', cls: 'bg-slate-100 text-slate-600' },
-  CANCELLED: { label: 'Annulée', cls: 'bg-red-100 text-red-700' },
-  REJECTED: { label: 'Refusée', cls: 'bg-red-100 text-red-700' },
+  PENDING: { label: 'En attente', cls: 'bg-amber-50 text-amber-800 ring-amber-200' },
+  REQUESTED: { label: 'Demandée', cls: 'bg-amber-50 text-amber-800 ring-amber-200' },
+  UNDER_REVIEW: { label: 'En examen', cls: 'bg-amber-50 text-amber-800 ring-amber-200' },
+  SENT_TO_AGENCY: { label: 'À traiter', cls: 'bg-[#FFF4F5] text-[#B4232F] ring-[#F8C9CD]' },
+  CONFIRMED: { label: 'Confirmée', cls: 'bg-emerald-50 text-emerald-800 ring-emerald-200' },
+  APPROVED: { label: 'Approuvée', cls: 'bg-emerald-50 text-emerald-800 ring-emerald-200' },
+  ACTIVE: { label: 'En cours', cls: 'bg-[#0B1220] text-white ring-[#0B1220]' },
+  COMPLETED: { label: 'Terminée', cls: 'bg-slate-100 text-slate-600 ring-slate-200' },
+  CANCELLED: { label: 'Annulée', cls: 'bg-slate-100 text-slate-500 ring-slate-200' },
+  REJECTED: { label: 'Refusée', cls: 'bg-slate-100 text-slate-500 ring-slate-200' },
 };
 
 /* ─────────────────────────────────────────────────────────────────────────
@@ -246,6 +212,7 @@ export function OverviewPanel({
   onOpenFleet,
   onOpenCalendar,
   onOpenSubscription,
+  onAddVehicle,
 }: {
   stats: OverviewResource;
   agenda: AgendaResource;
@@ -254,30 +221,27 @@ export function OverviewPanel({
   onOpenFleet: () => void;
   onOpenCalendar: () => void;
   onOpenSubscription: () => void;
+  /** Ouvre directement le formulaire d'ajout de véhicule (sinon : la flotte) */
+  onAddVehicle?: () => void;
 }) {
-  /* ── Loading skeleton ── */
+  const [agendaTab, setAgendaTab] = useState<'pickups' | 'returns'>('pickups');
+
+  /* ── Chargement ── */
   if (stats.loading) {
     return (
-      <div className="space-y-6">
-        {/* KPI row skeleton */}
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="space-y-6" role="status" aria-label="Chargement du tableau de bord">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
           {Array.from({ length: 4 }, (_, i) => <KpiSkeleton key={i} />)}
         </div>
-        {/* Fleet + Bookings row skeleton */}
-        <div className="grid gap-6 xl:grid-cols-2">
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
           <CardSkeleton rows={4} tall />
           <CardSkeleton rows={4} tall />
-        </div>
-        {/* Agenda skeleton */}
-        <div className="grid gap-6 xl:grid-cols-2">
-          <CardSkeleton rows={3} />
-          <CardSkeleton rows={3} />
         </div>
       </div>
     );
   }
 
-  /* ── Error state ── */
+  /* ── Erreur ── */
   if (stats.error || !stats.data) {
     return <ErrorBanner message={stats.error ?? "Vue d'ensemble indisponible."} onRetry={onRetry} />;
   }
@@ -286,16 +250,16 @@ export function OverviewPanel({
   const pickups = agenda.data?.upcomingPickups ?? [];
   const returns = agenda.data?.upcomingReturns ?? [];
   const recentActivity = agenda.data?.recentActivity ?? [];
-
   const totalBookings = d.pendingBookings + d.confirmedBookings + d.completedBookings + d.cancelledBookings;
 
-  /* Priority alerts */
-  const alerts: { id: string; label: string; tone: 'urgent' | 'warn'; action: () => void }[] = [];
+  /* Alertes prioritaires */
+  const alerts: { id: string; label: string; tone: 'urgent' | 'warn'; cta: string; action: () => void }[] = [];
   if (d.pendingBookings > 0) {
     alerts.push({
       id: 'pending',
       tone: 'urgent',
       label: `${d.pendingBookings} demande${d.pendingBookings > 1 ? 's' : ''} de réservation attend${d.pendingBookings > 1 ? 'ent' : ''} votre réponse`,
+      cta: 'Répondre',
       action: onOpenBookings,
     });
   }
@@ -304,6 +268,7 @@ export function OverviewPanel({
       id: 'no-stock',
       tone: 'warn',
       label: 'Aucun véhicule disponible à la location — vérifiez le calendrier',
+      cta: 'Calendrier',
       action: onOpenCalendar,
     });
   }
@@ -312,51 +277,69 @@ export function OverviewPanel({
       id: 'maintenance',
       tone: 'warn',
       label: `${d.maintenanceVehicles} véhicule${d.maintenanceVehicles > 1 ? 's' : ''} en maintenance`,
+      cta: 'Voir la flotte',
       action: onOpenFleet,
     });
   }
 
-  /* Quick actions */
+  const fleetRows = [
+    { label: 'Disponibles', value: d.availableVehicles, color: 'bg-emerald-500' },
+    { label: 'En location', value: d.rentedVehicles, color: 'bg-[#E63946]' },
+    { label: 'Réservés / bloqués', value: d.reservedVehicles, color: 'bg-amber-400' },
+    { label: 'En maintenance', value: d.maintenanceVehicles, color: 'bg-slate-400' },
+  ];
+
+  const bookingSplit = [
+    { label: 'En attente', value: d.pendingBookings, color: 'bg-amber-400' },
+    { label: 'Confirmées', value: d.confirmedBookings, color: 'bg-emerald-500' },
+    { label: 'Terminées', value: d.completedBookings, color: 'bg-[#0B1220]' },
+    { label: 'Annulées', value: d.cancelledBookings, color: 'bg-slate-300' },
+  ];
+
   const actions = [
-    { label: 'Ajouter un véhicule', desc: 'Actualiser la flotte', icon: PlusCircle, onClick: onOpenFleet },
+    { label: 'Ajouter un véhicule', desc: 'Enrichir votre flotte', icon: PlusCircle, onClick: onAddVehicle ?? onOpenFleet },
     { label: 'Gérer les disponibilités', desc: 'Bloquer ou ouvrir des dates', icon: CalendarClock, onClick: onOpenCalendar },
     { label: 'Traiter les réservations', desc: 'Demandes reçues', icon: ClipboardList, onClick: onOpenBookings },
-    { label: 'Mon abonnement', desc: 'Consulter ou changer de formule', icon: Settings, onClick: onOpenSubscription },
-  ] as const;
+    { label: 'Mon forfait', desc: 'Capacité et formule', icon: Sparkles, onClick: onOpenSubscription },
+  ];
+
+  const agendaItems = agendaTab === 'pickups' ? pickups : returns;
 
   return (
     <div className="space-y-6">
-
-      {/* ── Priority Alerts ── */}
+      {/* ── Alertes prioritaires ── */}
       {alerts.length > 0 && (
-        <ul className="space-y-2">
+        <ul className="space-y-2" aria-label="Actions prioritaires">
           {alerts.map((alert) => (
             <li key={alert.id}>
               <button
                 type="button"
                 onClick={alert.action}
                 className={cn(
-                  'group flex w-full items-center gap-3 rounded-2xl border px-4 py-3 text-left transition-all hover:shadow-sm',
-                  alert.tone === 'urgent'
-                    ? 'border-[#E63946]/30 bg-[#E63946]/5 text-[#7f1d1d]'
-                    : 'border-amber-200 bg-amber-50 text-amber-950'
+                  'group flex min-h-13 w-full items-center gap-3 rounded-2xl border px-4 py-3 text-left transition-shadow hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E63946]',
+                  alert.tone === 'urgent' ? 'border-[#F8C9CD] bg-[#FFF4F5]' : 'border-amber-200 bg-amber-50'
                 )}
               >
-                <AlertTriangle
+                <span
                   aria-hidden="true"
                   className={cn(
-                    'h-4 w-4 shrink-0',
-                    alert.tone === 'urgent' ? 'text-[#E63946]' : 'text-amber-600'
-                  )}
-                />
-                <span className="min-w-0 flex-1 text-sm font-medium">{alert.label}</span>
-                <span
-                  className={cn(
-                    'shrink-0 text-xs font-bold',
-                    alert.tone === 'urgent' ? 'text-[#E63946]' : 'text-amber-700'
+                    'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg',
+                    alert.tone === 'urgent' ? 'bg-[#E63946] text-white' : 'bg-amber-100 text-amber-700'
                   )}
                 >
-                  Traiter →
+                  <AlertTriangle className="h-4 w-4" />
+                </span>
+                <span className={cn('min-w-0 flex-1 text-sm font-semibold', alert.tone === 'urgent' ? 'text-[#7F1D1D]' : 'text-amber-950')}>
+                  {alert.label}
+                </span>
+                <span
+                  className={cn(
+                    'hidden shrink-0 items-center gap-1 text-xs font-bold sm:inline-flex',
+                    alert.tone === 'urgent' ? 'text-[#E63946]' : 'text-amber-800'
+                  )}
+                >
+                  {alert.cta}
+                  <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
                 </span>
               </button>
             </li>
@@ -364,307 +347,226 @@ export function OverviewPanel({
         </ul>
       )}
 
-      {/* ── KPI Cards row ── */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      {/* ── Indicateurs clés ── */}
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <KpiCard
-          label="Demandes en attente"
+          label="À traiter"
           value={d.pendingBookings}
-          hint="À traiter en priorité"
+          hint={d.pendingBookings > 0 ? 'Demandes en attente de réponse' : 'Aucune demande en attente'}
           icon={Clock3}
-          iconBg={d.pendingBookings > 0 ? 'bg-[#E63946]/10' : 'bg-slate-100'}
-          iconColor={d.pendingBookings > 0 ? 'text-[#E63946]' : 'text-slate-500'}
-          accent={d.pendingBookings > 0}
+          urgent={d.pendingBookings > 0}
           onClick={onOpenBookings}
         />
         <KpiCard
-          label="Véhicules disponibles"
-          value={`${d.availableVehicles} / ${d.totalVehicles}`}
-          hint={`Taux d'occupation : ${d.occupancyRate}%`}
+          label="Disponibles"
+          value={`${d.availableVehicles}/${d.totalVehicles}`}
+          hint="Véhicules prêts à louer"
           icon={Car}
-          iconBg="bg-emerald-50"
-          iconColor="text-emerald-600"
           onClick={onOpenFleet}
         />
         <KpiCard
-          label="Confirmées / En cours"
+          label="Confirmées"
           value={d.confirmedBookings}
-          hint="Réservations actives"
+          hint="Réservations confirmées ou en cours"
           icon={CheckCircle2}
-          iconBg="bg-blue-50"
-          iconColor="text-blue-600"
           onClick={onOpenBookings}
         />
         <KpiCard
-          label="Réservations terminées"
-          value={d.completedBookings}
-          hint="Depuis le début de la période"
-          icon={TrendingUp}
-          iconBg="bg-violet-50"
-          iconColor="text-violet-600"
+          label="Revenus"
+          value={`${formatNumber(d.agencyNet)} MAD`}
+          hint="Montant agence sur la période"
+          icon={CircleDollarSign}
         />
       </div>
 
-      {/* ── Fleet status + Booking cycle ── */}
-      <div className="grid gap-6 xl:grid-cols-2">
-
-        {/* Fleet status panel */}
-        <Panel title="État de la flotte" subtitle={`${d.totalVehicles} véhicule${d.totalVehicles !== 1 ? 's' : ''} au total`}>
-          <div className="px-5 py-5 space-y-4">
-            <StatusBar label="Disponibles" value={d.availableVehicles} total={d.totalVehicles} color="bg-emerald-500" textColor="text-emerald-600" />
-            <StatusBar label="Loués / En location" value={d.rentedVehicles} total={d.totalVehicles} color="bg-[#E63946]" textColor="text-[#E63946]" />
-            <StatusBar label="Réservés / Bloqués" value={d.reservedVehicles} total={d.totalVehicles} color="bg-amber-500" textColor="text-amber-600" />
-            <StatusBar label="En maintenance" value={d.maintenanceVehicles} total={d.totalVehicles} color="bg-slate-400" textColor="text-slate-500" />
+      {/* ── Agenda + État de la flotte ── */}
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+        <Panel
+          title="Agenda"
+          subtitle="Prochains départs et retours confirmés"
+          action={<PanelLink onClick={onOpenCalendar}>Calendrier</PanelLink>}
+        >
+          <div className="px-5">
+            <div role="tablist" aria-label="Type d’événement" className="grid grid-cols-2 gap-1 rounded-xl bg-[#F5F6F8] p-1">
+              {([
+                { id: 'pickups', label: 'Départs', count: pickups.length },
+                { id: 'returns', label: 'Retours', count: returns.length },
+              ] as const).map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={agendaTab === tab.id}
+                  onClick={() => setAgendaTab(tab.id)}
+                  className={cn(
+                    'flex min-h-9 items-center justify-center gap-2 rounded-lg text-sm font-bold transition-colors',
+                    agendaTab === tab.id ? 'bg-white text-[#0B1220] shadow-sm' : 'text-slate-500 hover:text-[#0B1220]'
+                  )}
+                >
+                  {tab.label}
+                  <span className="rounded-full bg-slate-100 px-1.5 text-[11px] tabular-nums text-slate-600">{tab.count}</span>
+                </button>
+              ))}
+            </div>
           </div>
-          <div className="border-t border-slate-100 px-5 py-3">
-            <button
-              type="button"
-              onClick={onOpenFleet}
-              className="flex w-full items-center justify-between text-sm font-semibold text-[#E63946] hover:opacity-80 transition-opacity"
-            >
-              <span>Gérer la flotte</span>
-              <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
-            </button>
-          </div>
-        </Panel>
-
-        {/* Booking lifecycle panel */}
-        <Panel title="Cycle de vie des réservations" subtitle={totalBookings > 0 ? `${totalBookings} dossiers` : 'Aucun dossier'}>
-          <div className="divide-y divide-slate-100">
-            {[
-              { label: 'En attente de traitement', value: d.pendingBookings, icon: Clock, cls: 'bg-amber-50 text-amber-600' },
-              { label: 'Confirmées / Actives', value: d.confirmedBookings, icon: CheckCircle2, cls: 'bg-emerald-50 text-emerald-600' },
-              { label: 'Terminées', value: d.completedBookings, icon: CalendarCheck, cls: 'bg-blue-50 text-blue-600' },
-              { label: 'Annulées / Refusées', value: d.cancelledBookings, icon: CalendarX, cls: 'bg-slate-100 text-slate-500' },
-            ].map(({ label, value, icon: Icon, cls }) => (
-              <div key={label} className="flex items-center gap-3 px-5 py-3.5">
-                <span aria-hidden="true" className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-lg', cls)}>
-                  <Icon className="h-4 w-4" />
-                </span>
-                <span className="min-w-0 flex-1 text-sm text-[#334155]">{label}</span>
-                <span className="shrink-0 text-sm font-extrabold tabular-nums text-[#0F172A]">{value}</span>
+          <div role="tabpanel" className="flex-1 pb-2 pt-2">
+            {agenda.loading ? (
+              <div className="space-y-2 px-5 py-2">
+                {[1, 2, 3].map((i) => <div key={i} className="h-14 animate-pulse rounded-xl bg-slate-100 motion-reduce:animate-none" />)}
               </div>
-            ))}
+            ) : agendaItems.length > 0 ? (
+              <ul className="divide-y divide-slate-100">
+                {agendaItems.slice(0, 5).map((entry) => {
+                  const date = 'startDate' in entry ? entry.startDate : 'endDate' in entry ? entry.endDate : undefined;
+                  const isPickup = agendaTab === 'pickups';
+                  return (
+                    <li key={entry.reference} className="flex items-center gap-3 px-5 py-3">
+                      <span
+                        aria-hidden="true"
+                        className={cn(
+                          'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl',
+                          isPickup ? 'bg-emerald-50 text-emerald-700' : 'bg-[#F5F6F8] text-[#0B1220]'
+                        )}
+                      >
+                        {isPickup ? <CalendarCheck className="h-4.5 w-4.5" /> : <CalendarX className="h-4.5 w-4.5" />}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-bold text-[#0B1220]">{entry.customerName}</p>
+                        <p className="truncate text-xs text-slate-500">
+                          {entry.vehicleLabel} · {entry.reference}
+                        </p>
+                      </div>
+                      <span className="shrink-0 rounded-lg bg-[#F5F6F8] px-2.5 py-1 text-xs font-bold capitalize text-[#0B1220]">
+                        {formatShortDate(date)}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : (
+              <EmptyState
+                title={agendaTab === 'pickups' ? 'Aucun départ programmé' : 'Aucun retour programmé'}
+                text={agendaTab === 'pickups' ? 'Les départs confirmés apparaîtront ici.' : 'Les retours des locations en cours apparaîtront ici.'}
+              />
+            )}
           </div>
-          <div className="border-t border-slate-100 px-5 py-3">
-            <button
-              type="button"
-              onClick={onOpenBookings}
-              className="flex w-full items-center justify-between text-sm font-semibold text-[#E63946] hover:opacity-80 transition-opacity"
-            >
-              <span>Toutes les réservations</span>
-              <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
-            </button>
-          </div>
-        </Panel>
-      </div>
-
-      {/* ── Agenda row ── */}
-      <div className="grid gap-6 xl:grid-cols-2">
-        <Panel
-          title="Enlèvements à venir"
-          subtitle="Départs de locations confirmées"
-          action={
-            <button
-              type="button"
-              onClick={onOpenBookings}
-              className="text-xs font-semibold text-[#E63946] hover:underline"
-            >
-              Tout voir
-            </button>
-          }
-        >
-          {agenda.loading ? (
-            <div className="px-5 py-4 space-y-3">
-              {[1, 2].map((i) => <div key={i} className="h-12 animate-pulse rounded-xl bg-slate-100" />)}
-            </div>
-          ) : pickups.length > 0 ? (
-            <ul className="divide-y divide-slate-100">
-              {pickups.slice(0, 5).map((entry) => (
-                <AgendaRow
-                  key={entry.reference}
-                  primary={entry.customerName}
-                  secondary={`${entry.vehicleLabel} · ${entry.reference}`}
-                  meta={entry.startDate ?? '-'}
-                  icon={CalendarCheck}
-                  iconBg="bg-emerald-50"
-                  iconColor="text-emerald-600"
-                />
-              ))}
-            </ul>
-          ) : (
-            <EmptyState
-              title="Aucun enlèvement programmé"
-              text="Les départs confirmés apparaîtront ici."
-            />
-          )}
         </Panel>
 
         <Panel
-          title="Retours à venir"
-          subtitle="Fins de contrats de location"
+          title="État de la flotte"
+          subtitle={`${d.totalVehicles} véhicule${d.totalVehicles !== 1 ? 's' : ''} au total`}
+          action={<PanelLink onClick={onOpenFleet}>Flotte</PanelLink>}
         >
-          {agenda.loading ? (
-            <div className="px-5 py-4 space-y-3">
-              {[1, 2].map((i) => <div key={i} className="h-12 animate-pulse rounded-xl bg-slate-100" />)}
-            </div>
-          ) : returns.length > 0 ? (
-            <ul className="divide-y divide-slate-100">
-              {returns.slice(0, 5).map((entry) => (
-                <AgendaRow
-                  key={entry.reference}
-                  primary={entry.customerName}
-                  secondary={`${entry.vehicleLabel} · ${entry.reference}`}
-                  meta={entry.endDate ?? '-'}
-                  icon={CalendarX}
-                  iconBg="bg-blue-50"
-                  iconColor="text-blue-600"
-                />
+          <div className="flex items-center gap-5 px-5 pb-5 pt-1">
+            <OccupancyRing rate={d.occupancyRate} />
+            <ul className="min-w-0 flex-1 space-y-2.5">
+              {fleetRows.map((row) => (
+                <li key={row.label} className="flex items-center gap-2.5 text-sm">
+                  <span className={cn('h-2.5 w-2.5 shrink-0 rounded-full', row.color)} aria-hidden="true" />
+                  <span className="min-w-0 flex-1 truncate text-slate-600">{row.label}</span>
+                  <span className="font-extrabold tabular-nums text-[#0B1220]">{row.value}</span>
+                </li>
               ))}
             </ul>
-          ) : (
-            <EmptyState
-              title="Aucun retour programmé"
-              text="Les retours des locations en cours s'afficheront ici."
-            />
+          </div>
+          {d.totalVehicles > 0 && (
+            <div className="mx-5 mb-5 flex h-2 overflow-hidden rounded-full bg-slate-100" aria-hidden="true">
+              {fleetRows.map((row) =>
+                row.value > 0 ? (
+                  <span key={row.label} className={row.color} style={{ width: `${(row.value / d.totalVehicles) * 100}%` }} />
+                ) : null
+              )}
+            </div>
           )}
         </Panel>
       </div>
 
-      {/* ── Recent Activity + Quick Actions ── */}
-      <div className="grid gap-6 xl:grid-cols-[1.5fr_1fr]">
-        {/* Recent activity */}
+      {/* ── Activité récente + Actions rapides ── */}
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
         <Panel
           title="Activité récente"
-          subtitle="Dernières demandes reçues"
-          action={
-            <button
-              type="button"
-              onClick={onOpenBookings}
-              className="text-xs font-semibold text-[#E63946] hover:underline"
-            >
-              Tout voir
-            </button>
-          }
+          subtitle={totalBookings > 0 ? `${totalBookings} dossier${totalBookings > 1 ? 's' : ''} sur la période` : 'Aucun dossier sur la période'}
+          action={<PanelLink onClick={onOpenBookings}>Tout voir</PanelLink>}
         >
-          {agenda.loading ? (
-            <div className="px-5 py-4 space-y-3">
-              {[1, 2, 3].map((i) => <div key={i} className="h-12 animate-pulse rounded-xl bg-slate-100" />)}
-            </div>
-          ) : recentActivity.length > 0 ? (
-            <ul className="divide-y divide-slate-100">
-              {recentActivity.slice(0, 6).map((entry) => {
-                const statusInfo = BOOKING_STATUS_LABELS[entry.status] ?? { label: entry.status, cls: 'bg-slate-100 text-slate-600' };
-                return (
-                  <li key={entry.reference} className="flex items-center gap-3 px-5 py-3.5">
-                    <span
-                      aria-hidden="true"
-                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-500"
-                    >
-                      <ClipboardList className="h-4 w-4" />
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold text-[#0F172A]">{entry.customerName}</p>
-                      <p className="truncate text-xs text-[#64748B]">{entry.reference}</p>
-                    </div>
-                    <span
-                      className={cn(
-                        'shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide',
-                        statusInfo.cls
-                      )}
-                    >
-                      {statusInfo.label}
-                    </span>
+          {totalBookings > 0 && (
+            <div className="px-5 pb-3">
+              <div className="flex h-2 overflow-hidden rounded-full bg-slate-100" aria-hidden="true">
+                {bookingSplit.map((part) =>
+                  part.value > 0 ? (
+                    <span key={part.label} className={part.color} style={{ width: `${(part.value / totalBookings) * 100}%` }} />
+                  ) : null
+                )}
+              </div>
+              <ul className="mt-2.5 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-600" aria-label="Répartition des réservations">
+                {bookingSplit.map((part) => (
+                  <li key={part.label} className="flex items-center gap-1.5">
+                    <span className={cn('h-2 w-2 rounded-full', part.color)} aria-hidden="true" />
+                    {part.label} <strong className="tabular-nums text-[#0B1220]">{part.value}</strong>
                   </li>
-                );
-              })}
-            </ul>
-          ) : (
-            <EmptyState
-              title="Aucune activité récente"
-              text="Les nouvelles réservations apparaîtront ici."
-            />
+                ))}
+              </ul>
+            </div>
           )}
+          <div className="flex-1 border-t border-slate-100">
+            {agenda.loading ? (
+              <div className="space-y-2 px-5 py-3">
+                {[1, 2, 3].map((i) => <div key={i} className="h-12 animate-pulse rounded-xl bg-slate-100 motion-reduce:animate-none" />)}
+              </div>
+            ) : recentActivity.length > 0 ? (
+              <ul className="divide-y divide-slate-100">
+                {recentActivity.slice(0, 6).map((entry) => {
+                  const statusInfo = BOOKING_STATUS_LABELS[entry.status] ?? { label: entry.status, cls: 'bg-slate-100 text-slate-600 ring-slate-200' };
+                  return (
+                    <li key={entry.reference} className="flex items-center gap-3 px-5 py-3">
+                      <span aria-hidden="true" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#0B1220] text-sm font-bold text-white">
+                        {entry.customerName.trim().slice(0, 1).toUpperCase() || '?'}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-bold text-[#0B1220]">{entry.customerName}</p>
+                        <p className="truncate text-xs text-slate-500">
+                          {entry.reference}
+                          {entry.totalPrice > 0 && ` · ${formatNumber(entry.totalPrice)} MAD`}
+                        </p>
+                      </div>
+                      <span className={cn('shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold ring-1', statusInfo.cls)}>
+                        {statusInfo.label}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : (
+              <EmptyState title="Aucune activité récente" text="Les nouvelles demandes de réservation apparaîtront ici." />
+            )}
+          </div>
         </Panel>
 
-        {/* Quick actions */}
-        <Panel title="Actions rapides" subtitle="Accès direct aux sections">
-          <div className="divide-y divide-slate-100">
+        <Panel title="Actions rapides" subtitle="Accès direct aux tâches courantes">
+          <ul className="grid grid-cols-2 gap-2 px-5 pb-5 xl:grid-cols-1">
             {actions.map(({ label, desc, icon: Icon, onClick }) => (
-              <button
-                key={label}
-                type="button"
-                onClick={onClick}
-                className="group flex w-full items-center gap-3 px-5 py-4 text-left transition-colors hover:bg-slate-50"
-              >
-                <span
-                  aria-hidden="true"
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#0B1220]/5 text-[#0B1220] transition-colors group-hover:bg-[#0B1220] group-hover:text-white"
+              <li key={label}>
+                <button
+                  type="button"
+                  onClick={onClick}
+                  className="group flex h-full w-full flex-col items-start gap-2 rounded-xl border border-slate-200/80 p-3 text-left transition-colors hover:border-[#0B1220]/20 hover:bg-[#F5F6F8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E63946] xl:flex-row xl:items-center xl:gap-3"
                 >
-                  <Icon className="h-4 w-4" />
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block text-sm font-semibold text-[#0F172A]">{label}</span>
-                  <span className="mt-0.5 block text-xs text-[#64748B]">{desc}</span>
-                </span>
-                <ChevronRight
-                  aria-hidden="true"
-                  className="h-4 w-4 shrink-0 text-slate-300 transition-colors group-hover:text-slate-600"
-                />
-              </button>
+                  <span
+                    aria-hidden="true"
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#0B1220] text-white transition-colors group-hover:bg-[#E63946]"
+                  >
+                    <Icon className="h-4 w-4" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-bold text-[#0B1220]">{label}</span>
+                    <span className="mt-0.5 block text-xs text-slate-500">{desc}</span>
+                  </span>
+                  <ChevronRight aria-hidden="true" className="hidden h-4 w-4 shrink-0 text-slate-300 group-hover:text-slate-600 xl:block" />
+                </button>
+              </li>
             ))}
-          </div>
+          </ul>
         </Panel>
       </div>
-
-      {/* ── Occupancy Banner ── */}
-      {d.totalVehicles > 0 && (
-        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-linear-to-r from-[#0B1220] to-slate-800 px-6 py-5 text-white">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-4">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/10">
-                <Zap className="h-5 w-5 text-amber-300" />
-              </div>
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-white/60">
-                  Taux d&apos;occupation actuel
-                </p>
-                <p className="mt-0.5 text-2xl font-extrabold tabular-nums tracking-tight">
-                  {d.occupancyRate}%
-                  <span className="ml-2 text-sm font-normal text-white/60">
-                    ({d.rentedVehicles} loué{d.rentedVehicles !== 1 ? 's' : ''} sur {d.totalVehicles})
-                  </span>
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={onOpenCalendar}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-xs font-bold text-white transition hover:bg-white/20"
-              >
-                <CalendarClock className="h-3.5 w-3.5" />
-                Calendrier
-              </button>
-              <button
-                type="button"
-                onClick={onOpenFleet}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-[#E63946] px-4 py-2 text-xs font-bold text-white transition hover:bg-red-600"
-              >
-                <Car className="h-3.5 w-3.5" />
-                Ma flotte
-              </button>
-            </div>
-          </div>
-
-          {/* Occupancy progress bar */}
-          <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-white/10">
-            <div
-              className="h-full rounded-full bg-amber-400 transition-all duration-700"
-              style={{ width: `${Math.min(d.occupancyRate, 100)}%` }}
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 }

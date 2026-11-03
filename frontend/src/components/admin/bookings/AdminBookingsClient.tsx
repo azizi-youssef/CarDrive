@@ -2,11 +2,10 @@
 
 import React, { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import Link from 'next/link';
-import { CalendarDays, Download, RefreshCw, FileText } from 'lucide-react';
+import { CalendarDays, Download, RefreshCw, FileText, Wallet, Receipt } from 'lucide-react';
 import type { Booking } from '@/types';
 import {
   AdminCard,
-  SectionHeader,
   TableWrapper,
   Th,
   Td,
@@ -18,10 +17,10 @@ import {
   SelectFilter,
   Btn,
   ErrorBanner,
-  Price,
+  KpiCard,
 } from '@/components/admin/AdminUI';
 import { fetchAdminBookings } from '@/lib/api/admin-dashboard.api';
-import { formatPrice } from '@/lib/utils';
+import { formatNumber, formatPrice } from '@/lib/utils';
 
 const PAGE_SIZE = 20;
 
@@ -119,7 +118,6 @@ export function AdminBookingsClient() {
 
   // Totals for filtered view
   const totalVolume = useMemo(() => filtered.reduce((s, b) => s + (b.total_price ?? 0), 0), [filtered]);
-  const totalCommission = useMemo(() => filtered.reduce((s, b) => s + (b.commission_amount ?? 0), 0), [filtered]);
 
   return (
     <div className="space-y-5">
@@ -127,17 +125,29 @@ export function AdminBookingsClient() {
 
       {/* Summary strip */}
       {!loading && filtered.length > 0 && (
-        <div className="grid gap-3 sm:grid-cols-3">
-          {[
-            { label: 'Réservations filtrées', value: filtered.length.toString() },
-            { label: 'Volume brut (100% agences)', value: formatPrice(totalVolume) },
-            { label: 'Commission plateforme', value: '0 DH (0%)' },
-          ].map(({ label, value }) => (
-            <div key={label} className="rounded-xl border border-slate-200 bg-white px-5 py-3.5">
-              <p className="text-xs text-slate-500">{label}</p>
-              <p className="text-lg font-bold text-slate-900 mt-0.5">{value}</p>
-            </div>
-          ))}
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
+          <KpiCard
+            label="Réservations affichées"
+            value={filtered.length.toLocaleString('fr-FR')}
+            icon={CalendarDays}
+            sub={statusFilter === 'ALL' && !search ? 'Toutes les réservations' : 'Selon les filtres actifs'}
+          />
+          <KpiCard
+            label="Volume d’affaires"
+            value={formatNumber(Math.round(totalVolume))}
+            unit="DH"
+            icon={Wallet}
+            tone="success"
+            sub="Encaissé à 100 % par les agences"
+          />
+          <KpiCard
+            label="Panier moyen"
+            value={formatNumber(Math.round(filtered.length > 0 ? totalVolume / filtered.length : 0))}
+            unit="DH"
+            icon={Receipt}
+            tone="info"
+            sub="Par réservation"
+          />
         </div>
       )}
 

@@ -1,0 +1,176 @@
+'use client';
+
+import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { LayoutGrid, X, type LucideIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+type Section = { id: string; label: string; icon: LucideIcon };
+
+/** Sections affichées directement dans la barre du bas (les autres sont sous « Plus »). */
+const PRIMARY_IDS = ['overview', 'bookings', 'fleet', 'calendar'];
+
+const SHORT_LABELS: Record<string, string> = {
+  overview: 'Accueil',
+  bookings: 'Demandes',
+  fleet: 'Flotte',
+  calendar: 'Calendrier',
+};
+
+/**
+ * Navigation mobile/tablette du portail agence : barre fixe en bas d'écran
+ * (4 sections principales + « Plus ») au lieu d'une rangée d'onglets défilants.
+ */
+export function MobileNav({
+  sections,
+  activeSection,
+  onNavigate,
+  pendingCount = 0,
+}: {
+  sections: Section[];
+  activeSection: string;
+  onNavigate: (id: string) => void;
+  /** Demandes de réservation à traiter (pastille sur « Demandes ») */
+  pendingCount?: number;
+}) {
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const moreRef = useRef<HTMLButtonElement>(null);
+  const sheetRef = useRef<HTMLDivElement>(null);
+
+  const primary = PRIMARY_IDS.map((id) => sections.find((s) => s.id === id)).filter((s): s is Section => Boolean(s));
+  const activeInMore = !primary.some((s) => s.id === activeSection);
+
+  useEffect(() => {
+    if (!sheetOpen) return;
+    const opener = moreRef.current;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    sheetRef.current?.querySelector<HTMLElement>('button')?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setSheetOpen(false);
+    };
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener('keydown', onKey);
+      opener?.focus();
+    };
+  }, [sheetOpen]);
+
+  const go = (id: string) => {
+    setSheetOpen(false);
+    onNavigate(id);
+    window.scrollTo({ top: 0 });
+  };
+
+  const itemClass = (active: boolean) =>
+    cn(
+      'relative flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl text-[11px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E63946]',
+      active ? 'text-[#0B1220]' : 'text-slate-500 hover:text-[#0B1220]'
+    );
+
+  return (
+    <>
+      <nav
+        aria-label="Sections du tableau de bord"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 px-2 pt-1 pb-[max(0.25rem,env(safe-area-inset-bottom))] shadow-[0_-8px_24px_rgba(11,18,32,0.08)] backdrop-blur lg:hidden"
+      >
+        <ul className="mx-auto grid max-w-lg grid-cols-5">
+          {primary.map((section) => {
+            const Icon = section.icon;
+            const active = activeSection === section.id;
+            const badge = section.id === 'bookings' && pendingCount > 0;
+            return (
+              <li key={section.id}>
+                <button
+                  type="button"
+                  onClick={() => go(section.id)}
+                  aria-current={active ? 'page' : undefined}
+                  aria-label={badge ? `${section.label} (${pendingCount} à traiter)` : section.label}
+                  className={itemClass(active)}
+                >
+                  {active && <span className="absolute inset-x-5 top-0 h-0.5 rounded-full bg-[#E63946]" aria-hidden="true" />}
+                  <span className="relative">
+                    <Icon className="h-5 w-5" aria-hidden="true" />
+                    {badge && (
+                      <span className="absolute -end-2.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#E63946] px-1 text-[10px] font-bold text-white" aria-hidden="true">
+                        {pendingCount > 9 ? '9+' : pendingCount}
+                      </span>
+                    )}
+                  </span>
+                  <span aria-hidden="true">{SHORT_LABELS[section.id] ?? section.label}</span>
+                </button>
+              </li>
+            );
+          })}
+          <li>
+            <button
+              ref={moreRef}
+              type="button"
+              onClick={() => setSheetOpen(true)}
+              aria-haspopup="dialog"
+              aria-expanded={sheetOpen}
+              className={itemClass(activeInMore)}
+            >
+              {activeInMore && <span className="absolute inset-x-5 top-0 h-0.5 rounded-full bg-[#E63946]" aria-hidden="true" />}
+              <LayoutGrid className="h-5 w-5" aria-hidden="true" />
+              Plus
+            </button>
+          </li>
+        </ul>
+      </nav>
+
+      {sheetOpen &&
+        createPortal(
+          <div className="fixed inset-0 z-[60] lg:hidden">
+            <button type="button" tabIndex={-1} aria-label="Fermer" onClick={() => setSheetOpen(false)} className="absolute inset-0 bg-[#0B1220]/50 backdrop-blur-[2px]" />
+            <div
+              ref={sheetRef}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="agency-sections-title"
+              className="absolute inset-x-0 bottom-0 max-h-[85dvh] overflow-y-auto rounded-t-3xl bg-white px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-2xl"
+            >
+              <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-slate-200" aria-hidden="true" />
+              <div className="mb-3 flex items-center justify-between">
+                <h2 id="agency-sections-title" className="text-base font-extrabold text-[#0B1220]">
+                  Toutes les sections
+                </h2>
+                <button
+                  type="button"
+                  onClick={() => setSheetOpen(false)}
+                  aria-label="Fermer le menu des sections"
+                  className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100"
+                >
+                  <X className="h-5 w-5" aria-hidden="true" />
+                </button>
+              </div>
+              <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                {sections.map((section) => {
+                  const Icon = section.icon;
+                  const active = activeSection === section.id;
+                  return (
+                    <li key={section.id}>
+                      <button
+                        type="button"
+                        onClick={() => go(section.id)}
+                        aria-current={active ? 'page' : undefined}
+                        className={cn(
+                          'flex min-h-14 w-full items-center gap-3 rounded-xl border px-3 text-start text-sm font-semibold transition-colors',
+                          active ? 'border-[#0B1220] bg-[#0B1220] text-white' : 'border-slate-200 text-[#0B1220] hover:bg-slate-50'
+                        )}
+                      >
+                        <Icon className={cn('h-5 w-5 shrink-0', active ? 'text-white' : 'text-[#E63946]')} aria-hidden="true" />
+                        <span className="min-w-0">{section.label}</span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          </div>,
+          document.body
+        )}
+    </>
+  );
+}

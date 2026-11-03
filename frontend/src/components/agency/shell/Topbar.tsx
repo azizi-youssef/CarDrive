@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Bell, ChevronDown, Home, LogOut, RefreshCw, Settings, UserRound } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { BRAND } from '@/lib/design/tokens';
+import { MobileNav } from './MobileNav';
 
 export type TopbarCrumb = { label: string; href?: string };
 
@@ -97,6 +98,7 @@ export function Topbar({
   onNavigate,
   sections,
   activeSection,
+  pendingCount = 0,
 }: {
   agencyName: string;
   userLabel: string;
@@ -110,6 +112,8 @@ export function Topbar({
   onNavigate: (id: string) => void;
   sections: { id: string; label: string; icon: typeof Bell }[];
   activeSection: string;
+  /** Demandes à traiter, affichées sur la navigation mobile */
+  pendingCount?: number;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [bellOpen, setBellOpen] = useState(false);
@@ -149,7 +153,7 @@ export function Topbar({
           type="button"
           onClick={onRefresh}
           disabled={refreshing}
-          aria-label="Actualiser les donnees"
+          aria-label="Actualiser les données"
           aria-busy={refreshing}
           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-200 text-slate-500 outline-none transition-colors hover:bg-slate-50 hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-[#E63946] disabled:opacity-50"
         >
@@ -313,30 +317,7 @@ export function Topbar({
         </Popover>
       </div>
 
-      <nav
-        aria-label="Sections du tableau de bord"
-        className="flex gap-1 overflow-x-auto border-t border-slate-100 px-3 pb-2 pt-2 lg:hidden"
-      >
-        {sections.map((section) => {
-          const Icon = section.icon;
-          const isActive = activeSection === section.id;
-          return (
-            <button
-              key={section.id}
-              type="button"
-              onClick={() => onNavigate(section.id)}
-              aria-current={isActive ? 'page' : undefined}
-              className={cn(
-                'flex shrink-0 items-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-[#E63946]',
-                isActive ? 'bg-[#0B1220] text-white' : 'text-slate-600 hover:bg-slate-100'
-              )}
-            >
-              <Icon aria-hidden="true" className="h-4 w-4" />
-              {section.label}
-            </button>
-          );
-        })}
-      </nav>
+      <MobileNav sections={sections} activeSection={activeSection} onNavigate={onNavigate} pendingCount={pendingCount} />
     </header>
   );
 }

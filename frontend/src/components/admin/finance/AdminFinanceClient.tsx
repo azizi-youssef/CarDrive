@@ -86,6 +86,7 @@ export function AdminFinanceClient({ commissionRate }: Props) {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(0);
   const [updatingAgencyId, setUpdatingAgencyId] = useState<string | null>(null);
+  const [planError, setPlanError] = useState<string | null>(null);
 
   const abortRef = useRef<AbortController | null>(null);
 
@@ -130,6 +131,7 @@ export function AdminFinanceClient({ commissionRate }: Props) {
 
   const handleUpdatePlan = async (agencyId: string, newPlanSlug: string) => {
     setUpdatingAgencyId(agencyId);
+    setPlanError(null);
     try {
       const res = await fetch('/api/admin/subscriptions', {
         method: 'PATCH',
@@ -138,13 +140,13 @@ export function AdminFinanceClient({ commissionRate }: Props) {
       });
       const json = await res.json();
       if (!res.ok || !json.success) {
-        alert(json.error || 'Erreur lors de la modification du forfait.');
+        setPlanError(json.error || 'Erreur lors de la modification du forfait.');
         return;
       }
       // Recharger les données
       void load('refresh');
-    } catch (err: any) {
-      alert(err.message || 'Erreur réseau.');
+    } catch (err: unknown) {
+      setPlanError(err instanceof Error && err.message ? err.message : 'Erreur réseau.');
     } finally {
       setUpdatingAgencyId(null);
     }
@@ -183,6 +185,12 @@ export function AdminFinanceClient({ commissionRate }: Props) {
   return (
     <div className="space-y-8">
       {error && <ErrorBanner message={error} onRetry={() => void load('refresh')} retrying={refreshing} />}
+      {planError && (
+        <div role="alert" className="flex items-start justify-between gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+          <span><strong>Forfait non modifié.</strong> {planError}</span>
+          <button type="button" onClick={() => setPlanError(null)} className="shrink-0 font-semibold underline">Fermer</button>
+        </div>
+      )}
 
       {/* Monetization Model Info Banner */}
       <div className="rounded-2xl border border-blue-200 bg-linear-to-r from-blue-50/90 via-white to-slate-50 px-6 py-5 shadow-xs">

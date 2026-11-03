@@ -1,15 +1,32 @@
 import React from 'react';
+import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { TrendingUp, TrendingDown, Minus, type LucideIcon } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, AlertCircle, RotateCcw, ChevronLeft, ChevronRight, Search, type LucideIcon } from 'lucide-react';
 
 /* ── KPI Card ──────────────────────────────────────────────────────── */
+export type KpiTone = 'neutral' | 'success' | 'warning' | 'danger' | 'info';
+
+const KPI_TONE: Record<KpiTone, { tile: string; bar: string }> = {
+  neutral: { tile: 'bg-[#F5F6F8] text-[#0B1220]', bar: 'bg-[#0B1220]' },
+  success: { tile: 'bg-emerald-50 text-emerald-600', bar: 'bg-emerald-500' },
+  warning: { tile: 'bg-amber-50 text-amber-600', bar: 'bg-amber-400' },
+  danger: { tile: 'bg-red-50 text-[#E63946]', bar: 'bg-[#E63946]' },
+  info: { tile: 'bg-sky-50 text-sky-600', bar: 'bg-sky-500' },
+};
+
 interface KpiCardProps {
   label: string;
-  value: string | number;
-  sub?: string;
+  value: React.ReactNode;
+  /** Unité affichée en plus petit après la valeur (« DH », « jours », « % »…) */
+  unit?: string;
+  sub?: React.ReactNode;
   icon?: LucideIcon;
-  iconColor?: string;
-  trend?: { value: number; label: string } | null;
+  tone?: KpiTone;
+  /** Évolution en % ; `invert` quand une hausse est une mauvaise nouvelle (annulations…) */
+  trend?: { value: number; label: string; invert?: boolean } | null;
+  /** Jauge 0–100 sous la valeur */
+  progress?: number;
+  href?: string;
   loading?: boolean;
   className?: string;
 }
@@ -17,63 +34,103 @@ interface KpiCardProps {
 export function KpiCard({
   label,
   value,
+  unit,
   sub,
   icon: Icon,
-  iconColor = 'text-slate-400',
+  tone = 'neutral',
   trend,
+  progress,
+  href,
   loading,
   className,
 }: KpiCardProps) {
+  const toneStyle = KPI_TONE[tone];
+  const base = cn(
+    'group relative flex flex-col rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_2px_rgba(11,18,32,0.04)]',
+    className
+  );
+
   if (loading) {
     return (
-      <div className={cn('rounded-xl border border-slate-200 bg-white p-5', className)}>
-        <div className="h-4 w-24 rounded bg-slate-100 animate-pulse" />
-        <div className="mt-3 h-8 w-32 rounded bg-slate-100 animate-pulse" />
-        <div className="mt-2 h-3 w-20 rounded bg-slate-100 animate-pulse" />
+      <div className={base} role="status" aria-label={`${label} : chargement`}>
+        <div className="flex items-center justify-between">
+          <div className="h-3.5 w-28 animate-pulse rounded bg-slate-100" />
+          <div className="h-10 w-10 animate-pulse rounded-xl bg-slate-100" />
+        </div>
+        <div className="mt-3 h-8 w-24 animate-pulse rounded-lg bg-slate-100" />
+        <div className="mt-3 h-3 w-36 animate-pulse rounded bg-slate-100" />
       </div>
     );
   }
 
-  return (
-    <div
-      className={cn(
-        'rounded-xl border border-slate-200 bg-white p-5 transition-shadow hover:shadow-sm',
-        className
-      )}
-    >
+  const pct = typeof progress === 'number' ? Math.max(0, Math.min(100, progress)) : null;
+
+  const content = (
+    <>
       <div className="flex items-start justify-between gap-3">
-        <p className="text-sm font-medium text-slate-500">{label}</p>
+        <p className="pt-0.5 text-[13px] font-semibold leading-snug text-slate-500">{label}</p>
         {Icon && (
-          <div className="rounded-lg bg-slate-50 p-2">
-            <Icon aria-hidden="true" className={cn('h-4 w-4', iconColor)} />
-          </div>
+          <span className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-xl', toneStyle.tile)}>
+            <Icon aria-hidden="true" className="h-4.5 w-4.5" />
+          </span>
         )}
       </div>
-      <p className="mt-2.5 text-2xl font-bold tracking-tight text-slate-900">{value}</p>
-      {(sub || trend) && (
-        <div className="mt-1.5 flex items-center gap-2">
-          {sub && <span className="text-xs text-slate-500">{sub}</span>}
-          {trend && <TrendBadge value={trend.value} label={trend.label} />}
+      <p className="mt-1 flex min-w-0 items-baseline gap-1.5 text-2xl font-extrabold sm:text-[28px] leading-tight tracking-tight tabular-nums text-[#0B1220]">
+        <span className="truncate">{value}</span>
+        {unit && <span className="text-sm font-bold text-slate-400">{unit}</span>}
+      </p>
+      {pct !== null && (
+        <div
+          className="mt-3 h-1.5 overflow-hidden rounded-full bg-slate-100"
+          role="progressbar"
+          aria-valuenow={Math.round(pct)}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label={label}
+        >
+          <div className={cn('h-full rounded-full transition-[width] duration-500', toneStyle.bar)} style={{ width: `${pct}%` }} />
         </div>
       )}
-    </div>
+      {(sub || trend) && (
+        <div className="mt-auto flex flex-wrap items-center gap-x-2 gap-y-1 pt-2.5">
+          {trend && <TrendBadge value={trend.value} label={trend.label} invert={trend.invert} />}
+          {sub && <span className="text-xs text-slate-500">{sub}</span>}
+        </div>
+      )}
+    </>
   );
+
+  if (href) {
+    return (
+      <Link
+        href={href}
+        className={cn(
+          base,
+          'outline-none transition-[transform,box-shadow,border-color] hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_12px_30px_-18px_rgba(11,18,32,0.35)] focus-visible:ring-2 focus-visible:ring-[#E63946] motion-reduce:transition-none motion-reduce:hover:translate-y-0'
+        )}
+      >
+        {content}
+      </Link>
+    );
+  }
+  return <div className={base}>{content}</div>;
 }
 
 /* ── Trend badge ───────────────────────────────────────────────────── */
-function TrendBadge({ value, label }: { value: number; label: string }) {
-  const isPos = value > 0;
-  const isNeg = value < 0;
-  const Icon = isPos ? TrendingUp : isNeg ? TrendingDown : Minus;
+function TrendBadge({ value, label, invert }: { value: number; label: string; invert?: boolean }) {
+  const Icon = value > 0 ? TrendingUp : value < 0 ? TrendingDown : Minus;
+  const good = invert ? value < 0 : value > 0;
+  const bad = invert ? value > 0 : value < 0;
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold',
-        isPos ? 'bg-emerald-50 text-emerald-700' : isNeg ? 'bg-red-50 text-red-700' : 'bg-slate-100 text-slate-500'
+        'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold tabular-nums',
+        good ? 'bg-emerald-50 text-emerald-700' : bad ? 'bg-red-50 text-[#B4232F]' : 'bg-slate-100 text-slate-500'
       )}
     >
       <Icon className="h-3 w-3" aria-hidden="true" />
-      {isPos ? '+' : ''}{value}% {label}
+      {value > 0 ? '+' : ''}
+      {value} % {label}
     </span>
   );
 }
@@ -101,7 +158,7 @@ export function StatusBadge({
   return (
     <span
       className={cn(
-        'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium',
+        'inline-flex items-center whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold',
         STATUS_STYLES[variant],
         className
       )}
@@ -160,10 +217,10 @@ export function SectionHeader({
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div>
-        <h2 className="text-xl font-bold tracking-tight text-slate-900">{title}</h2>
+        <h2 className="text-lg font-extrabold tracking-tight text-[#0B1220]">{title}</h2>
         {subtitle && <p className="mt-1 text-sm text-slate-500">{subtitle}</p>}
       </div>
-      {actions && <div className="flex items-center gap-2">{actions}</div>}
+      {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
     </div>
   );
 }
@@ -183,14 +240,14 @@ export function AdminCard({
   return (
     <div
       className={cn(
-        'rounded-xl border border-slate-200 bg-white overflow-hidden shadow-xs',
+        'overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(11,18,32,0.04)]',
         !noPadding && 'p-5 sm:p-6',
         className
       )}
     >
       {title && (
         <div className="border-b border-slate-100 pb-3 mb-4">
-          <h3 className="text-sm font-semibold text-slate-900">{title}</h3>
+          <h3 className="text-[15px] font-extrabold text-[#0B1220]">{title}</h3>
         </div>
       )}
       {children}
@@ -220,7 +277,7 @@ export function Th({ children, className }: { children: React.ReactNode; classNa
     <th
       scope="col"
       className={cn(
-        'px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-500 first:pl-5 sm:first:pl-6 last:pr-5 sm:last:pr-6',
+        'bg-[#F8F9FA] px-4 py-3 text-start text-[11px] font-bold uppercase tracking-wider text-slate-500 first:ps-5 sm:first:ps-6 last:pe-5 sm:last:pe-6',
         className
       )}
     >
@@ -239,7 +296,7 @@ export function Td({
   return (
     <td
       className={cn(
-        'px-4 py-4 text-sm text-slate-700 first:pl-5 sm:first:pl-6 last:pr-5 sm:last:pr-6 align-middle',
+        'px-4 py-3.5 align-middle text-sm text-slate-700 first:ps-5 sm:first:ps-6 last:pe-5 sm:last:pe-6',
         className
       )}
     >
@@ -283,11 +340,11 @@ export function EmptyState({
   return (
     <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
       {Icon && (
-        <div className="mb-4 rounded-full bg-slate-100 p-4">
-          <Icon className="h-7 w-7 text-slate-400" aria-hidden="true" />
+        <div className="mb-4 rounded-2xl bg-[#F5F6F8] p-4">
+          <Icon className="h-6 w-6 text-slate-400" aria-hidden="true" />
         </div>
       )}
-      <h3 className="text-base font-semibold text-slate-900">{title}</h3>
+      <h3 className="text-base font-bold text-[#0B1220]">{title}</h3>
       {description && <p className="mt-1 text-sm text-slate-500 max-w-sm">{description}</p>}
       {action && <div className="mt-5">{action}</div>}
     </div>
@@ -305,18 +362,19 @@ export function ErrorBanner({
   retrying?: boolean;
 }) {
   return (
-    <div className="rounded-xl border border-red-200 bg-red-50 px-5 py-4 flex items-start gap-4">
-      <div className="shrink-0 text-red-600 mt-0.5">⚠</div>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-red-800">{message}</p>
+    <div role="alert" className="flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 px-5 py-4">
+      <AlertCircle className="mt-0.5 h-4.5 w-4.5 shrink-0 text-[#B4232F]" aria-hidden="true" />
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-semibold text-red-900">{message}</p>
       </div>
       {onRetry && (
         <button
           type="button"
           onClick={onRetry}
           disabled={retrying}
-          className="shrink-0 rounded-lg border border-red-200 bg-white px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50 transition-colors disabled:opacity-50"
+          className="inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-lg border border-red-200 bg-white px-3 text-xs font-bold text-red-700 transition-colors hover:bg-red-50 disabled:opacity-50"
         >
+          <RotateCcw className={cn('h-3.5 w-3.5', retrying && 'animate-spin motion-reduce:animate-none')} aria-hidden="true" />
           {retrying ? 'Chargement…' : 'Réessayer'}
         </button>
       )}
@@ -345,7 +403,7 @@ export function Alert({
   return (
     <div
       className={cn(
-        'rounded-xl border px-5 py-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between',
+        'flex flex-col gap-2 rounded-2xl border px-5 py-4 sm:flex-row sm:items-center sm:justify-between',
         styles[variant]
       )}
     >
@@ -378,7 +436,7 @@ export function Pagination({
   const to = Math.min((page + 1) * pageSize, total);
 
   return (
-    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between w-full">
+    <nav aria-label="Pagination" className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
       <p className="text-xs text-slate-500 font-medium">
         {total === 0 ? '0 résultat' : `${from}–${to} sur ${total}`}
       </p>
@@ -387,9 +445,10 @@ export function Pagination({
           type="button"
           onClick={onPrev}
           disabled={page === 0}
-          className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          className="inline-flex min-h-9 items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 transition-colors hover:bg-[#F5F6F8] disabled:cursor-not-allowed disabled:opacity-40"
         >
-          ← Précédent
+          <ChevronLeft className="h-3.5 w-3.5" aria-hidden="true" />
+          Précédent
         </button>
         <span className="text-xs text-slate-500 tabular-nums">
           {page + 1} / {pageCount}
@@ -398,12 +457,13 @@ export function Pagination({
           type="button"
           onClick={onNext}
           disabled={page >= pageCount - 1}
-          className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          className="inline-flex min-h-9 items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 transition-colors hover:bg-[#F5F6F8] disabled:cursor-not-allowed disabled:opacity-40"
         >
-          Suivant →
+          Suivant
+          <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
         </button>
       </div>
-    </div>
+    </nav>
   );
 }
 
@@ -422,12 +482,12 @@ export function Btn({
   loading?: boolean;
 }) {
   const base =
-    'inline-flex items-center justify-center gap-2 font-medium rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed';
+    'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl font-semibold outline-none transition-colors focus-visible:ring-2 focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50';
   const variants = {
     primary:
-      'bg-[#E63946] text-white hover:bg-[#C92F3B] focus-visible:ring-[#E63946]/50 shadow-sm',
+      'bg-[#E63946] font-bold text-white shadow-[0_10px_20px_-12px_rgba(230,57,70,0.8)] hover:bg-[#C92F3B] focus-visible:ring-[#0B1220]',
     secondary:
-      'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 focus-visible:ring-slate-400/50',
+      'border border-slate-200 bg-white text-[#0B1220] hover:border-slate-300 hover:bg-[#F8F9FA] focus-visible:ring-[#0B1220]/30',
     outline:
       'bg-transparent border border-slate-300 text-slate-700 hover:bg-slate-50 focus-visible:ring-slate-400/50',
     danger:
@@ -436,8 +496,8 @@ export function Btn({
       'text-slate-600 hover:bg-slate-100 hover:text-slate-900 focus-visible:ring-slate-400/50',
   };
   const sizes = {
-    sm: 'h-8 px-3 text-xs',
-    md: 'h-9 px-4 text-sm',
+    sm: 'h-9 px-3 text-xs',
+    md: 'h-10 px-4 text-sm',
   };
   return (
     <button
@@ -448,7 +508,8 @@ export function Btn({
     >
       {loading && (
         <svg
-          className="h-3.5 w-3.5 animate-spin text-current"
+          className="h-3.5 w-3.5 animate-spin text-current motion-reduce:animate-none"
+          aria-hidden="true"
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"
@@ -487,23 +548,14 @@ export function SearchInput({
 }) {
   return (
     <div className={cn('relative', className)}>
-      <svg
-        className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        strokeWidth={2}
-        aria-hidden="true"
-      >
-        <circle cx="11" cy="11" r="8" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35" />
-      </svg>
+      <Search className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />
       <input
         type="search"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder ?? 'Rechercher…'}
-        className="h-9 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-4 text-sm text-slate-900 placeholder-slate-400 outline-none transition focus:border-[#E63946] focus:ring-2 focus:ring-[#E63946]/20"
+        aria-label={placeholder ?? 'Rechercher'}
+        className="h-10 w-full rounded-xl border border-slate-200 bg-white ps-9 pe-4 text-sm text-[#0B1220] outline-none transition-colors placeholder:text-slate-400 hover:border-slate-300 focus:border-[#0B1220] focus:ring-4 focus:ring-[#0B1220]/8"
       />
     </div>
   );
@@ -525,8 +577,9 @@ export function SelectFilter({
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
+      aria-label={options[0]?.label}
       className={cn(
-        'h-9 rounded-lg border border-slate-200 bg-white px-3 pr-8 text-sm text-slate-700 outline-none transition focus:border-[#E63946] focus:ring-2 focus:ring-[#E63946]/20 cursor-pointer',
+        'h-10 cursor-pointer rounded-xl border border-slate-200 bg-white ps-3 pe-8 text-sm font-medium text-[#0B1220] outline-none transition-colors hover:border-slate-300 focus:border-[#0B1220] focus:ring-4 focus:ring-[#0B1220]/8',
         className
       )}
     >

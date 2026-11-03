@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useEffect, useRef, useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
@@ -10,30 +10,29 @@ import {
   Building2,
   Car,
   Users,
-  DollarSign,
   BarChart3,
   Shield,
   Bell,
   Settings,
   ScrollText,
   Activity,
-  ChevronLeft,
-  ChevronRight,
   ChevronDown,
-  ArrowLeft,
   LogOut,
   Menu,
   X,
-  Globe,
   ExternalLink,
   ShieldCheck,
   Sparkles,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { fetchClientAuthProfile, type ClientAuthProfile } from '@/lib/auth/client';
 
 /* ── Navigation items ──────────────────────────────────────────────── */
-const NAV_GROUPS = [
+type NavItemDef = { href: string; label: string; icon: typeof LayoutDashboard; exact?: boolean };
+
+const NAV_GROUPS: { label: string; items: NavItemDef[] }[] = [
   {
     label: 'Opérations',
     items: [
@@ -48,7 +47,7 @@ const NAV_GROUPS = [
     label: 'Finance',
     items: [
       { href: '/admin/finance', label: 'Abonnements & MRR', icon: Sparkles },
-      { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
+      { href: '/admin/analytics', label: 'Statistiques', icon: BarChart3 },
     ],
   },
   {
@@ -57,31 +56,78 @@ const NAV_GROUPS = [
       { href: '/admin/permissions', label: 'Permissions', icon: Shield },
       { href: '/admin/notifications', label: 'Notifications', icon: Bell },
       { href: '/admin/settings', label: 'Paramètres', icon: Settings },
-      { href: '/admin/audit', label: 'Audit logs', icon: ScrollText },
-      { href: '/admin/health', label: 'System Health', icon: Activity },
+      { href: '/admin/audit', label: 'Journal d’audit', icon: ScrollText },
+      { href: '/admin/health', label: 'État du système', icon: Activity },
     ],
   },
 ];
+
+const ROLE_LABEL: Record<string, string> = {
+  SUPER_ADMIN: 'Super administrateur',
+  ADMIN: 'Administrateur',
+  SUPPORT: 'Support',
+};
+
+function useIsActive() {
+  const pathname = usePathname();
+  return (item: NavItemDef) =>
+    item.exact ? pathname === item.href : pathname === item.href || pathname.startsWith(`${item.href}/`);
+}
+
+/* ── Préférence « sidebar réduite » (persistée, sans flash d'hydratation) ── */
+const COLLAPSE_KEY = 'cardrive:admin-sidebar-collapsed';
+const COLLAPSE_EVENT = 'cardrive:admin-sidebar';
+
+function readCollapsed() {
+  try {
+    return window.localStorage.getItem(COLLAPSE_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function subscribeCollapsed(callback: () => void) {
+  window.addEventListener(COLLAPSE_EVENT, callback);
+  window.addEventListener('storage', callback);
+  return () => {
+    window.removeEventListener(COLLAPSE_EVENT, callback);
+    window.removeEventListener('storage', callback);
+  };
+}
+
+function useSidebarCollapsed() {
+  const collapsed = useSyncExternalStore(subscribeCollapsed, readCollapsed, () => false);
+  const toggle = useCallback(() => {
+    try {
+      window.localStorage.setItem(COLLAPSE_KEY, readCollapsed() ? '0' : '1');
+    } catch {
+      /* stockage indisponible : la préférence n'est simplement pas mémorisée */
+    }
+    window.dispatchEvent(new Event(COLLAPSE_EVENT));
+  }, []);
+  return [collapsed, toggle] as const;
+}
 
 /* ── Logo ──────────────────────────────────────────────────────────── */
 function SidebarLogo({ collapsed }: { collapsed: boolean }) {
   return (
     <Link
       href="/admin"
-      className="flex items-center gap-2.5 transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E63946]/60 rounded-md"
+      aria-label="CarDrive Admin — vue d'ensemble"
+      className="flex items-center gap-2.5 rounded-md outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-[#E63946]/60"
     >
-      <div className={cn('relative shrink-0', collapsed ? 'h-7 w-7' : 'h-8 w-30')}>
+      <div className={cn('relative shrink-0', collapsed ? 'h-7 w-7' : 'h-8 w-28')}>
         <Image
           src="/logo_12.png"
-          alt="CarDrive"
+          alt=""
           fill
-          sizes={collapsed ? '28px' : '120px'}
+          sizes={collapsed ? '28px' : '112px'}
           className="object-contain object-left"
           priority
         />
       </div>
       {!collapsed && (
-        <span className="rounded bg-[#E63946] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white leading-none">
+        <span className="rounded-md bg-[#E63946] px-1.5 py-0.5 text-[10px] font-bold uppercase leading-none tracking-wider text-white">
           Admin
         </span>
       )}
@@ -89,42 +135,53 @@ function SidebarLogo({ collapsed }: { collapsed: boolean }) {
   );
 }
 
-/* ── Nav item ──────────────────────────────────────────────────────── */
-function NavItem({
-  item,
-  collapsed,
-  active,
-}: {
-  item: (typeof NAV_GROUPS)[0]['items'][0];
-  collapsed: boolean;
-  active: boolean;
-}) {
-  const Icon = item.icon;
+/* ── Nav list (sidebar & drawer) ───────────────────────────────────── */
+function NavGroups({ collapsed = false, onNavigate }: { collapsed?: boolean; onNavigate?: () => void }) {
+  const isActive = useIsActive();
   return (
-    <Link
-      href={item.href}
-      title={collapsed ? item.label : undefined}
-      aria-current={active ? 'page' : undefined}
-      className={cn(
-        'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150 outline-none focus-visible:ring-2 focus-visible:ring-[#E63946]/60',
-        collapsed && 'justify-center px-2',
-        active
-          ? 'bg-[#E63946]/10 text-[#E63946]'
-          : 'text-slate-400 hover:bg-white/5 hover:text-white'
-      )}
-    >
-      <Icon
-        aria-hidden="true"
-        className={cn(
-          'shrink-0 transition-colors',
-          collapsed ? 'h-5 w-5' : 'h-4.5 w-4.5',
-          active ? 'text-[#E63946]' : 'group-hover:text-white'
-        )}
-      />
-      {!collapsed && <span className="truncate">{item.label}</span>}
-    </Link>
+    <nav aria-label="Navigation administration" className="flex-1 overflow-y-auto px-3 py-4">
+      {NAV_GROUPS.map((group, groupIndex) => (
+        <div key={group.label} className={cn(groupIndex > 0 && 'mt-5')}>
+          {collapsed ? (
+            groupIndex > 0 && <div className="mx-3 mb-3 h-px bg-white/10" aria-hidden="true" />
+          ) : (
+            <p className="mb-1.5 px-3 text-[11px] font-bold uppercase tracking-[0.16em] text-slate-500">{group.label}</p>
+          )}
+          <ul className="space-y-0.5">
+            {group.items.map((item) => {
+              const Icon = item.icon;
+              const active = isActive(item);
+              return (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    onClick={onNavigate}
+                    title={collapsed ? item.label : undefined}
+                    aria-label={collapsed ? item.label : undefined}
+                    aria-current={active ? 'page' : undefined}
+                    className={cn(
+                      'flex min-h-10 items-center gap-3 rounded-xl px-3 text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-[#E63946]',
+                      collapsed && 'justify-center px-0',
+                      active
+                        ? 'bg-white font-bold text-[#0B1220] shadow-sm'
+                        : 'font-medium text-slate-400 hover:bg-white/5 hover:text-white'
+                    )}
+                  >
+                    <Icon aria-hidden="true" className={cn('h-4.5 w-4.5 shrink-0', active && 'text-[#E63946]')} />
+                    {!collapsed && <span className="truncate">{item.label}</span>}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ))}
+    </nav>
   );
 }
+
+const footerLink =
+  'flex min-h-10 w-full items-center gap-2.5 rounded-xl px-3 text-sm font-medium text-slate-400 outline-none transition-colors hover:bg-white/5 hover:text-white focus-visible:ring-2 focus-visible:ring-[#E63946]/60 disabled:opacity-50';
 
 /* ── Sidebar ───────────────────────────────────────────────────────── */
 export function AdminSidebar({
@@ -138,90 +195,56 @@ export function AdminSidebar({
   onLogout: () => void;
   loggingOut: boolean;
 }) {
-  const pathname = usePathname();
-
-  function isActive(item: { href: string; exact?: boolean }) {
-    if (item.exact) return pathname === item.href;
-    return pathname.startsWith(item.href);
-  }
-
   return (
     <aside
       className={cn(
-        'hidden lg:flex flex-col bg-[#0B1220] text-white transition-all duration-300 ease-in-out shrink-0 h-screen sticky top-0',
-        collapsed ? 'w-16' : 'w-60'
+        'sticky top-0 hidden h-screen shrink-0 flex-col bg-[#0B1220] text-white transition-[width] duration-300 ease-in-out motion-reduce:transition-none lg:flex',
+        collapsed ? 'w-18' : 'w-64'
       )}
     >
-      {/* Logo */}
-      <div className={cn('flex items-center border-b border-white/10 h-16', collapsed ? 'justify-center px-3' : 'px-5')}>
+      <div className={cn('flex h-16 items-center border-b border-white/10', collapsed ? 'justify-center px-3' : 'justify-between ps-5 pe-3')}>
         <SidebarLogo collapsed={collapsed} />
+        {!collapsed && (
+          <button
+            type="button"
+            onClick={onToggle}
+            aria-label="Réduire la barre latérale"
+            title="Réduire"
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 outline-none transition-colors hover:bg-white/5 hover:text-white focus-visible:ring-2 focus-visible:ring-[#E63946]/60"
+          >
+            <PanelLeftClose className="h-4.5 w-4.5" aria-hidden="true" />
+          </button>
+        )}
       </div>
 
-      {/* Nav groups */}
-      <nav aria-label="Navigation administration" className="flex-1 overflow-y-auto py-4 px-2 space-y-6">
-        {NAV_GROUPS.map((group) => (
-          <div key={group.label}>
-            {!collapsed && (
-              <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-widest text-slate-600">
-                {group.label}
-              </p>
-            )}
-            <ul className="space-y-0.5">
-              {group.items.map((item) => (
-                <li key={item.href}>
-                  <NavItem item={item} collapsed={collapsed} active={isActive(item)} />
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-      </nav>
+      <NavGroups collapsed={collapsed} />
 
-      {/* Footer actions */}
-      <div className={cn('border-t border-white/10 p-3 space-y-0.5', collapsed && 'flex flex-col items-center')}>
+      <div className={cn('space-y-0.5 border-t border-white/10 p-3')}>
+        {collapsed && (
+          <button type="button" onClick={onToggle} aria-label="Étendre la barre latérale" title="Étendre" className={cn(footerLink, 'justify-center px-0')}>
+            <PanelLeftOpen aria-hidden="true" className="h-4.5 w-4.5 shrink-0" />
+          </button>
+        )}
         <Link
           href="/"
-          title={collapsed ? 'Retour au site' : undefined}
-          className={cn(
-            'flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-slate-400 transition-colors hover:bg-white/5 hover:text-white outline-none focus-visible:ring-2 focus-visible:ring-[#E63946]/60',
-            collapsed && 'justify-center px-2'
-          )}
+          target="_blank"
+          title={collapsed ? 'Voir le site' : undefined}
+          aria-label={collapsed ? 'Voir le site (nouvel onglet)' : undefined}
+          className={cn(footerLink, collapsed && 'justify-center px-0')}
         >
-          <ArrowLeft aria-hidden="true" className="h-4 w-4 shrink-0" />
-          {!collapsed && <span>Retour au site</span>}
+          <ExternalLink aria-hidden="true" className="h-4 w-4 shrink-0" />
+          {!collapsed && <span>Voir le site</span>}
         </Link>
         <button
           type="button"
           onClick={onLogout}
           disabled={loggingOut}
-          title={collapsed ? 'Déconnexion' : undefined}
-          className={cn(
-            'flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-slate-400 transition-colors hover:bg-white/5 hover:text-white outline-none focus-visible:ring-2 focus-visible:ring-[#E63946]/60 disabled:opacity-50',
-            collapsed && 'justify-center px-2'
-          )}
+          title={collapsed ? 'Se déconnecter' : undefined}
+          aria-label={collapsed ? 'Se déconnecter' : undefined}
+          className={cn(footerLink, collapsed && 'justify-center px-0')}
         >
           <LogOut aria-hidden="true" className="h-4 w-4 shrink-0" />
           {!collapsed && <span>{loggingOut ? 'Déconnexion…' : 'Se déconnecter'}</span>}
-        </button>
-
-        {/* Collapse toggle */}
-        <button
-          type="button"
-          onClick={onToggle}
-          aria-label={collapsed ? 'Étendre la sidebar' : 'Réduire la sidebar'}
-          className={cn(
-            'flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-slate-600 transition-colors hover:bg-white/5 hover:text-slate-400 outline-none focus-visible:ring-2 focus-visible:ring-[#E63946]/60 mt-2',
-            collapsed && 'justify-center px-2'
-          )}
-        >
-          {collapsed ? (
-            <ChevronRight aria-hidden="true" className="h-4 w-4 shrink-0" />
-          ) : (
-            <>
-              <ChevronLeft aria-hidden="true" className="h-4 w-4 shrink-0" />
-              <span>Réduire</span>
-            </>
-          )}
         </button>
       </div>
     </aside>
@@ -240,93 +263,91 @@ export function AdminMobileDrawer({
   onLogout: () => void;
   loggingOut: boolean;
 }) {
-  const pathname = usePathname();
+  const closeRef = useRef<HTMLButtonElement>(null);
 
-  function isActive(item: { href: string; exact?: boolean }) {
-    if (item.exact) return pathname === item.href;
-    return pathname.startsWith(item.href);
-  }
+  useEffect(() => {
+    if (!open) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    closeRef.current?.focus();
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [open, onClose]);
 
   if (!open) return null;
 
   return (
-    <>
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
-        onClick={onClose}
-        aria-hidden="true"
-      />
-
-      {/* Drawer */}
-      <aside className="fixed inset-y-0 left-0 z-50 w-72 bg-[#0B1220] text-white flex flex-col lg:hidden shadow-2xl">
-        <div className="flex items-center justify-between h-16 px-5 border-b border-white/10">
+    <div className="lg:hidden">
+      <div className="fixed inset-0 z-40 bg-[#0B1220]/60 backdrop-blur-sm" onClick={onClose} aria-hidden="true" />
+      <aside
+        role="dialog"
+        aria-modal="true"
+        aria-label="Menu administration"
+        className="fixed inset-y-0 start-0 z-50 flex w-[min(20rem,86vw)] flex-col bg-[#0B1220] text-white shadow-2xl"
+      >
+        <div className="flex h-16 items-center justify-between border-b border-white/10 ps-5 pe-3">
           <SidebarLogo collapsed={false} />
           <button
+            ref={closeRef}
             type="button"
             onClick={onClose}
             aria-label="Fermer le menu"
-            className="rounded-lg p-1.5 text-slate-400 hover:text-white transition-colors"
+            className="flex h-10 w-10 items-center justify-center rounded-lg text-slate-400 outline-none transition-colors hover:bg-white/5 hover:text-white focus-visible:ring-2 focus-visible:ring-[#E63946]/60"
           >
-            <X className="h-5 w-5" />
+            <X className="h-5 w-5" aria-hidden="true" />
           </button>
         </div>
 
-        <nav aria-label="Navigation administration" className="flex-1 overflow-y-auto py-4 px-3 space-y-6">
-          {NAV_GROUPS.map((group) => (
-            <div key={group.label}>
-              <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-widest text-slate-600">
-                {group.label}
-              </p>
-              <ul className="space-y-0.5">
-                {group.items.map((item) => (
-                  <li key={item.href}>
-                    <Link
-                      href={item.href}
-                      onClick={onClose}
-                      aria-current={isActive(item) ? 'page' : undefined}
-                      className={cn(
-                        'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
-                        isActive(item)
-                          ? 'bg-[#E63946]/10 text-[#E63946]'
-                          : 'text-slate-400 hover:bg-white/5 hover:text-white'
-                      )}
-                    >
-                      <item.icon aria-hidden="true" className="h-4.5 w-4.5 shrink-0" />
-                      {item.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </nav>
+        <NavGroups onNavigate={onClose} />
 
-        <div className="border-t border-white/10 p-3 space-y-0.5">
-          <Link
-            href="/"
-            onClick={onClose}
-            className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-slate-400 hover:bg-white/5 hover:text-white transition-colors"
-          >
-            <ArrowLeft className="h-4 w-4 shrink-0" />
-            Retour au site
+        <div className="space-y-0.5 border-t border-white/10 p-3">
+          <Link href="/" target="_blank" onClick={onClose} className={footerLink}>
+            <ExternalLink className="h-4 w-4 shrink-0" aria-hidden="true" />
+            Voir le site
           </Link>
-          <button
-            type="button"
-            onClick={onLogout}
-            disabled={loggingOut}
-            className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-slate-400 hover:bg-white/5 hover:text-white transition-colors disabled:opacity-50"
-          >
-            <LogOut className="h-4 w-4 shrink-0" />
+          <button type="button" onClick={onLogout} disabled={loggingOut} className={footerLink}>
+            <LogOut className="h-4 w-4 shrink-0" aria-hidden="true" />
             {loggingOut ? 'Déconnexion…' : 'Se déconnecter'}
           </button>
         </div>
       </aside>
-    </>
+    </div>
   );
 }
 
-/* ── Top bar (desktop) ─────────────────────────────────────────────── */
+/* ── Avatar ────────────────────────────────────────────────────────── */
+function Avatar({ profile, size }: { profile: ClientAuthProfile | null; size: 'sm' | 'md' }) {
+  const custom = profile?.avatarUrl || profile?.agencyLogoUrl;
+  const initials = (profile?.displayName || 'A')
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part.charAt(0).toUpperCase())
+    .join('');
+  return (
+    <span
+      aria-hidden="true"
+      className={cn(
+        'flex shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#0B1220] font-bold text-white',
+        size === 'sm' ? 'h-9 w-9 text-xs' : 'h-11 w-11 text-sm'
+      )}
+    >
+      {custom ? (
+        // eslint-disable-next-line @next/next/no-img-element -- avatar utilisateur (URL distante)
+        <img src={custom} alt="" className="h-full w-full object-cover" />
+      ) : (
+        initials
+      )}
+    </span>
+  );
+}
+
+/* ── Top bar ───────────────────────────────────────────────────────── */
 export function AdminTopBar({
   title,
   subtitle,
@@ -366,191 +387,115 @@ export function AdminTopBar({
   }, [loadProfile]);
 
   useEffect(() => {
+    if (!profileMenuOpen) return;
     function handleClickOutside(event: MouseEvent) {
-      if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
-        setProfileMenuOpen(false);
-      }
+      if (profileRef.current && !profileRef.current.contains(event.target as Node)) setProfileMenuOpen(false);
     }
-    if (profileMenuOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') setProfileMenuOpen(false);
     }
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
     };
   }, [profileMenuOpen]);
 
-  const customAvatar = userProfile?.avatarUrl || userProfile?.agencyLogoUrl;
-  const avatarSrc = customAvatar || '/logo_12.png';
-  const isCustom = Boolean(customAvatar);
-  const displayName = userProfile?.displayName || 'Super Admin';
-  const email = userProfile?.email || 'admin@cardrive.ma';
-  const roleCode = userProfile?.role || 'SUPER_ADMIN';
+  const displayName = userProfile?.displayName || 'Administrateur';
+  const email = userProfile?.email || '';
+  const roleLabel = userProfile ? ROLE_LABEL[userProfile.role] ?? userProfile.role : '';
+
+  const menuLink =
+    'flex min-h-10 items-center gap-2.5 rounded-lg px-3 text-sm font-medium text-slate-700 outline-none transition-colors hover:bg-[#F5F6F8] focus-visible:bg-[#F5F6F8]';
 
   return (
-    <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/90 h-16 sm:h-17.5 flex items-center px-4 sm:px-6 lg:px-8 gap-3 sm:gap-4 transition-all shadow-2xs">
-      {/* Mobile menu button */}
+    <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-slate-200/80 bg-white/90 px-4 backdrop-blur-md sm:px-6 lg:h-18 lg:px-8">
       <button
         type="button"
         onClick={onMobileMenu}
         aria-label="Ouvrir le menu"
-        className="lg:hidden flex items-center justify-center h-9 w-9 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors shadow-2xs"
+        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 outline-none transition-colors hover:bg-[#F5F6F8] focus-visible:ring-2 focus-visible:ring-[#0B1220]/30 lg:hidden"
       >
-        <Menu className="h-5 w-5" />
+        <Menu className="h-5 w-5" aria-hidden="true" />
       </button>
 
-      {/* Breadcrumbs & Title */}
-      <div className="flex-1 min-w-0">
-        <div className="hidden sm:flex items-center gap-1.5 text-[11px] font-medium text-slate-400 mb-0.5">
-          <span>Plateforme CarDrive</span>
-          <span className="text-slate-300">/</span>
-          <span className="text-slate-600 font-semibold">{title}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight leading-none truncate">
-            {title}
-          </h1>
-          {subtitle && (
-            <span className="hidden md:inline-block text-xs text-slate-400 truncate font-normal">
-              · {subtitle}
-            </span>
-          )}
-        </div>
+      <div className="min-w-0 flex-1">
+        <h1 className="truncate text-base font-extrabold tracking-tight text-[#0B1220] sm:text-lg">{title}</h1>
+        {subtitle && <p className="hidden truncate text-xs text-slate-500 sm:block">{subtitle}</p>}
       </div>
 
-      {/* Center / Status Indicator */}
-      <div className="hidden xl:flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200/80 text-emerald-800 text-xs font-semibold shadow-2xs">
-        <span className="relative flex h-2 w-2">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-        </span>
-        <span>Marketplace Active · Oriental (Nador)</span>
-      </div>
+      {actions && <div className="hidden items-center gap-2 md:flex">{actions}</div>}
 
-      {/* Secondary Quick Action Tools */}
-      <div className="flex items-center gap-2">
-        {/* Link to public website */}
-        <Link
-          href="/"
-          target="_blank"
-          className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors shadow-2xs"
-          title="Ouvrir la marketplace client dans un nouvel onglet"
-        >
-          <Globe className="h-3.5 w-3.5 text-slate-400" />
-          <span>Voir le site</span>
-          <ExternalLink className="h-3 w-3 text-slate-400" />
-        </Link>
+      <Link
+        href="/admin/notifications"
+        aria-label="Notifications"
+        title="Notifications"
+        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 outline-none transition-colors hover:bg-[#F5F6F8] hover:text-[#0B1220] focus-visible:ring-2 focus-visible:ring-[#0B1220]/30"
+      >
+        <Bell className="h-4.5 w-4.5" aria-hidden="true" />
+      </Link>
 
-        {/* Notifications / Audit quick link */}
-        <Link
-          href="/admin/audit"
-          className="relative inline-flex items-center justify-center h-9 w-9 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors shadow-2xs"
-          title="Journaux d’audit de la plateforme"
-          aria-label="Audit logs"
-        >
-          <Bell className="h-4 w-4" />
-          <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-[#E63946] ring-2 ring-white"></span>
-        </Link>
-      </div>
-
-      {/* Page Actions prop */}
-      {actions && <div className="flex items-center gap-2">{actions}</div>}
-
-      {/* Interactive User Profile & Dropdown */}
-      <div className="relative pl-2 border-l border-slate-200" ref={profileRef}>
+      <div className="relative" ref={profileRef}>
         <button
           type="button"
           onClick={() => setProfileMenuOpen((prev) => !prev)}
-          className="flex items-center gap-2.5 rounded-xl p-1.5 hover:bg-slate-100/80 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[#E63946]/50"
+          className="flex items-center gap-2.5 rounded-xl p-1 outline-none transition-colors hover:bg-[#F5F6F8] focus-visible:ring-2 focus-visible:ring-[#0B1220]/30 sm:pe-2.5"
           aria-expanded={profileMenuOpen}
-          aria-haspopup="true"
+          aria-haspopup="menu"
+          aria-label={`Compte : ${displayName}`}
         >
-          <div className="relative h-8 w-8 sm:h-9 sm:w-9 rounded-xl bg-white flex items-center justify-center shrink-0 shadow-xs border border-slate-200/90 overflow-hidden ring-1 ring-slate-100">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={avatarSrc}
-              alt={displayName}
-              className={isCustom ? "h-full w-full object-cover" : "h-full w-full object-contain p-1"}
-            />
-          </div>
-          <div className="hidden sm:block text-left">
-            <p className="text-xs font-bold text-slate-900 leading-tight flex items-center gap-1">
-              <span className="max-w-30 truncate">{displayName}</span>
-              <ChevronDown
-                className={`h-3 w-3 text-slate-400 transition-transform duration-200 ${
-                  profileMenuOpen ? 'rotate-180 text-slate-700' : ''
-                }`}
-              />
-            </p>
-            <p className="text-[11px] text-slate-500 font-mono max-w-35 truncate">{email}</p>
-          </div>
+          <Avatar profile={userProfile} size="sm" />
+          <span className="hidden min-w-0 text-start md:block">
+            <span className="block max-w-36 truncate text-[13px] font-bold leading-tight text-[#0B1220]">{displayName}</span>
+            <span className="block max-w-36 truncate text-[11px] text-slate-500">{roleLabel || ' '}</span>
+          </span>
+          <ChevronDown
+            aria-hidden="true"
+            className={cn('hidden h-4 w-4 text-slate-400 transition-transform md:block', profileMenuOpen && 'rotate-180')}
+          />
         </button>
 
-        {/* Profile Popover Menu */}
         {profileMenuOpen && (
-          <div className="absolute right-0 top-full mt-2 w-64 rounded-2xl bg-white shadow-2xl border border-slate-200 p-2 text-left z-50 animate-scale-in">
-            {/* Header info card */}
-            <div className="px-3 py-2.5 bg-slate-50 rounded-xl mb-1.5 border border-slate-100 flex items-center gap-2.5">
-              <div className="relative h-10 w-10 rounded-xl bg-white border border-slate-200 shrink-0 overflow-hidden shadow-xs ring-1 ring-slate-100">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={avatarSrc}
-                  alt={displayName}
-                  className={isCustom ? "h-full w-full object-cover" : "h-full w-full object-contain p-1"}
-                />
-              </div>
+          <div role="menu" className="absolute end-0 top-full z-50 mt-2 w-72 rounded-2xl border border-slate-200 bg-white p-2 shadow-[0_24px_60px_-20px_rgba(11,18,32,0.35)]">
+            <div className="mb-1.5 flex items-center gap-3 rounded-xl bg-[#F5F6F8] px-3 py-3">
+              <Avatar profile={userProfile} size="md" />
               <div className="min-w-0 flex-1">
-                <p className="text-xs font-bold text-slate-900 truncate">{displayName}</p>
-                <p className="text-[11px] text-slate-500 font-mono truncate">{email}</p>
-                <div className="mt-1 flex items-center gap-1 text-[10px] font-semibold text-red-700 bg-red-100/70 px-1.5 py-0.5 rounded-md w-fit">
-                  <ShieldCheck className="h-3 w-3" />
-                  <span>Rôle : {roleCode}</span>
-                </div>
+                <p className="truncate text-sm font-bold text-[#0B1220]">{displayName}</p>
+                {email && <p className="truncate text-xs text-slate-500">{email}</p>}
+                {roleLabel && (
+                  <span className="mt-1 inline-flex items-center gap-1 rounded-md bg-[#E63946]/10 px-1.5 py-0.5 text-[11px] font-bold text-[#B4232F]">
+                    <ShieldCheck className="h-3 w-3" aria-hidden="true" />
+                    {roleLabel}
+                  </span>
+                )}
               </div>
             </div>
-
-            {/* Quick Links */}
-            <div className="space-y-0.5 text-xs font-medium text-slate-700">
-              <Link
-                href="/admin/settings"
-                onClick={() => setProfileMenuOpen(false)}
-                className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors"
-              >
-                <Settings className="h-4 w-4 text-slate-400" />
-                <span>Paramètres de la plateforme</span>
-              </Link>
-              <Link
-                href="/admin/permissions"
-                onClick={() => setProfileMenuOpen(false)}
-                className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors"
-              >
-                <Shield className="h-4 w-4 text-slate-400" />
-                <span>Rôles & Permissions</span>
-              </Link>
-              <Link
-                href="/admin/audit"
-                onClick={() => setProfileMenuOpen(false)}
-                className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors"
-              >
-                <ScrollText className="h-4 w-4 text-slate-400" />
-                <span>Journaux d'audit de sécurité</span>
-              </Link>
-            </div>
-
-            {/* Divider */}
+            <Link role="menuitem" href="/admin/settings" onClick={() => setProfileMenuOpen(false)} className={menuLink}>
+              <Settings className="h-4 w-4 text-slate-400" aria-hidden="true" />
+              Paramètres de la plateforme
+            </Link>
+            <Link role="menuitem" href="/admin/permissions" onClick={() => setProfileMenuOpen(false)} className={menuLink}>
+              <Shield className="h-4 w-4 text-slate-400" aria-hidden="true" />
+              Rôles & permissions
+            </Link>
+            <Link role="menuitem" href="/admin/audit" onClick={() => setProfileMenuOpen(false)} className={menuLink}>
+              <ScrollText className="h-4 w-4 text-slate-400" aria-hidden="true" />
+              Journal d’audit
+            </Link>
             <div className="my-1.5 border-t border-slate-100" />
-
-            {/* Logout button */}
             <button
+              role="menuitem"
               type="button"
               onClick={() => {
                 setProfileMenuOpen(false);
                 onLogout();
               }}
               disabled={loggingOut}
-              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
+              className={cn(menuLink, 'w-full font-semibold text-[#B4232F] hover:bg-red-50 disabled:opacity-50')}
             >
-              <LogOut className="h-4 w-4 text-red-500" />
-              <span>{loggingOut ? 'Déconnexion en cours…' : 'Se déconnecter'}</span>
+              <LogOut className="h-4 w-4" aria-hidden="true" />
+              {loggingOut ? 'Déconnexion en cours…' : 'Se déconnecter'}
             </button>
           </div>
         )}
@@ -571,9 +516,10 @@ export function AdminShell({
   actions?: React.ReactNode;
   children: React.ReactNode;
 }) {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, toggleCollapsed] = useSidebarCollapsed();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  const closeMobile = useCallback(() => setMobileOpen(false), []);
 
   const handleLogout = useCallback(async () => {
     setLoggingOut(true);
@@ -585,25 +531,18 @@ export function AdminShell({
   }, []);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#F1F5F9]">
-      {/* Desktop Sidebar */}
-      <AdminSidebar
-        collapsed={collapsed}
-        onToggle={() => setCollapsed((c) => !c)}
-        onLogout={handleLogout}
-        loggingOut={loggingOut}
-      />
+    <div className="flex h-screen overflow-hidden bg-[#F5F6F8]">
+      <a
+        href="#admin-main"
+        className="sr-only z-60 rounded-lg bg-[#0B1220] px-4 py-2 text-sm font-bold text-white focus:not-sr-only focus:fixed focus:start-4 focus:top-4"
+      >
+        Aller au contenu
+      </a>
 
-      {/* Mobile Drawer */}
-      <AdminMobileDrawer
-        open={mobileOpen}
-        onClose={() => setMobileOpen(false)}
-        onLogout={handleLogout}
-        loggingOut={loggingOut}
-      />
+      <AdminSidebar collapsed={collapsed} onToggle={toggleCollapsed} onLogout={handleLogout} loggingOut={loggingOut} />
+      <AdminMobileDrawer open={mobileOpen} onClose={closeMobile} onLogout={handleLogout} loggingOut={loggingOut} />
 
-      {/* Main content */}
-      <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <AdminTopBar
           title={title}
           subtitle={subtitle}
@@ -612,10 +551,8 @@ export function AdminShell({
           onLogout={handleLogout}
           loggingOut={loggingOut}
         />
-        <main className="flex-1 overflow-y-auto">
-          <div className="mx-auto max-w-360 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
-            {children}
-          </div>
+        <main id="admin-main" tabIndex={-1} className="flex-1 overflow-y-auto outline-none">
+          <div className="mx-auto max-w-360 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">{children}</div>
         </main>
       </div>
     </div>

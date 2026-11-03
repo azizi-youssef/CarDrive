@@ -130,7 +130,7 @@ export function AdminCustomersClient() {
   useRealtimeRefresh({
     tables: ['bookings'],
     onRefresh: () => loadData(false),
-    pollingIntervalMs: 25_000,
+    pollingIntervalMs: 60_000, // Realtime pousse les changements ; le polling ne sert que de filet de sécurité
   });
 
   const totalPages = Math.max(1, Math.ceil(customers.length / PAGE_SIZE));
@@ -173,34 +173,41 @@ export function AdminCustomersClient() {
   return (
     <div className="space-y-6">
       {/* KPIs Clients */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <KpiCard
+          loading={loading && !kpis}
           label="Total clients uniques"
           value={kpis?.totalCustomers ?? 0}
           sub="Conducteurs enregistrés"
           icon={Users}
-          iconColor="text-blue-600"
+          tone="info"
         />
         <KpiCard
+          loading={loading && !kpis}
           label="Clients fidélisés"
           value={kpis?.repeatCustomers ?? 0}
-          sub={`${kpis?.repeatRate ?? 0}% taux de récurrence`}
+          sub={`${kpis?.repeatRate ?? 0} % reviennent louer`}
+          progress={kpis?.repeatRate ?? 0}
           icon={Repeat}
-          iconColor="text-emerald-600"
+          tone="success"
         />
         <KpiCard
+          loading={loading && !kpis}
           label="Dépense moyenne"
-          value={`${kpis?.averageSpendPerCustomer.toLocaleString('fr-FR') ?? 0} DH`}
+          value={(kpis?.averageSpendPerCustomer ?? 0).toLocaleString('fr-FR')}
+          unit="DH"
           sub="Par client"
           icon={CreditCard}
-          iconColor="text-indigo-600"
+          tone="neutral"
         />
         <KpiCard
+          loading={loading && !kpis}
           label="Volume total généré"
-          value={`${kpis?.totalVolume.toLocaleString('fr-FR') ?? 0} DH`}
+          value={(kpis?.totalVolume ?? 0).toLocaleString('fr-FR')}
+          unit="DH"
           sub="Locations cumulées"
           icon={DollarSign}
-          iconColor="text-violet-600"
+          tone="neutral"
         />
       </div>
 

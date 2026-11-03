@@ -8,8 +8,11 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const decoded = decodeURIComponent(slug).replace(/-/g, ' ');
-  const formattedName = decoded.charAt(0).toUpperCase() + decoded.slice(1);
+  // « hyundai-tucson-2026-w7lry » → « Hyundai Tucson 2026 » (le suffixe aléatoire après l'année est retiré)
+  const decoded = decodeURIComponent(slug)
+    .replace(/-((?:19|20)\d{2})-[a-z0-9]{3,8}$/i, '-$1')
+    .replace(/-/g, ' ');
+  const formattedName = decoded.replace(/\b\p{L}/gu, (letter) => letter.toUpperCase());
 
   return {
     title: `Louer ${formattedName} à Nador | CarDrive`,

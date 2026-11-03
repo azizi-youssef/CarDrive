@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { ConfirmDialog } from '@/components/agency/shell/Dialog';
 import Image from 'next/image';
 import {
   CalendarDays,
@@ -50,11 +51,15 @@ export function AgencyCalendarPanel({
   agencyId,
   canManage,
   initialVehicleId,
+  onNotify,
 }: {
   agencyId: string;
   canManage: boolean;
   initialVehicleId?: string;
+  /** Retour utilisateur (bandeau de notification du portail) */
+  onNotify?: (kind: 'success' | 'error', message: string) => void;
 }) {
+  const [pendingUnblock, setPendingUnblock] = useState<CalendarEvent | null>(null);
   const [vehicles, setVehicles] = useState<CalendarVehicle[]>([]);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -226,9 +231,12 @@ export function AgencyCalendarPanel({
     }
   };
 
-  const handleUnblock = async (event: CalendarEvent) => {
+  const handleUnblock = async (event: CalendarEvent, confirmed = false) => {
     if (event.type === 'BOOKING') return;
-    if (!confirm('Confirmer le déblocage de cette période ?')) return;
+    if (!confirmed) {
+      setPendingUnblock(event);
+      return;
+    }
 
     setUnblocking(true);
     try {
@@ -238,11 +246,13 @@ export function AgencyCalendarPanel({
       );
       if (!res.ok) throw new Error('Impossible de débloquer');
       setSelectedEvent(null);
+      onNotify?.('success', 'Période débloquée.');
       void loadCalendar();
-    } catch (err: any) {
-      alert(err.message || 'Erreur lors du déblocage');
+    } catch (err: unknown) {
+      onNotify?.('error', err instanceof Error && err.message ? err.message : 'Erreur lors du déblocage.');
     } finally {
       setUnblocking(false);
+      setPendingUnblock(null);
     }
   };
 
@@ -251,7 +261,6 @@ export function AgencyCalendarPanel({
       {/* Header Controls */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[#0B1220]">Calendrier & Disponibilités</h1>
           <p className="text-sm text-slate-500">
             Suivi des réservations en temps réel, maintenances et blocages manuels.
           </p>
@@ -686,6 +695,16 @@ export function AgencyCalendarPanel({
             </form>
           </div>
         </div>
+      )}
+      {pendingUnblock && (
+        <ConfirmDialog
+          title="Débloquer cette période ?"
+          message="Le véhicule redeviendra réservable par les clients sur ces dates."
+          confirmLabel="Débloquer"
+          busy={unblocking}
+          onConfirm={() => void handleUnblock(pendingUnblock, true)}
+          onCancel={() => setPendingUnblock(null)}
+        />
       )}
     </div>
   );

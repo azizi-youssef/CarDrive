@@ -21,6 +21,7 @@ import {
 import type { Vehicle } from '@/types';
 import { cn, formatNumber } from '@/lib/utils';
 import { AgencyLogo } from '@/components/agencies/AgencyLogo';
+import { isOptimizableImage } from '@/lib/utils/images';
 
 interface VehicleCardProps {
   vehicle: Vehicle;
@@ -71,16 +72,6 @@ const FUEL_LABELS: Record<string, string> = {
 
 function getFuelLabel(fuel: Vehicle['fuel']): string {
   return FUEL_LABELS[fuel] ?? fuel;
-}
-
-/** Seules les images locales ou du stockage Supabase passent par l'optimiseur Next (remotePatterns). */
-function isOptimizableImage(src: string): boolean {
-  if (src.startsWith('/')) return true;
-  try {
-    return new URL(src).hostname.endsWith('.supabase.co');
-  } catch {
-    return false;
-  }
 }
 
 function formatMad(value: number): string {

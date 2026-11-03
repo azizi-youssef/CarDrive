@@ -53,7 +53,7 @@ export function AdminFleetClient() {
   useRealtimeRefresh({
     tables: ['vehicles'],
     onRefresh: () => load('refresh'),
-    pollingIntervalMs: 20_000,
+    pollingIntervalMs: 60_000, // Realtime pousse les changements ; le polling ne sert que de filet de sécurité
   });
 
   const filtered = useMemo(() => {

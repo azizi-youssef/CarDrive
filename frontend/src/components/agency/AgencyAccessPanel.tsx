@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react
 import type { AgencyMemberRole } from '@cardrive/shared';
 import { AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, Loader2, RefreshCw, Search, Shield, UserPlus, Users, X } from 'lucide-react';
 import type { ClientAuthProfile } from '@/lib/auth/client';
+import { ConfirmDialog } from '@/components/agency/shell/Dialog';
 
 type Member = {
   id: string;
@@ -121,6 +122,7 @@ export default function AgencyAccessPanel({
   const [customersLoading, setCustomersLoading] = useState(false);
   const [notice, setNotice] = useState<Notice>(null);
   const [busy, setBusy] = useState(false);
+  const [pendingRevoke, setPendingRevoke] = useState<Member | null>(null);
   const [email, setEmail] = useState('');
   const [inviteRole, setInviteRole] = useState<AgencyMemberRole>('agency_agent');
   const [dossier, setDossier] = useState<CustomerDossier | null>(null);
@@ -193,9 +195,13 @@ export default function AgencyAccessPanel({
     if (section === 'customers') void loadCustomers(customerPage);
   }, [customerPage, loadCustomers, section]);
 
-  const mutateMember = async (member: Member, action: 'role' | 'revoke', role?: AgencyMemberRole) => {
+  const mutateMember = async (member: Member, action: 'role' | 'revoke', role?: AgencyMemberRole, confirmed = false) => {
     if (busy) return;
-    if (action === 'revoke' && !window.confirm(`Révoquer l’accès de ${member.email} à ${agencyName} ?`)) return;
+    if (action === 'revoke' && !confirmed) {
+      setPendingRevoke(member);
+      return;
+    }
+    setPendingRevoke(null);
     setBusy(true);
     setNotice(null);
     try {
@@ -373,6 +379,17 @@ export default function AgencyAccessPanel({
             {dossier && !dossierLoading && <><div className="mt-5 rounded-xl bg-slate-50 p-4"><h4 className="font-semibold">{dossier.dossier.customer_name}</h4><p className="text-sm">{dossier.dossier.customer_email} · {dossier.dossier.customer_phone}</p><p className="mt-1 text-xs text-slate-500">Dossier {dossier.dossier.reference || dossier.dossier.booking_ref || dossier.dossier.id}</p></div><h4 className="mt-5 font-semibold">Historique des locations</h4><ul className="mt-2 divide-y divide-slate-100">{dossier.history.map((booking) => <li key={booking.id} className="flex flex-wrap justify-between gap-2 py-3 text-sm"><span>{booking.reference || booking.booking_ref} · {booking.vehicle ? `${booking.vehicle.brand} ${booking.vehicle.model}` : 'Véhicule'} · {booking.status}</span><span className="text-slate-500">{booking.start_date} – {booking.end_date}</span></li>)}</ul><Pagination meta={dossier.meta} onChange={(page) => void loadDossierPage(page)} /></>}
           </section>
         </div>
+      )}
+      {pendingRevoke && (
+        <ConfirmDialog
+          title="Révoquer cet accès ?"
+          message={`${pendingRevoke.email} ne pourra plus accéder à l’espace de ${agencyName}.`}
+          confirmLabel="Révoquer l’accès"
+          destructive
+          busy={busy}
+          onConfirm={() => void mutateMember(pendingRevoke, 'revoke', undefined, true)}
+          onCancel={() => setPendingRevoke(null)}
+        />
       )}
     </section>
   );
