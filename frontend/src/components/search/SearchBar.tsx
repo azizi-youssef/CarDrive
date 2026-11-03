@@ -2,8 +2,8 @@
 
 import React, { useId, useState, useSyncExternalStore } from 'react';
 import { useRouter } from 'next/navigation';
-import { MapPin, Calendar, Car, CarFront, Search, type LucideIcon } from 'lucide-react';
-import { LOCATIONS_NADOR, CATEGORIES, POPULAR_BRANDS } from '@/lib/constants/catalog';
+import { MapPin, Calendar, Car, Search, type LucideIcon } from 'lucide-react';
+import { LOCATIONS_NADOR, CATEGORIES } from '@/lib/constants/catalog';
 import {
   addDateDays,
   formatLocalDate,
@@ -60,7 +60,7 @@ function Field({
     >
       <label
         htmlFor={id}
-        className="mb-1 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.08em] text-slate-500"
+        className="mb-0.5 flex items-center gap-1.5 text-xs font-semibold text-slate-500"
       >
         <Icon className="h-3.5 w-3.5 shrink-0 text-[#E63946]" aria-hidden="true" />
         <span className="truncate">{label}</span>
@@ -100,9 +100,8 @@ export function SearchBar({
   const [category, setCategory] = useState(
     CATEGORIES.includes(initialCategory) ? initialCategory : ALL_CATEGORIES_LABEL
   );
-  const [brand, setBrand] = useState(
-    initialBrand && initialBrand !== 'ALL' ? initialBrand : ALL_BRANDS_LABEL
-  );
+  // Marque transmise telle quelle (aucun champ dédié dans le formulaire)
+  const brand = initialBrand && initialBrand !== 'ALL' ? initialBrand : ALL_BRANDS_LABEL;
 
   const { startDate: effectiveStartDate, endDate: effectiveEndDate } =
     getEffectiveRentalDates(startDate, endDate, today);
@@ -132,7 +131,7 @@ export function SearchBar({
       !isValidDateOnly(effectiveEndDate) ||
       effectiveEndDate <= effectiveStartDate
     ) {
-      setDateError('Choisissez un départ à partir d’aujourd’hui et une date de retour ultérieure.');
+      setDateError(t.searchBar.dateError);
       return;
     }
 
@@ -157,7 +156,7 @@ export function SearchBar({
           'grid grid-cols-2 gap-2',
           isCompact
             ? 'md:grid-cols-4 lg:grid-cols-[1.5fr_1fr_1fr_1.1fr_auto]'
-            : 'rounded-2xl sm:rounded-3xl border border-slate-200/80 bg-white p-1.5 lg:grid-cols-[1.3fr_1fr_1fr_1.1fr_1.1fr_auto]'
+            : 'rounded-2xl bg-white p-2 shadow-[0_28px_70px_-28px_rgba(0,0,0,0.6)] ring-1 ring-black/5 sm:rounded-3xl lg:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.1fr)_auto]'
         )}
       >
         {/* Lieu : pleine largeur sur mobile */}
@@ -210,29 +209,12 @@ export function SearchBar({
           </Field>
         </div>
 
-        {/* Marque : masquée dans le catalogue (filtre dédié), conservée dans l'URL */}
-        {!isCompact && (
-        <div className="col-span-1 sm:col-span-1 lg:col-span-1">
-          <Field id={`${uid}-brand`} label="Marque" icon={CarFront}>
-            <select
-              id={`${uid}-brand`}
-              value={brand}
-              onChange={(e) => setBrand(e.target.value)}
-              className={controlClass}
-            >
-              {POPULAR_BRANDS.map((b) => (
-                <option key={b} value={b}>
-                  {b}
-                </option>
-              ))}
-            </select>
-          </Field>
-        </div>
-        )}
+        {/* Pas de champ Marque : le carrousel « Les grandes marques » et le catalogue s'en chargent.
+            Une marque reçue en paramètre (catalogue) reste transmise dans l'URL. */}
 
-        {/* Catégorie : côte à côte avec marque sur mobile */}
-        <div className={cn('lg:col-span-1', isCompact ? 'col-span-2 md:col-span-2' : 'col-span-1')}>
-          <Field id={`${uid}-category`} label="Catégorie" icon={Car}>
+        {/* Catégorie : pleine largeur sur mobile */}
+        <div className={cn('col-span-2 lg:col-span-1', isCompact && 'md:col-span-2')}>
+          <Field id={`${uid}-category`} label={t.searchBar.category} icon={Car}>
             <select
               id={`${uid}-category`}
               value={category}

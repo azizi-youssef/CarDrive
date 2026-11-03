@@ -2,133 +2,81 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Cookie, X, Check, Settings } from 'lucide-react';
+import { Cookie } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
 
 const STORAGE_KEY = 'cardrive_cookie_consent';
 
 type ConsentState = 'accepted' | 'declined' | null;
 
+/**
+ * Bandeau de consentement compact, ancré en bas de l'écran : il ne recouvre plus
+ * le formulaire de recherche du hero (une ligne sur PC, deux blocs serrés sur mobile).
+ */
 export function CookieBanner() {
   const { t, isRTL } = useTranslation();
   const [consent, setConsent] = useState<ConsentState>(null);
-  const [showDetails, setShowDetails] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    const stored = localStorage.getItem(STORAGE_KEY) as ConsentState | null;
-    if (stored === 'accepted' || stored === 'declined') {
-      setConsent(stored);
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY) as ConsentState | null;
+      if (stored === 'accepted' || stored === 'declined') setConsent(stored);
+    } catch {
+      /* stockage indisponible : le bandeau reste affiché */
     }
   }, []);
 
-  function accept() {
-    localStorage.setItem(STORAGE_KEY, 'accepted');
-    setConsent('accepted');
-  }
-
-  function decline() {
-    localStorage.setItem(STORAGE_KEY, 'declined');
-    setConsent('declined');
+  function save(value: Exclude<ConsentState, null>) {
+    try {
+      localStorage.setItem(STORAGE_KEY, value);
+    } catch {
+      /* stockage indisponible : le choix vaut pour la session en cours */
+    }
+    setConsent(value);
   }
 
   if (!mounted || consent !== null) return null;
 
   return (
-    <div
-      role="dialog"
-      aria-modal="false"
+    <section
       aria-label={t.cookie.title}
-      className="fixed bottom-4 left-4 right-4 z-100 md:bottom-6 md:left-auto md:right-6 md:max-w-md"
       dir={isRTL ? 'rtl' : 'ltr'}
+      className="fixed inset-x-0 bottom-0 z-100 border-t border-slate-200 bg-white/95 shadow-[0_-12px_32px_-16px_rgba(11,18,32,0.25)] backdrop-blur-md pb-[env(safe-area-inset-bottom)]"
     >
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-900/15">
-        {/* Header */}
-        <div className="flex items-start justify-between gap-3 bg-[#0B1220] px-5 py-4">
-          <div className="flex items-center gap-2.5">
-            <Cookie className="h-5 w-5 text-amber-400 shrink-0" />
-            <p className="text-sm font-bold text-white">{t.cookie.title}</p>
-          </div>
+      <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-2.5 sm:flex-row sm:py-3 sm:items-center sm:gap-5 sm:px-6 lg:px-8">
+        <p className="flex min-w-0 flex-1 items-start gap-2.5 text-xs leading-snug text-slate-600 sm:text-[13px] sm:items-center">
+          <Cookie className="mt-0.5 h-4 w-4 shrink-0 text-amber-500 sm:mt-0" aria-hidden="true" />
+          <span>
+            {t.cookie.desc}{' '}
+            <Link
+              href="/confidentialite"
+              className="whitespace-nowrap font-semibold text-[#0B1220] underline underline-offset-2 hover:text-[#E63946]"
+            >
+              {t.cookie.privacy}
+            </Link>
+          </span>
+        </p>
+        <div className="flex shrink-0 gap-2">
           <button
-            onClick={decline}
-            aria-label="Fermer"
-            className="rounded-full p-1 text-white/60 transition hover:bg-white/10 hover:text-white"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-
-        {/* Body */}
-        <div className="px-5 py-4">
-          <p className="text-sm text-slate-600 leading-relaxed">
-            {t.cookie.desc}
-          </p>
-
-          {showDetails && (
-            <div className="mt-3 space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
-              {[
-                { name: '🔒 Cookies essentiels', desc: 'Session, authentification, langue. Toujours actifs.', always: true },
-                { name: '📊 Cookies analytiques', desc: 'Mesure d\'audience anonymisée pour améliorer le service.', always: false },
-              ].map(({ name, desc, always }) => (
-                <div key={name} className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-xs font-semibold text-slate-800">{name}</p>
-                    <p className="text-[11px] text-slate-500">{desc}</p>
-                  </div>
-                  <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${always ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'}`}>
-                    {always ? 'Requis' : 'Optionnel'}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <button
-            onClick={() => setShowDetails(!showDetails)}
-            className="mt-2 flex items-center gap-1 text-xs font-semibold text-slate-400 transition hover:text-slate-700"
-          >
-            <Settings className="h-3.5 w-3.5" />
-            {showDetails ? 'Masquer les détails' : 'Voir les détails'}
-          </button>
-        </div>
-
-        {/* Actions */}
-        <div className="flex items-center gap-2 border-t border-slate-100 px-5 py-3">
-          <button
-            id="cookie-accept"
-            onClick={accept}
-            className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-[#0B1220] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800"
-          >
-            <Check className="h-4 w-4" />
-            {t.cookie.accept}
-          </button>
-          <button
+            type="button"
             id="cookie-decline"
-            onClick={decline}
-            className="flex-1 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:bg-slate-50"
+            onClick={() => save('declined')}
+            className="min-h-9 flex-1 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0B1220] sm:min-h-10 sm:flex-none"
           >
             {t.cookie.decline}
           </button>
-        </div>
-
-        {/* Privacy link */}
-        <div className="border-t border-slate-100 px-5 py-2 text-center">
-          <Link
-            href="/confidentialite"
-            className="text-[11px] text-slate-400 hover:text-slate-600 hover:underline transition"
+          <button
+            type="button"
+            id="cookie-accept"
+            onClick={() => save('accepted')}
+            className="min-h-9 flex-1 rounded-xl bg-[#0B1220] px-4 text-sm font-bold text-white transition-colors hover:bg-slate-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#E63946] sm:min-h-10 sm:flex-none"
           >
-            {t.cookie.privacy}
-          </Link>
-          {' · '}
-          <Link
-            href="/mentions-legales"
-            className="text-[11px] text-slate-400 hover:text-slate-600 hover:underline transition"
-          >
-            {t.cookie.mentions}
-          </Link>
+            {t.cookie.accept}
+          </button>
         </div>
       </div>
-    </div>
+    </section>
   );
 }

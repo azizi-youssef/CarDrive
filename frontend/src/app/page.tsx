@@ -11,7 +11,7 @@ import { loginUrl } from '@/lib/auth/login-portals';
 import { useRealtimeRefresh } from '@/lib/supabase/realtime';
 import type { Vehicle, Agency } from '@/types';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
-import { Magnet, GsapReveal } from '@/components/ui/react-bits';
+import { GsapReveal } from '@/components/ui/react-bits';
 
 import {
   AlertCircle,
@@ -57,7 +57,6 @@ export default function HomePage() {
   const { t, isRTL } = useTranslation();
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [agencies, setAgencies] = useState<Agency[]>([]);
-  const [heroLoaded, setHeroLoaded] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
   // Filtres rapides section véhicules
@@ -96,8 +95,6 @@ export default function HomePage() {
 
   useEffect(() => {
     void load();
-    const timer = setTimeout(() => setHeroLoaded(true), 100);
-    return () => clearTimeout(timer);
   }, [load]);
 
   useRealtimeRefresh({
@@ -233,95 +230,64 @@ export default function HomePage() {
     <div className={`min-h-screen bg-[#F8FAFC] text-slate-900${isRTL ? ' is-rtl' : ''}`}>
 
       {/* ================================================================
-          HERO — Compact, recherche directement accessible sans défilement
+          HERO — Contenu affiché dès le premier rendu (aucun fondu bloquant),
+          recherche immédiatement utilisable
       ================================================================= */}
-      <section className="relative overflow-hidden bg-[#070B12] text-white py-8 sm:py-16 lg:py-24">
+      <section className="relative isolate overflow-hidden bg-[#070B12] text-white">
+        {/* Photo d'ambiance décorative : alt vide, chargée en priorité (élément LCP) */}
+        <Image
+          src="/hero-nador.webp"
+          alt=""
+          fill
+          priority
+          fetchPriority="high"
+          sizes="100vw"
+          className="-z-20 object-cover object-[70%_center]"
+        />
+        <div aria-hidden="true" className="absolute inset-0 -z-10 bg-linear-to-r from-[#05080D]/95 via-[#05080D]/70 to-[#05080D]/25 rtl:bg-linear-to-l" />
+        <div aria-hidden="true" className="absolute inset-0 -z-10 bg-linear-to-t from-[#05080D] via-transparent to-transparent" />
 
-        {/* Image d'arrière-plan */}
-        <div className="absolute inset-0">
-          <Image
-            src="/background.png"
-            alt="CarDrive — Location de voitures à Nador"
-            fill
-            priority
-            sizes="100vw"
-            className={`object-cover object-center transition-all duration-1000 ${heroLoaded ? 'scale-100 opacity-100' : 'scale-105 opacity-0'}`}
-          />
-          <div className="absolute inset-0 bg-[#05080D]/45" />
-          <div className="absolute inset-0 bg-linear-to-r from-[#05080D]/90 via-[#05080D]/50 to-transparent" />
-          <div className="absolute inset-0 bg-linear-to-t from-[#05080D]/95 via-transparent to-[#05080D]/20" />
-        </div>
+        <div className="mx-auto max-w-7xl px-4 pb-10 pt-6 sm:px-6 sm:pb-16 sm:pt-14 lg:px-8 lg:pb-20 lg:pt-20">
+          <h1 className="max-w-3xl text-[28px] font-black leading-[1.1] tracking-tight text-white text-crisp sm:text-5xl lg:text-[56px]">
+            {t.hero.titleLead}{' '}
+            <span className="text-[#E63946]">{t.hero.titleAccent}</span>
+          </h1>
 
-        {/* Éléments graphiques d'ambiance */}
-        <div className="pointer-events-none absolute inset-0 bg-dot-grid opacity-30" />
-        <div className="animate-cd-drift pointer-events-none absolute -right-20 top-20 h-100 w-100 rounded-full bg-[#E63946]/8 blur-[100px]" />
-        <div className="pointer-events-none absolute -left-40 bottom-0 h-75 w-75 rounded-full bg-blue-600/5 blur-[80px]" />
+          {/* Masqué sur les petits téléphones (≤ 720 px de haut) pour garder « Rechercher » visible au chargement */}
+          <p className="mt-3 max-w-2xl text-[15px] leading-6 max-sm:[@media(max-height:720px)]:hidden sm:mt-4 sm:leading-7 text-slate-300 sm:text-base">
+            {t.hero.subtitle}
+          </p>
 
-        {/* Contenu Hero */}
-        <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className={`max-w-5xl transition-all duration-700 ${heroLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+          {/* Formulaire de recherche — visible et utilisable dès l'ouverture */}
+          <div className="mt-5 max-w-5xl sm:mt-7">
+            <SearchBar />
+          </div>
 
-            {/* Titre et badges d'accroche */}
-            <div className="max-w-3xl">
-
-              <h1 className="text-[26px] xs:text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white text-crisp leading-tight">
-                Votre voiture.{' '}
-                <span className="text-white/50">Votre liberté.</span>{' '}
-                <span className="text-[#E63946]">À Nador.</span>
-              </h1>
-
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300 sm:text-base sm:leading-7">
-                {t.hero.subtitle}
-              </p>
+          {/* Réassurance factuelle + liens secondaires */}
+          <div className="mt-5 flex max-w-5xl flex-col gap-4 text-[13px] text-slate-300 lg:flex-row lg:items-center lg:justify-between">
+            <ul className="flex flex-wrap items-center gap-x-5 gap-y-2">
+              {[t.hero.badgeNoOnlinePayment, t.hero.badgeVerified, t.hero.badgePickup].map((label) => (
+                <li key={label} className="inline-flex items-center gap-1.5">
+                  <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400" aria-hidden="true" />
+                  {label}
+                </li>
+              ))}
+            </ul>
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+              <a
+                href="#comment-ca-marche"
+                className="inline-flex min-h-6 items-center gap-1 font-semibold text-white/85 underline-offset-4 transition-colors hover:text-white hover:underline"
+              >
+                {t.hero.howItWorks}
+                <ArrowRight className="h-3.5 w-3.5 rtl:rotate-180" aria-hidden="true" />
+              </a>
+              <Link
+                href="/agency/join"
+                className="inline-flex min-h-6 items-center gap-1 font-semibold text-white/60 underline-offset-4 transition-colors hover:text-white hover:underline"
+              >
+                {t.hero.ctaAgency}
+              </Link>
             </div>
-
-            {/* Formulaire de recherche — visible dès l'ouverture */}
-            <div className="relative z-20 mt-6 max-w-5xl">
-              <div className="rounded-2xl border border-white/15 bg-white/96 p-2 shadow-[0_20px_60px_rgba(0,0,0,0.35)] backdrop-blur-2xl sm:p-3 sm:rounded-3xl">
-                <SearchBar />
-              </div>
-
-              {/* Raccourcis marques avec effet magnétique */}
-              <div className="mt-3 flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 sm:flex-wrap sm:gap-2 text-xs">
-                <span className="text-white/50 text-[11px] font-medium">Marques populaires :</span>
-                {['Dacia', 'Renault', 'Volkswagen', 'Hyundai', 'Peugeot'].map((brand) => (
-                  <Magnet key={brand} strength={0.25}>
-                    <Link
-                      href={`/search?brand=${encodeURIComponent(brand)}`}
-                      className="inline-block rounded-full border border-white/15 bg-white/10 px-2.5 py-0.5 text-[11px] font-semibold text-white/80 backdrop-blur-sm transition-all hover:bg-white/20 hover:text-white"
-                    >
-                      {brand}
-                    </Link>
-                  </Magnet>
-                ))}
-              </div>
-            </div>
-
-              {/* Micro-réassurance discrète & lien vers le guide */}
-              <div className="mt-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-xs text-slate-300">
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
-                  <span className="inline-flex items-center gap-1.5">
-                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
-                    <span>0 DH payé en ligne</span>
-                  </span>
-                  <span className="inline-flex items-center gap-1.5">
-                    <ShieldCheck className="h-3.5 w-3.5 text-[#E63946] shrink-0" />
-                    <span>Agences locales auditées</span>
-                  </span>
-                  <span className="inline-flex items-center gap-1.5">
-                    <MapPin className="h-3.5 w-3.5 text-blue-400 shrink-0" />
-                    <span>Aéroport Al-Aroui & Port Beni Ansar</span>
-                  </span>
-                </div>
-                <a
-                  href="#comment-ca-marche"
-                  className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-300 transition hover:text-white"
-                >
-                  <span>Comment ça fonctionne ?</span>
-                  <ArrowRight className="h-3 w-3" />
-                </a>
-              </div>
-
           </div>
         </div>
       </section>
