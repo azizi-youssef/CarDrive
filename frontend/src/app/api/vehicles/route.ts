@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { serverError } from '@/lib/api/server-error';
 import { vehiclesService } from '@/lib/services/vehicles.service';
 import { requireAgencyPermissionApi } from '@/lib/auth/access-api';
 import type { SearchFilters } from '@/types';
@@ -49,8 +50,7 @@ export async function GET(req: NextRequest) {
       { headers: { 'Cache-Control': 'no-store' } }
     );
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Erreur serveur';
-    return NextResponse.json({ success: false, error: message }, { status: 500 });
+    return serverError(error, '/api/vehicles');
   }
 }
 

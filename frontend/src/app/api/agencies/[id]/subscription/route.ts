@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { serverError } from '@/lib/api/server-error';
 import { requireAgencyPermissionApi } from '@/lib/auth/access-api';
 import { subscriptionService } from '@/lib/services/subscription.service';
 
@@ -12,11 +13,8 @@ export async function GET(_request: NextRequest, context: RouteContext) {
   try {
     const subscription = await subscriptionService.getAgencySubscription(agencyId);
     return NextResponse.json({ success: true, data: subscription });
-  } catch (error: any) {
-    return NextResponse.json(
-      { success: false, error: error.message || "Erreur lors du chargement de l'abonnement." },
-      { status: 500 }
-    );
+  } catch (error: unknown) {
+    return serverError(error, '/api/agencies/[id]/subscription', "Erreur lors du chargement de l'abonnement.");
   }
 }
 
@@ -46,10 +44,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ success: false, error: result.error }, { status: 400 });
     }
     return NextResponse.json({ success: true, data: result.subscription });
-  } catch (error: any) {
-    return NextResponse.json(
-      { success: false, error: error.message || "Erreur lors de la mise à jour de l'abonnement." },
-      { status: 500 }
-    );
+  } catch (error: unknown) {
+    return serverError(error, '/api/agencies/[id]/subscription', "Erreur lors de la mise à jour de l'abonnement.");
   }
 }

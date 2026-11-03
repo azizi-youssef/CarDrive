@@ -80,32 +80,44 @@ export async function resolveUniqueAgencyEmail(
 }
 
 /**
- * Génère un mot de passe temporaire hautement sécurisé respectant les exigences de complexité :
+ * Entier uniforme dans [0, max) tiré du générateur cryptographique (Web Crypto, navigateur et Node ≥ 20).
+ * Rejet des valeurs hors du plus grand multiple de `max` pour éviter le biais du modulo.
+ */
+function secureRandomInt(max: number): number {
+  const limit = Math.floor(0x1_0000_0000 / max) * max;
+  const buffer = new Uint32Array(1);
+  let value: number;
+  do {
+    globalThis.crypto.getRandomValues(buffer);
+    value = buffer[0];
+  } while (value >= limit);
+  return value % max;
+}
+
+/**
+ * Génère un mot de passe temporaire respectant les exigences de complexité :
  * - Minuscules, majuscules, chiffres, caractères spéciaux
  * - Longueur paramétrable (défaut 14)
+ * Tirage cryptographique : Math.random() est prévisible et ne convient pas à un secret.
  */
 export function generateTemporaryPassword(length = 14): string {
   const upper = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
   const lower = 'abcdefghijkmnopqrstuvwxyz';
   const digits = '23456789';
   const symbols = '!@#$%&*_-';
+  const pick = (set: string) => set[secureRandomInt(set.length)];
 
   // Assurer au moins un caractère de chaque groupe
-  const chars = [
-    upper[Math.floor(Math.random() * upper.length)],
-    lower[Math.floor(Math.random() * lower.length)],
-    digits[Math.floor(Math.random() * digits.length)],
-    symbols[Math.floor(Math.random() * symbols.length)],
-  ];
+  const chars = [pick(upper), pick(lower), pick(digits), pick(symbols)];
 
   const allChars = upper + lower + digits + symbols;
   while (chars.length < length) {
-    chars.push(allChars[Math.floor(Math.random() * allChars.length)]);
+    chars.push(pick(allChars));
   }
 
   // Mélange de Fisher-Yates
   for (let i = chars.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = secureRandomInt(i + 1);
     [chars[i], chars[j]] = [chars[j], chars[i]];
   }
 

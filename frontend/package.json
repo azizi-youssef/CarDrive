@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "npx tsx src/tests/booking-engine.test.ts && npx tsx src/tests/subscription-engine.test.ts && npx tsx src/tests/agency-access-validation.test.ts && npx tsx src/tests/date-only.test.ts && npx tsx src/tests/agency-credentials.test.ts && npx tsx src/tests/agency-management.test.ts && npx tsx src/tests/availability.test.ts && npx tsx src/tests/whatsapp-delivery.test.ts && npx tsx src/tests/i18n.test.ts && npx tsx src/tests/whatsapp-webhook.test.ts && npx tsx src/tests/booking-pdf-link.test.ts"
+    "test": "npx tsx src/tests/booking-engine.test.ts && npx tsx src/tests/subscription-engine.test.ts && npx tsx src/tests/agency-access-validation.test.ts && npx tsx src/tests/date-only.test.ts && npx tsx src/tests/agency-credentials.test.ts && npx tsx src/tests/agency-management.test.ts && npx tsx src/tests/availability.test.ts && npx tsx src/tests/whatsapp-delivery.test.ts && npx tsx src/tests/i18n.test.ts && npx tsx src/tests/whatsapp-webhook.test.ts && npx tsx src/tests/booking-pdf-link.test.ts && npx tsx src/tests/security-hardening.test.ts"
   },
   "dependencies": {
     "@cardrive/shared": "1.0.0",
@@ -19,11 +19,11 @@
     "gsap": "^3.15.0",
     "jspdf": "^4.2.1",
     "lucide-react": "^1.49.0",
-    "next": "16.3.8",
+    "next": "16.4.5",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "tailwind-merge": "^3.7.0",
-    "zod": "^4.6.5"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
@@ -31,7 +31,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.3.8",
+    "eslint-config-next": "16.4.5",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

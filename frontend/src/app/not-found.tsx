@@ -1,19 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { Bricolage_Grotesque, Instrument_Sans } from 'next/font/google';
 import { Home, Search } from 'lucide-react';
-
-const displayFont = Bricolage_Grotesque({
-  subsets: ['latin'],
-  variable: '--font-display',
-  display: 'swap',
-});
-
-const bodyFont = Instrument_Sans({
-  subsets: ['latin'],
-  variable: '--font-body',
-  display: 'swap',
-});
 
 export const metadata: Metadata = {
   title: 'Page introuvable | CarDrive',
@@ -58,7 +45,7 @@ function CarSilhouette() {
 export default function NotFound() {
   return (
     <main
-      className={`${displayFont.variable} ${bodyFont.variable} relative flex min-h-[80vh] items-center justify-center overflow-hidden bg-[#F3F5F7] px-5 py-16 font-(family-name:--font-body) text-slate-900`}
+      className={`relative flex min-h-[80vh] items-center justify-center overflow-hidden bg-[#F3F5F7] px-5 py-16 font-sans text-slate-900`}
     >
       <style>{`@keyframes cardrive-drive{from{transform:translateX(-25vw)}to{transform:translateX(125vw)}}`}</style>
 
@@ -92,7 +79,7 @@ export default function NotFound() {
             aria-hidden="true"
             className="absolute left-2 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-slate-300"
           />
-          <span className="m-1 ml-4 flex items-center rounded-xl border-[3px] border-[#0B0E13] px-6 py-2 font-(family-name:--font-display) text-7xl font-extrabold leading-none tracking-tighter sm:px-8 sm:text-8xl">
+          <span className="m-1 ml-4 flex items-center rounded-xl border-[3px] border-[#0B0E13] px-6 py-2 text-7xl font-extrabold leading-none tracking-tighter sm:px-8 sm:text-8xl">
             404
           </span>
           <span className="flex items-center bg-[#E63946] px-3.5 text-xs font-semibold text-white sm:px-4 sm:text-sm">
@@ -100,7 +87,7 @@ export default function NotFound() {
           </span>
         </div>
 
-        <h1 className="mt-10 font-(family-name:--font-display) text-4xl font-extrabold tracking-[-0.04em] text-[#0B0E13] sm:text-5xl">
+        <h1 className="mt-10 text-4xl font-extrabold tracking-[-0.04em] text-[#0B0E13] sm:text-5xl">
           Cette page n’existe pas
         </h1>
 

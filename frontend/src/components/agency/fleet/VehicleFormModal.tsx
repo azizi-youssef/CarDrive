@@ -125,6 +125,12 @@ export function VehicleFormModal({
 
   const handleFileUpload = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
+    // Même plafond que l'API de téléversement
+    if (files.length > 10) {
+      setError('10 photos maximum par envoi. Sélectionnez moins de fichiers.');
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
     setUploading(true);
     setError(null);
 

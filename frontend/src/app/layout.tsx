@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Plus_Jakarta_Sans } from 'next/font/google';
+import localFont from 'next/font/local';
 
 import './globals.css';
 import { AppShell } from '@/components/layout/AppShell';
@@ -10,11 +10,15 @@ const SITE_TITLE = 'CarDrive — Location de voitures à Nador';
 const SITE_DESCRIPTION =
   "Trouvez et comparez des voitures de location à Nador auprès d'agences locales. Recherchez par dates, catégorie et destination : aéroport Nador-Al Aroui, Beni Ansar, Nador et Marchica.";
 
-const plusJakartaSans = Plus_Jakarta_Sans({
-  subsets: ['latin'],
+// Police hébergée dans le projet (variable 200–800, sous-ensemble latin, licence OFL — voir fonts/).
+// next/font/google la téléchargeait au build et faisait échouer Turbopack en CI.
+const plusJakartaSans = localFont({
+  src: './fonts/plus-jakarta-sans-latin-wght-normal.woff2',
+  weight: '200 800',
+  style: 'normal',
   display: 'swap',
   variable: '--font-sans',
-  weight: ['400', '500', '600', '700', '800'],
+  fallback: ['system-ui', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
 });
 
 /* -------------------------------------------------------------------------- */

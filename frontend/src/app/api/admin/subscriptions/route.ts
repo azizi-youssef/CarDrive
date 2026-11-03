@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { serverError } from '@/lib/api/server-error';
 import { requirePlatformPermissionApi } from '@/lib/auth/access-api';
 import { subscriptionService } from '@/lib/services/subscription.service';
 
@@ -21,11 +22,8 @@ export async function GET() {
         plans,
       },
     });
-  } catch (error: any) {
-    return NextResponse.json(
-      { success: false, error: error.message || 'Impossible de charger les abonnements.' },
-      { status: 500 }
-    );
+  } catch (error: unknown) {
+    return serverError(error, '/api/admin/subscriptions', 'Impossible de charger les abonnements.');
   }
 }
 
@@ -54,10 +52,7 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ success: false, error: result.error }, { status: 400 });
     }
     return NextResponse.json({ success: true, data: result.subscription });
-  } catch (error: any) {
-    return NextResponse.json(
-      { success: false, error: error.message || 'Erreur lors de la mise à jour.' },
-      { status: 500 }
-    );
+  } catch (error: unknown) {
+    return serverError(error, '/api/admin/subscriptions', 'Erreur lors de la mise à jour.');
   }
 }

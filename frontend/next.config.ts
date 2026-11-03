@@ -1,5 +1,20 @@
 import type { NextConfig } from "next";
 
+const isProduction = process.env.NODE_ENV === "production";
+
+/* Projet Supabase du site : seules ses images et son API sont autorisées (pas tout *.supabase.co). */
+const DEFAULT_SUPABASE_HOST = "wviqbscbnrrpxpojhqql.supabase.co";
+const supabaseHosts = new Set([DEFAULT_SUPABASE_HOST]);
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+if (supabaseUrl) {
+  try {
+    const supabaseOrigin = new URL(supabaseUrl);
+    if (supabaseOrigin.protocol === "https:") supabaseHosts.add(supabaseOrigin.hostname);
+  } catch {
+    // Ignore invalid url
+  }
+}
+
 const remotePatterns: NonNullable<
   NonNullable<NextConfig["images"]>["remotePatterns"]
 > = [
@@ -8,33 +23,16 @@ const remotePatterns: NonNullable<
     hostname: "images.unsplash.com",
     pathname: "/**",
   },
-  {
-    protocol: "https",
-    hostname: "*.supabase.co",
-    pathname: "/**",
-  },
-  {
-    protocol: "https",
-    hostname: "wviqbscbnrrpxpojhqql.supabase.co",
-    pathname: "/**",
-  },
+  // Fichiers publics du stockage uniquement (pas les URL signées ni l'API)
+  ...[...supabaseHosts].map((hostname) => ({
+    protocol: "https" as const,
+    hostname,
+    pathname: "/storage/v1/object/public/**",
+  })),
 ];
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-if (supabaseUrl) {
-  try {
-    const supabaseOrigin = new URL(supabaseUrl);
-    if (supabaseOrigin.protocol === "https:") {
-      remotePatterns.push({
-        protocol: "https",
-        hostname: supabaseOrigin.hostname,
-        pathname: "/**",
-      });
-    }
-  } catch {
-    // Ignore invalid url
-  }
-}
+const supabaseHttps = [...supabaseHosts].map((host) => `https://${host}`).join(" ");
+const supabaseWss = [...supabaseHosts].map((host) => `wss://${host}`).join(" ");
 
 /* -------------------------------------------------------------------------- */
 /* Security Headers                                                           */
@@ -45,8 +43,8 @@ const securityHeaders = [
   { key: "X-Frame-Options", value: "SAMEORIGIN" },
   // Stop MIME-type sniffing
   { key: "X-Content-Type-Options", value: "nosniff" },
-  // Enable XSS protection for legacy browsers
-  { key: "X-XSS-Protection", value: "1; mode=block" },
+  // Ancien filtre XSS désactivé : obsolète et lui-même source de fuites ; la CSP prend le relais
+  { key: "X-XSS-Protection", value: "0" },
   // Control referrer information
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   // Restrict browser features
@@ -55,7 +53,7 @@ const securityHeaders = [
     value: "camera=(), microphone=(), geolocation=(self), payment=()",
   },
   // HSTS – force HTTPS (enable only in production behind HTTPS)
-  ...(process.env.NODE_ENV === "production"
+  ...(isProduction
     ? [
         {
           key: "Strict-Transport-Security",
@@ -68,24 +66,27 @@ const securityHeaders = [
     key: "Content-Security-Policy",
     value: [
       "default-src 'self'",
-      // Scripts: self + Next.js inline chunks + Supabase realtime
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.supabase.co",
+      // Scripts : 'unsafe-inline' requis par les scripts inline de Next.js ; 'unsafe-eval' seulement en dev (Fast Refresh)
+      `script-src 'self' 'unsafe-inline'${isProduction ? "" : " 'unsafe-eval'"}`,
       // Styles: self + inline (Tailwind generates inline styles)
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-      // Fonts
-      "font-src 'self' https://fonts.gstatic.com",
-      // Images: self + Supabase + Unsplash + data URIs
-      "img-src 'self' data: blob: https://*.supabase.co https://images.unsplash.com",
-      // Connections: self + Supabase API & Realtime
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.whatsapp.com",
+      "style-src 'self' 'unsafe-inline'",
+      // Polices auto-hébergées (next/font/local)
+      "font-src 'self'",
+      // Images: self + stockage Supabase du projet + Unsplash + data URIs
+      `img-src 'self' data: blob: ${supabaseHttps} https://images.unsplash.com`,
+      // Connections: self + API & Realtime du projet Supabase
+      `connect-src 'self' ${supabaseHttps} ${supabaseWss}`,
       // Workers: self
       "worker-src 'self' blob:",
+      // Aucun plugin (Flash, applets…)
+      "object-src 'none'",
       // Frame ancestors: deny by default (same as X-Frame-Options)
       "frame-ancestors 'self'",
       // Form submissions to self only
       "form-action 'self'",
       // Base URI
       "base-uri 'self'",
+      ...(isProduction ? ["upgrade-insecure-requests"] : []),
     ].join("; "),
   },
 ];

@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAgencyPermissionApi } from '@/lib/auth/access-api';
 import { createAdminClient } from '@/lib/supabase/server';
+import { detectImageType, type DetectedImage } from '@/lib/utils/image-upload';
 
 type RouteContext = { params: Promise<{ id: string }> };
 
-const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 Mo
+const MAX_FILES = 10;
 
 function failure(message: string, status: number) {
   return NextResponse.json({ success: false, error: message }, { status });
@@ -16,6 +17,12 @@ export async function POST(request: NextRequest, context: RouteContext) {
   const gate = await requireAgencyPermissionApi(agencyId, 'vehicles.manage');
   if (gate.denied) return gate.denied;
 
+  // Refus précoce des requêtes manifestement trop lourdes, avant de lire le corps
+  const contentLength = Number(request.headers.get('content-length'));
+  if (Number.isFinite(contentLength) && contentLength > MAX_FILES * MAX_FILE_SIZE + 256 * 1024) {
+    return failure(`Envoi trop volumineux (${MAX_FILES} photos de 10 Mo maximum).`, 413);
+  }
+
   let formData: FormData;
   try {
     formData = await request.formData();
@@ -23,15 +30,28 @@ export async function POST(request: NextRequest, context: RouteContext) {
     return failure('Formulaire multipart invalide.', 400);
   }
 
-  const files = formData.getAll('files') as File[];
-  if (!files || files.length === 0) {
-    // Vérifier également le champ singulier 'file'
-    const single = formData.get('file') as File | null;
-    if (single) {
-      files.push(single);
-    } else {
-      return failure('Aucun fichier fourni.', 400);
+  const files = [...formData.getAll('files'), formData.get('file')].filter(
+    (value): value is File => value instanceof File && value.size > 0
+  );
+  if (files.length === 0) return failure('Aucun fichier fourni.', 400);
+  if (files.length > MAX_FILES) return failure(`${MAX_FILES} photos maximum par envoi.`, 400);
+
+  // Validation complète de tous les fichiers avant le moindre téléversement (pas de fichiers orphelins)
+  const validated: { buffer: Buffer; image: DetectedImage }[] = [];
+  for (const file of files) {
+    if (file.size > MAX_FILE_SIZE) {
+      return failure(
+        `Fichier trop volumineux (${Math.round(file.size / 1024 / 1024)} Mo). La limite maximale est de 10 Mo.`,
+        400
+      );
     }
+    const buffer = Buffer.from(await file.arrayBuffer());
+    // Le format est lu dans le contenu du fichier : le type déclaré par le navigateur est ignoré
+    const image = detectImageType(buffer);
+    if (!image) {
+      return failure('Seules les images JPEG, PNG et WebP sont acceptées.', 415);
+    }
+    validated.push({ buffer, image });
   }
 
   const supabase = await createAdminClient();
@@ -39,38 +59,19 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
   const uploadedUrls: string[] = [];
 
-  for (const file of files) {
-    if (!ALLOWED_MIME_TYPES.includes(file.type)) {
-      return failure(
-        `Type de fichier non autorisé : ${file.type}. Seuls JPEG, PNG et WebP sont acceptés.`,
-        400
-      );
-    }
-
-    if (file.size > MAX_FILE_SIZE) {
-      return failure(
-        `Fichier trop volumineux (${Math.round(file.size / 1024 / 1024)} Mo). La limite maximale est de 10 Mo.`,
-        400
-      );
-    }
-
-    const extension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-    const cleanExt = ['jpg', 'jpeg', 'png', 'webp'].includes(extension) ? extension : 'jpg';
-    const randomKey = Math.random().toString(36).substring(2, 10);
-    const fileName = `agencies/${agencyId}/vehicles/${Date.now()}-${randomKey}.${cleanExt}`;
-
-    const buffer = Buffer.from(await file.arrayBuffer());
+  for (const { buffer, image } of validated) {
+    const fileName = `agencies/${agencyId}/vehicles/${crypto.randomUUID()}.${image.extension}`;
 
     const { error: uploadError } = await supabase.storage
       .from('vehicles')
       .upload(fileName, buffer, {
-        contentType: file.type,
+        contentType: image.mimeType,
         upsert: false,
       });
 
     if (uploadError) {
       console.error('[AgencyVehicleUpload] Upload error:', uploadError.message);
-      return failure(`Échec de téléversement : ${uploadError.message}`, 500);
+      return failure('Le téléversement de la photo a échoué. Réessayez.', 500);
     }
 
     const { data: publicUrlData } = supabase.storage

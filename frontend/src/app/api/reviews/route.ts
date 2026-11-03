@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { serverError } from '@/lib/api/server-error';
 import { getServerAuth } from '@/lib/auth/server';
 import { createClient } from '@/lib/supabase/server';
 import {
@@ -22,8 +23,7 @@ export async function GET(req: NextRequest) {
     const reviews = await reviewsService.getReviewsForVehicle(vehicleId);
     return NextResponse.json({ success: true, data: reviews });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Erreur serveur';
-    return NextResponse.json({ success: false, error: message }, { status: 500 });
+    return serverError(error, '/api/reviews');
   }
 }
 
@@ -117,8 +117,6 @@ export async function POST(req: NextRequest) {
         { status: 409 }
       );
     }
-    const message = error instanceof Error ? error.message : 'Erreur serveur';
-    console.error('[Reviews] Creation failed:', error);
-    return NextResponse.json({ success: false, error: message }, { status: 500 });
+    return serverError(error, '/api/reviews');
   }
 }

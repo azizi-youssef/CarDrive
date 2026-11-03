@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { serverError } from '@/lib/api/server-error';
 import { isPlatformAdminRole } from '@cardrive/shared';
 import { getServerAuth, hasAccessPermission } from '@/lib/auth/server';
 import { bookingsService } from '@/lib/services/bookings.service';
@@ -122,12 +123,10 @@ export async function POST(req: NextRequest) {
       agencyWhatsAppMessage,
     });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Erreur interne du serveur';
-    console.error('[API /api/bookings POST] Error:', error);
-    return NextResponse.json(
-      { success: false, error: message },
-      { status: error instanceof RateLimitUnavailableError ? 503 : 500 }
-    );
+    if (error instanceof RateLimitUnavailableError) {
+      return serverError(error, '/api/bookings', 'Service de protection anti-abus indisponible.', 503);
+    }
+    return serverError(error, '/api/bookings');
   }
 }
 
@@ -178,8 +177,6 @@ export async function GET(req: NextRequest) {
       : bookings.map(redactBookingCustomerData);
     return NextResponse.json({ success: true, bookings: visibleBookings });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Erreur serveur';
-    console.error('[API /api/bookings GET] Error:', error);
-    return NextResponse.json({ success: false, error: message }, { status: 500 });
+    return serverError(error, '/api/bookings');
   }
 }

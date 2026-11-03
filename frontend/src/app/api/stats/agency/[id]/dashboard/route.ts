@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { serverError } from '@/lib/api/server-error';
 import { requireAgencyPermissionApi } from '@/lib/auth/access-api';
 import { statsService } from '@/lib/services/stats.service';
 
@@ -34,8 +35,6 @@ export async function GET(_request: NextRequest, context: RouteContext) {
     ]);
     return NextResponse.json({ success: true, data: { stats, agenda } });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Erreur serveur';
-    console.error('[API /api/stats/agency/[id]/dashboard] Error:', error);
-    return NextResponse.json({ success: false, error: message }, { status: 500 });
+    return serverError(error, '/api/stats/agency/[id]/dashboard');
   }
 }

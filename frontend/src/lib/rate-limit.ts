@@ -87,8 +87,25 @@ export async function checkDistributedRateLimit(
     : { ok: false, retryAfterSec: Math.max(1, Number(result.retry_after_sec) || 1) };
 }
 
+const IP_PATTERN = /^[0-9a-f.:]{2,45}$/i;
+
+function validIp(value: string | null | undefined): string | null {
+  const candidate = value?.trim();
+  return candidate && IP_PATTERN.test(candidate) ? candidate : null;
+}
+
+/**
+ * IP du client pour le limiteur d'abus.
+ * Le 1er élément de X-Forwarded-For est fourni par le client et falsifiable : on privilégie les en-têtes
+ * posés par la plateforme (Vercel, Cloudflare, proxy inverse), puis le dernier saut ajouté par le proxy.
+ */
 export function clientIpFromRequest(req: Request): string {
-  const forwarded = req.headers.get('x-forwarded-for');
-  if (forwarded) return forwarded.split(',')[0]?.trim() || 'unknown';
-  return req.headers.get('x-real-ip') ?? 'unknown';
+  const platformIp =
+    validIp(req.headers.get('x-vercel-forwarded-for')?.split(',')[0]) ??
+    validIp(req.headers.get('cf-connecting-ip')) ??
+    validIp(req.headers.get('x-real-ip'));
+  if (platformIp) return platformIp;
+
+  const hops = (req.headers.get('x-forwarded-for') ?? '').split(',');
+  return validIp(hops[hops.length - 1]) ?? 'unknown';
 }

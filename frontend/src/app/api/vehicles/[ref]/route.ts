@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { serverError } from '@/lib/api/server-error';
 import { vehiclesService } from '@/lib/services/vehicles.service';
 import { requireAgencyPermissionApi } from '@/lib/auth/access-api';
 
@@ -27,8 +28,7 @@ export async function GET(_req: NextRequest, context: Ctx) {
       { headers: { 'Cache-Control': 'no-store' } }
     );
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Erreur serveur';
-    return NextResponse.json({ success: false, error: message }, { status: 500 });
+    return serverError(error, '/api/vehicles/[ref]');
   }
 }
 
@@ -50,8 +50,7 @@ export async function PATCH(req: NextRequest, context: Ctx) {
     }
     return NextResponse.json({ success: true, data: updated });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Erreur serveur';
-    return NextResponse.json({ success: false, error: message }, { status: 500 });
+    return serverError(error, '/api/vehicles/[ref]');
   }
 }
 
@@ -72,7 +71,6 @@ export async function DELETE(_req: NextRequest, context: Ctx) {
     }
     return NextResponse.json({ success: true, message: 'Véhicule supprimé' });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Erreur serveur';
-    return NextResponse.json({ success: false, error: message }, { status: 500 });
+    return serverError(error, '/api/vehicles/[ref]');
   }
 }

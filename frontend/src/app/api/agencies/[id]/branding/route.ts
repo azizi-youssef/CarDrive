@@ -4,6 +4,7 @@ import {
   requirePlatformPermissionApi,
 } from '@/lib/auth/access-api';
 import { createAdminClient } from '@/lib/supabase/server';
+import { hasValidImageSignature } from '@/lib/utils/image-upload';
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -20,27 +21,6 @@ function failure(message: string, status: number) {
     { success: false, error: message },
     { status, headers: { 'Cache-Control': 'no-store' } }
   );
-}
-
-function hasValidImageSignature(type: string, bytes: Uint8Array): boolean {
-  if (type === 'image/jpeg') {
-    return bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
-  }
-  if (type === 'image/png') {
-    return bytes.length >= 8 &&
-      bytes[0] === 0x89 &&
-      bytes[1] === 0x50 &&
-      bytes[2] === 0x4e &&
-      bytes[3] === 0x47 &&
-      bytes[4] === 0x0d &&
-      bytes[5] === 0x0a &&
-      bytes[6] === 0x1a &&
-      bytes[7] === 0x0a;
-  }
-  return type === 'image/webp' &&
-    bytes.length >= 12 &&
-    String.fromCharCode(...bytes.slice(0, 4)) === 'RIFF' &&
-    String.fromCharCode(...bytes.slice(8, 12)) === 'WEBP';
 }
 
 function getAgencyBrandingPath(url: string | null, agencyId: string): string | null {

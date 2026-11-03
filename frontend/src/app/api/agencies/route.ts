@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { serverError } from '@/lib/api/server-error';
 import { requirePlatformAdminApi } from '@/lib/auth/admin-api';
 import { agenciesService } from '@/lib/services/agencies.service';
 import { vehiclesService } from '@/lib/services/vehicles.service';
@@ -29,7 +30,6 @@ export async function GET(req: NextRequest) {
       meta: { total: withCounts.length },
     }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Erreur serveur';
-    return NextResponse.json({ success: false, error: message }, { status: 500 });
+    return serverError(error, '/api/agencies');
   }
 }

@@ -1,4 +1,5 @@
 import { agencyBookingActionSchema } from '@cardrive/shared';
+import { serverError } from '@/lib/api/server-error';
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerAuth, hasAccessPermission } from '@/lib/auth/server';
 import { bookingsService } from '@/lib/services/bookings.service';
@@ -65,8 +66,6 @@ export async function POST(
 
     return NextResponse.json({ success: false, error: `Action ${action} non reconnue` }, { status: 400 });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Erreur serveur';
-    console.error('[API /api/bookings/[reference]/status] Error:', error);
-    return NextResponse.json({ success: false, error: message }, { status: 500 });
+    return serverError(error, '/api/bookings/[reference]/status');
   }
 }
