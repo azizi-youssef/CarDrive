@@ -106,7 +106,7 @@ export function KpiCard({
         href={href}
         className={cn(
           base,
-          'outline-none transition-[transform,box-shadow,border-color] hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_12px_30px_-18px_rgba(11,18,32,0.35)] focus-visible:ring-2 focus-visible:ring-[#E63946] motion-reduce:transition-none motion-reduce:hover:translate-y-0'
+          'outline-none transition-[translate,scale,box-shadow,border-color] hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_12px_30px_-18px_rgba(11,18,32,0.35)] focus-visible:ring-2 focus-visible:ring-[#E63946] motion-reduce:transition-none motion-reduce:hover:translate-y-0'
         )}
       >
         {content}

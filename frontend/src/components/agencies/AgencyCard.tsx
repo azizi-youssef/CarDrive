@@ -22,7 +22,7 @@ export function AgencyCard({ agency, carCount }: AgencyCardProps) {
   const hasWhatsApp = (agency.whatsapp ?? '').replace(/\D/g, '').length >= 8;
 
   return (
-    <article className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(11,18,32,0.04)] transition-[transform,box-shadow,border-color] duration-300 hover:-translate-y-1 hover:border-slate-300 hover:shadow-[0_24px_48px_-28px_rgba(11,18,32,0.45)] motion-reduce:transition-none motion-reduce:hover:translate-y-0">
+    <article className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(11,18,32,0.04)] transition-[translate,scale,box-shadow,border-color] duration-300 hover:-translate-y-1 hover:border-slate-300 hover:shadow-[0_24px_48px_-28px_rgba(11,18,32,0.45)] motion-reduce:transition-none motion-reduce:hover:translate-y-0">
       {/* Bannière + logo */}
       <div className="relative h-36 w-full overflow-hidden bg-[#0B1220]">
         <div className="absolute inset-0 transition-transform duration-500 group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100">

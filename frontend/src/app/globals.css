@@ -388,10 +388,10 @@ body {
   }
 }
 
-/* Défilement continu (bandeau des marques) : la piste contient 2 copies, on avance d'une copie */
-@keyframes cd-marquee {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-50%); }
+/* Apparition en cascade des cartes « Les grandes marques » */
+@keyframes cd-brand-rise {
+  from { opacity: 0; transform: translateY(14px) scale(0.98); }
+  to   { opacity: 1; transform: none; }
 }
 
 @keyframes cdShinyText {

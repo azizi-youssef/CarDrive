@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { SearchBar } from '@/components/search/SearchBar';
-import { BrandMarquee } from '@/components/shared/BrandMarquee';
+import { BrandMarquee, normalizeBrandKey } from '@/components/shared/BrandMarquee';
 import { VehicleCard } from '@/components/cars/VehicleCard';
 import { AgencyCard } from '@/components/agencies/AgencyCard';
 import { loginUrl } from '@/lib/auth/login-portals';
@@ -96,6 +96,17 @@ export default function HomePage() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  // Nombre de véhicules du catalogue par marque (cartes « Les grandes marques »)
+  const vehicleCountsByBrand = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const vehicle of vehicles) {
+      if (!vehicle.brand) continue;
+      const key = normalizeBrandKey(vehicle.brand);
+      counts[key] = (counts[key] ?? 0) + 1;
+    }
+    return counts;
+  }, [vehicles]);
 
   useRealtimeRefresh({
     tables: ['vehicles', 'agencies', 'bookings'],
@@ -291,9 +302,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
-      {/* Bandeau défilant des grandes marques */}
-      <BrandMarquee />
 
       {/* ================================================================
           BANDE DE CONFIANCE UNIQUE — Fusionnée, lisible et factuelle
@@ -1110,6 +1118,8 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Carrousel des grandes marques — dernière section, juste avant le footer */}
+      <BrandMarquee vehicleCounts={vehicleCountsByBrand} countsLoading={!dataLoaded} />
     </div>
   );
 }
