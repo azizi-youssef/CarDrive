@@ -8,12 +8,10 @@ import { button } from '@/lib/design/tokens';
 import { Modal } from '@/components/agency/shell/Dialog';
 import {
   bookingReference,
-  bookingStatusLabel,
-  bookingStatusVariant,
   money,
   type AgencyBookingRow,
 } from './BookingsPanel';
-import { Badge } from '@/components/ui/Badge';
+import { StatusBadge } from '@/components/ui/StatusBadge';
 
 export type BookingEvent = {
   id: string;
@@ -161,9 +159,7 @@ export function BookingDetailModal({
         )}
 
         <div className="flex flex-wrap items-center gap-2">
-          <Badge variant={bookingStatusVariant(loaded.status)}>
-            {bookingStatusLabel(loaded.status)}
-          </Badge>
+          <StatusBadge status={loaded.status} audience="business" />
           <button
             type="button"
             onClick={onReload}
@@ -212,7 +208,7 @@ export function BookingDetailModal({
         {canAct && actions.includes('reject') && (
           <section>
             <label htmlFor="reject-reason" className="mb-1.5 block text-sm font-bold text-[#0F172A]">
-              Motif du refus <span className="font-normal text-[#E63946]">(obligatoire)</span>
+              Motif du refus <span className="font-normal text-accent-text">(obligatoire)</span>
             </label>
             <textarea
               id="reject-reason"

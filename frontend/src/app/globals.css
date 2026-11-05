@@ -1,20 +1,55 @@
 @import "tailwindcss";
 
 /* ================================================================
-   CarDrive — Automotive Industrial Design System
+   CarDrive — Design system (source unique des couleurs et arrondis)
    ================================================================
-   Palette:
-   Deep Navy:       #0B1220   (primary bg / top bar)
-   Charcoal:        #111827   (card dark bg)
-   Vermilion Red:   #E63946   (accent / CTA)
-   Red Hover:       #C92F3B
-   Warm Ivory:      #F6F5F1   (light bg)
-   Off-White:       #FFFFFF
-   Muted:           #64748B
-   Border:          #E2E8F0
-   Success:         #16A34A
-   Warning:         #F59E0B
+   Les jetons ci-dessous sont exposés à Tailwind (@theme) :
+   bg-action, text-ink-secondary, border-line, bg-success-soft…
+   Contrastes vérifiés (WCAG 2.2 AA) :
+   - texte blanc sur action #C92F3B : 5,31:1 (le rouge de marque
+     #E63946 ne fait que 4,17:1 → réservé aux accents graphiques)
+   - texte rouge : #C92F3B sur clair (4,91:1 sur #F5F6F8),
+     #FF6B76 sur graphite (6,79:1)
+   - texte secondaire #667085 : 4,97:1 sur blanc, 4,60:1 sur canvas
    ================================================================ */
+
+@theme {
+  /* Marque */
+  --color-ink: #0B1220;
+  --color-brand: #E63946;
+
+  /* Actions */
+  --color-action: #C92F3B;
+  --color-action-hover: #B4232F;
+  --color-accent-text: #C92F3B;
+  --color-accent-on-dark: #FF6B76;
+
+  /* Texte */
+  --color-ink-secondary: #667085;
+  --color-ink-tertiary: #475467;
+  --color-disabled: #98A2B3;
+
+  /* Surfaces et bordures */
+  --color-canvas: #F5F6F8;
+  --color-surface: #FFFFFF;
+  --color-line: #E4E7EC;
+  --color-line-strong: #D0D5DD;
+  --color-neutral-soft: #F2F4F7;
+
+  /* États */
+  --color-success: #067647;
+  --color-success-soft: #ECFDF3;
+  --color-success-line: #ABEFC6;
+  --color-warning: #B54708;
+  --color-warning-soft: #FFFAEB;
+  --color-warning-line: #FEDF89;
+  --color-danger: #B42318;
+  --color-danger-soft: #FEF3F2;
+  --color-danger-line: #FECDCA;
+  --color-info: #175CD3;
+  --color-info-soft: #EFF8FF;
+  --color-info-line: #B2DDFF;
+}
 
 :root {
   --primary:           #0B1220;
@@ -22,15 +57,17 @@
   --primary-hover:     #1E293B;
   --accent:            #E63946;
   --accent-hover:      #C92F3B;
+  --action:            #C92F3B;
+  --action-hover:      #B4232F;
   --accent-light:      #FFF1F2;
   --accent-glow:       rgba(230, 57, 70, 0.25);
-  --background:        #F8FAFC;
+  --background:        #F5F6F8;
   --surface:           #FFFFFF;
-  --text:              #0F172A;
-  --muted:             #64748B;
+  --text:              #0B1220;
+  --muted:             #667085;
   --muted-light:       #F1F5F9;
-  --border:            #E2E8F0;
-  --border-focus:      #CBD5E1;
+  --border:            #E4E7EC;
+  --border-focus:      #D0D5DD;
   --success:           #16A34A;
   --success-light:     #DCFCE7;
   --warning:           #F59E0B;
@@ -42,12 +79,8 @@
   /* Police du site : Plus Jakarta Sans auto-hébergée (layout.tsx) — « Inter » n'était chargée nulle part */
   --font-display:      var(--font-sans, system-ui), system-ui, -apple-system, sans-serif;
 
-  /* Spacing / Radii */
-  --radius-sm:         0.5rem;
-  --radius-md:         0.75rem;
-  --radius-lg:         1rem;
-  --radius-xl:         1.5rem;
-  --radius-2xl:        2rem;
+  /* Arrondis : échelle standard de Tailwind (md 6px, lg 8px, xl 12px, 2xl 16px, 3xl 24px).
+     Ne pas redéfinir --radius-* ici : ces variables pilotent les classes rounded-*. */
 
   /* Shadows — Automotive precision */
   --shadow-card:       0 2px 12px rgba(11, 18, 32, 0.06), 0 1px 3px rgba(11, 18, 32, 0.04);
@@ -131,10 +164,10 @@ body {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  background-color: var(--accent);
+  background-color: var(--action);
   color: #fff;
   font-weight: 700;
-  border-radius: var(--radius-lg);
+  border-radius: 0.75rem;
   transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
   overflow: hidden;
@@ -147,7 +180,7 @@ body {
   pointer-events: none;
 }
 .btn-accent:hover {
-  background-color: var(--accent-hover);
+  background-color: var(--action-hover);
   transform: translateY(-2px);
   box-shadow: var(--shadow-accent);
 }
@@ -165,7 +198,7 @@ body {
   background-color: var(--primary);
   color: #fff;
   font-weight: 700;
-  border-radius: var(--radius-lg);
+  border-radius: 0.75rem;
   transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .btn-primary:hover {
@@ -187,7 +220,7 @@ body {
   color: var(--primary);
   font-weight: 600;
   border: 1.5px solid var(--border);
-  border-radius: var(--radius-lg);
+  border-radius: 0.75rem;
   transition: all 0.2s ease;
 }
 .btn-ghost:hover {
@@ -202,7 +235,7 @@ body {
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-xl);
+  border-radius: 1rem;
   box-shadow: var(--shadow-card);
 }
 
@@ -278,20 +311,20 @@ body {
 }
 
 .badge-available {
-  background-color: #DCFCE7;
-  color: #15803D;
-  border: 1px solid rgba(22, 163, 74, 0.25);
+  background-color: var(--color-success-soft);
+  color: var(--color-success);
+  border: 1px solid var(--color-success-line);
 }
 
 .badge-rented {
-  background-color: #FEE2E2;
-  color: #B91C1C;
-  border: 1px solid rgba(220, 38, 38, 0.22);
+  background-color: var(--color-danger-soft);
+  color: var(--color-danger);
+  border: 1px solid var(--color-danger-line);
 }
 
 .badge-accent {
-  background-color: rgba(230, 57, 70, 0.1);
-  color: var(--accent);
+  background-color: #FDEDEE;
+  color: #A61E2A;
   border: 1px solid rgba(230, 57, 70, 0.22);
 }
 
@@ -388,6 +421,42 @@ body {
   }
 }
 
+/* Fils d'Ariane : cible tactile de 24 px minimum (WCAG 2.5.8) sans changer la mise en page */
+nav[aria-label*="Ariane"] a,
+nav[aria-label="Breadcrumb"] a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+}
+
+/* Révélation d'entrée (ex-GSAP) : CSS pur, cascade sur les 12 premiers enfants */
+@keyframes cd-reveal {
+  from { opacity: 0; transform: translateY(var(--cd-reveal-y, 24px)); }
+  to   { opacity: 1; transform: none; }
+}
+.cd-reveal,
+.cd-reveal-stagger > * {
+  animation: cd-reveal var(--cd-reveal-duration, 0.7s) cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--cd-reveal-delay, 0s) + var(--cd-reveal-index, 0) * var(--cd-reveal-stagger, 0s));
+}
+.cd-reveal-stagger > :nth-child(1) { --cd-reveal-index: 0; }
+.cd-reveal-stagger > :nth-child(2) { --cd-reveal-index: 1; }
+.cd-reveal-stagger > :nth-child(3) { --cd-reveal-index: 2; }
+.cd-reveal-stagger > :nth-child(4) { --cd-reveal-index: 3; }
+.cd-reveal-stagger > :nth-child(5) { --cd-reveal-index: 4; }
+.cd-reveal-stagger > :nth-child(6) { --cd-reveal-index: 5; }
+.cd-reveal-stagger > :nth-child(7) { --cd-reveal-index: 6; }
+.cd-reveal-stagger > :nth-child(8) { --cd-reveal-index: 7; }
+.cd-reveal-stagger > :nth-child(9) { --cd-reveal-index: 8; }
+.cd-reveal-stagger > :nth-child(10) { --cd-reveal-index: 9; }
+.cd-reveal-stagger > :nth-child(11) { --cd-reveal-index: 10; }
+.cd-reveal-stagger > :nth-child(12) { --cd-reveal-index: 11; }
+.cd-reveal-stagger > :nth-child(n + 13) { --cd-reveal-index: 12; }
+@media (prefers-reduced-motion: reduce) {
+  .cd-reveal,
+  .cd-reveal-stagger > * { animation: none; }
+}
+
 /* Apparition en cascade des cartes « Les grandes marques » */
 @keyframes cd-brand-rise {
   from { opacity: 0; transform: translateY(14px) scale(0.98); }
@@ -480,7 +549,7 @@ body {
   font-weight: 700;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--color-accent-text);
   margin-bottom: 0.75rem;
 }
 

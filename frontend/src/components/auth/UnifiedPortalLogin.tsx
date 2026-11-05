@@ -139,12 +139,13 @@ const loginStyles = `
   .cd-login {
     --cd-graphite: #0B1220;
     --cd-red: #E63946;
-    --cd-red-hover: #C92F3B;
+    --cd-red-hover: #B4232F;
     --cd-bg: #F5F6F8;
     --cd-surface: #FFFFFF;
     --cd-text: #0B1220;
     --cd-muted: #5B6474;
-    --cd-subtle: #8A93A3;
+    --cd-subtle: #667085;
+    --cd-action: #C92F3B;
     --cd-line: #E3E6EB;
     --cd-field: #F5F6F8;
     color-scheme: light;
@@ -395,7 +396,7 @@ const loginStyles = `
     padding: 0;
     border: 0;
     background: none;
-    color: var(--cd-red);
+    color: var(--cd-action);
     font-size: 12px;
     font-weight: 700;
   }
@@ -490,7 +491,7 @@ const loginStyles = `
     padding: 12px 18px;
     border: 0;
     border-radius: 12px;
-    background: var(--cd-red);
+    background: var(--cd-action);
     color: #fff;
     font-size: 15px;
     font-weight: 700;
@@ -518,7 +519,7 @@ const loginStyles = `
   }
   .cd-oauth-divider::before, .cd-oauth-divider::after { content: ''; flex: 1; height: 1px; background: var(--cd-line); }
   .cd-join { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--cd-line); text-align: center; font-size: 13px; color: var(--cd-muted); }
-  .cd-join a { display: inline-flex; min-height: 32px; align-items: center; color: var(--cd-red); font-weight: 700; }
+  .cd-join a { display: inline-flex; min-height: 32px; align-items: center; color: var(--cd-action); font-weight: 700; }
   .cd-join a:hover { text-decoration: underline; }
   .cd-trust {
     display: flex;

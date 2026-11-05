@@ -3,7 +3,6 @@
 import React, { memo, useState, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { motion, useReducedMotion } from 'framer-motion';
 import {
   Gauge,
   Users,
@@ -46,12 +45,13 @@ const STATUS_STYLES = {
 } as const;
 
 function resolveStatus(rawStatus?: string, checked?: boolean) {
+  // Avec des dates, l'API ne renvoie que les véhicules libres sur toute la période
   if (checked) {
-    return { isBookable: true, style: STATUS_STYLES.available };
+    return { isBookable: true, style: { ...STATUS_STYLES.available, label: 'Libre à vos dates' } };
   }
   switch (rawStatus) {
     case 'AVAILABLE':
-      return { isBookable: true, style: STATUS_STYLES.available };
+      return { isBookable: true, style: { ...STATUS_STYLES.available, label: 'Disponible aujourd’hui' } };
     case 'RESERVED':
       return { isBookable: false, style: STATUS_STYLES.reserved };
     case 'RENTED':
@@ -228,7 +228,6 @@ function VehicleCardComponent({
   selectedDays,
   onNotify,
 }: VehicleCardProps) {
-  const reduceMotion = useReducedMotion();
   const [internalFavorite, setInternalFavorite] = useState(false);
   const isFavorite = externalFavorite ?? internalFavorite;
 
@@ -262,12 +261,10 @@ function VehicleCardComponent({
   );
 
   return (
-    <motion.article
-      initial={reduceMotion ? false : { opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.25, ease: [0.33, 1, 0.68, 1] }}
+    <article
       className={cn(
-        'group relative flex min-w-0 flex-col overflow-hidden rounded-2xl border bg-white transition-[box-shadow,border-color,transform] duration-300 motion-reduce:transition-none',
+        // Apparition en CSS (framer-motion retiré des pages de liste)
+        'animate-cd-fade-in motion-reduce:animate-none group relative flex min-w-0 flex-col overflow-hidden rounded-2xl border bg-white transition-[box-shadow,border-color,transform] duration-300 motion-reduce:transition-none',
         'border-slate-200/80 shadow-[0_1px_2px_rgba(11,18,32,0.05)]',
         'hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_18px_40px_-18px_rgba(11,18,32,0.28)] focus-within:border-[#0B1220] motion-reduce:hover:translate-y-0'
       )}
@@ -294,34 +291,33 @@ function VehicleCardComponent({
           {status.label}
         </span>
 
-        <motion.button
+        <button
           type="button"
           onClick={handleFavorite}
-          whileTap={reduceMotion ? undefined : { scale: 1.12 }}
           aria-pressed={isFavorite}
           aria-label={isFavorite ? `Retirer ${vehicleName} des favoris` : `Ajouter ${vehicleName} aux favoris`}
           className={cn(
-            'absolute end-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-white/95 shadow-sm backdrop-blur-sm transition-colors duration-200',
+            'absolute end-3 top-3 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white/95 shadow-sm backdrop-blur-sm transition-[color,scale] duration-200 active:scale-110 motion-reduce:active:scale-100',
             'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#E63946]',
-            isFavorite ? 'text-[#E63946]' : 'text-slate-500 hover:text-[#E63946]'
+            isFavorite ? 'text-accent-text' : 'text-slate-500 hover:text-accent-text'
           )}
         >
           <Heart className={cn('h-4 w-4', isFavorite && 'fill-current')} aria-hidden="true" />
-        </motion.button>
+        </button>
 
-        <span className="pointer-events-none absolute bottom-3 start-3 z-10 rounded-md bg-[#0B1220]/75 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.12em] text-white backdrop-blur-sm">
+        <span className="pointer-events-none absolute bottom-3 start-3 z-10 rounded-md bg-[#0B1220]/75 px-2 py-0.5 text-[11px] font-bold uppercase tracking-[0.12em] text-white backdrop-blur-sm">
           {vehicle.category}
         </span>
       </div>
 
       {/* ── Contenu ───────────────────────────────────────────────────── */}
       <div className="flex flex-1 flex-col p-4">
-        <p className="truncate text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
+        <p className="truncate text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">
           {vehicle.brand}
         </p>
         <h3 className="mt-0.5 truncate text-[17px] font-extrabold leading-snug text-[#0B1220]">
           {vehicle.model}
-          <span className="ms-1.5 font-semibold text-slate-400">{vehicle.year}</span>
+          <span className="ms-1.5 font-semibold text-slate-500">{vehicle.year}</span>
         </h3>
 
         <ul
@@ -359,7 +355,7 @@ function VehicleCardComponent({
                 Vérifiée
               </span>
             )}
-            <span className="ms-auto shrink-0 text-[11px] font-semibold text-slate-500">
+            <span className="ms-auto shrink-0 text-[11px] font-semibold text-ink-tertiary">
               {showRating ? (
                 <span
                   className="inline-flex items-center gap-1"
@@ -412,7 +408,7 @@ function VehicleCardComponent({
                 'flex h-11 flex-1 items-center justify-center gap-2 rounded-xl text-[13px] font-bold transition-colors duration-200',
                 'outline-none after:absolute after:inset-0 after:z-10 after:rounded-2xl focus-visible:after:ring-2 focus-visible:after:ring-inset focus-visible:after:ring-[#E63946]',
                 isBookable
-                  ? 'bg-[#0B1220] text-white group-hover:bg-[#E63946]'
+                  ? 'bg-[#0B1220] text-white group-hover:bg-action'
                   : 'border border-slate-200 bg-white text-[#0B1220] group-hover:border-slate-300'
               )}
             >
@@ -438,7 +434,7 @@ function VehicleCardComponent({
           </div>
         </div>
       </div>
-    </motion.article>
+    </article>
   );
 }
 

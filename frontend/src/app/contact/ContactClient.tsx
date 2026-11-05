@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { SUPPORT_HOURS } from '@/lib/constants/contact';
 import {
   ChevronRight,
   Mail,
@@ -95,7 +96,7 @@ export function ContactClient() {
       {/* Header */}
       <div className="border-b border-slate-200 bg-white">
         <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
-          <nav className="mb-5 flex items-center gap-1.5 text-xs text-slate-400">
+          <nav aria-label="Fil d’Ariane" className="mb-5 flex items-center gap-1.5 text-xs text-ink-secondary">
             <Link href="/" className="transition-colors hover:text-slate-600">Accueil</Link>
             <ChevronRight className="h-3.5 w-3.5" />
             <span className="font-medium text-slate-700">Contact</span>
@@ -148,9 +149,11 @@ export function ContactClient() {
 
                 {/* Name + Email */}
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <Field label="Nom complet *" error={errors.name}>
+                  <Field label="Nom complet *" htmlFor="contact-name" error={errors.name}>
                     <input
                       id="contact-name"
+                      aria-invalid={errors.name ? true : undefined}
+                      aria-describedby={errors.name ? "contact-name-error" : undefined}
                       type="text"
                       required
                       placeholder="Votre nom et prénom"
@@ -159,9 +162,11 @@ export function ContactClient() {
                       className={inputClass(!!errors.name)}
                     />
                   </Field>
-                  <Field label="Email *" error={errors.email}>
+                  <Field label="Email *" htmlFor="contact-email" error={errors.email}>
                     <input
                       id="contact-email"
+                      aria-invalid={errors.email ? true : undefined}
+                      aria-describedby={errors.email ? "contact-email-error" : undefined}
                       type="email"
                       required
                       placeholder="vous@email.com"
@@ -174,7 +179,7 @@ export function ContactClient() {
 
                 {/* Phone + Category */}
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <Field label="Téléphone (optionnel)">
+                  <Field label="Téléphone (optionnel)" htmlFor="contact-phone">
                     <input
                       id="contact-phone"
                       type="tel"
@@ -184,9 +189,11 @@ export function ContactClient() {
                       className={inputClass(false)}
                     />
                   </Field>
-                  <Field label="Catégorie *" error={errors.category}>
+                  <Field label="Catégorie *" htmlFor="contact-category" error={errors.category}>
                     <select
                       id="contact-category"
+                      aria-invalid={errors.category ? true : undefined}
+                      aria-describedby={errors.category ? "contact-category-error" : undefined}
                       required
                       value={form.category}
                       onChange={update('category')}
@@ -201,7 +208,7 @@ export function ContactClient() {
                 </div>
 
                 {/* Subject */}
-                <Field label="Objet (optionnel)">
+                <Field label="Objet (optionnel)" htmlFor="contact-subject">
                   <input
                     id="contact-subject"
                     type="text"
@@ -213,9 +220,11 @@ export function ContactClient() {
                 </Field>
 
                 {/* Message */}
-                <Field label="Message *" error={errors.message}>
+                <Field label="Message *" htmlFor="contact-message" error={errors.message}>
                   <textarea
                     id="contact-message"
+                      aria-invalid={errors.message ? true : undefined}
+                      aria-describedby={errors.message ? "contact-message-error" : undefined}
                     required
                     rows={6}
                     placeholder="Décrivez votre demande en détail…"
@@ -223,7 +232,7 @@ export function ContactClient() {
                     onChange={update('message')}
                     className={`${inputClass(!!errors.message)} resize-none`}
                   />
-                  <p className="mt-1 text-right text-xs text-slate-400">{form.message.length} caractère(s)</p>
+                  <p className="mt-1 text-right text-xs text-ink-secondary">{form.message.length} caractère(s)</p>
                 </Field>
 
                 {/* Error banner */}
@@ -239,7 +248,7 @@ export function ContactClient() {
                     id="contact-submit"
                     type="submit"
                     disabled={state === 'sending'}
-                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#E63946] px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-red-900/20 transition hover:bg-[#C92F3B] disabled:opacity-60 disabled:cursor-not-allowed"
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-action px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-red-900/20 transition hover:bg-action-hover disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     {state === 'sending' ? (
                       <>
@@ -296,7 +305,7 @@ export function ContactClient() {
                     <div>
                       <p className="text-xs font-semibold text-slate-500">{label}</p>
                       {href ? (
-                        <a href={href} className="text-sm font-medium text-[#E63946] hover:underline">{value}</a>
+                        <a href={href} className="text-sm font-medium text-accent-text hover:underline">{value}</a>
                       ) : (
                         <p className="text-sm font-medium text-slate-800">{value}</p>
                       )}
@@ -309,22 +318,18 @@ export function ContactClient() {
             {/* Hours */}
             <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
               <div className="mb-4 flex items-center gap-2">
-                <Clock3 className="h-4 w-4 text-[#E63946]" />
+                <Clock3 className="h-4 w-4 text-accent-text" />
                 <h2 className="text-base font-bold text-slate-900">Heures de réponse</h2>
               </div>
               <ul className="space-y-2 text-sm">
-                {[
-                  { day: 'Lundi – Vendredi', hours: '9h00 – 18h00' },
-                  { day: 'Samedi', hours: '9h00 – 13h00' },
-                  { day: 'Dimanche & fériés', hours: 'Fermé' },
-                ].map(({ day, hours }) => (
+                {SUPPORT_HOURS.map(({ day, hours }) => (
                   <li key={day} className="flex items-center justify-between">
                     <span className="text-slate-600">{day}</span>
                     <span className="font-semibold text-slate-900">{hours}</span>
                   </li>
                 ))}
               </ul>
-              <p className="mt-4 text-xs text-slate-400">Délai de réponse habituel : 24h ouvrées</p>
+              <p className="mt-4 text-xs text-ink-secondary">Délai de réponse habituel : 24h ouvrées</p>
             </div>
 
             {/* For agencies */}
@@ -357,7 +362,7 @@ export function ContactClient() {
               </p>
               <Link
                 href="/faq"
-                className="inline-flex items-center gap-1 text-xs font-semibold text-[#E63946] hover:underline"
+                className="inline-flex items-center gap-1 text-xs font-semibold text-accent-text hover:underline"
               >
                 Voir la FAQ <ChevronRight className="h-3.5 w-3.5" />
               </Link>
@@ -380,18 +385,21 @@ function Field({
   label,
   error,
   children,
+  htmlFor,
 }: {
   label: string;
   error?: string;
+  /** id du contrôle : relie le libellé et l'erreur au champ (lecteurs d'écran, clic sur le libellé) */
+  htmlFor: string;
   children: React.ReactNode;
 }) {
   return (
     <div>
-      <label className="mb-1.5 block text-xs font-semibold text-slate-700">{label}</label>
+      <label htmlFor={htmlFor} className="mb-1.5 block text-[13px] font-semibold text-ink">{label}</label>
       {children}
       {error && (
-        <p className="mt-1 flex items-center gap-1 text-xs text-red-600">
-          <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+        <p id={`${htmlFor}-error`} className="mt-1 flex items-center gap-1 text-[13px] text-danger">
+          <AlertCircle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
           {error}
         </p>
       )}

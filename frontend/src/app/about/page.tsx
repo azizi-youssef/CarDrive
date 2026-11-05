@@ -121,7 +121,7 @@ function SectionEyebrow({ children, tone = 'light' }: { children: React.ReactNod
   return (
     <p
       className={`inline-flex items-center gap-2.5 text-[11px] font-bold uppercase tracking-[0.2em] ${
-        tone === 'dark' ? 'text-[#FF6B76]' : 'text-[#E63946]'
+        tone === 'dark' ? 'text-[#FF6B76]' : 'text-accent-text'
       }`}
     >
       <span className="h-px w-7 bg-current" aria-hidden="true" />
@@ -154,9 +154,9 @@ function MarketplaceIllustration() {
 
         {/* Recherche */}
         <div className="relative flex items-center gap-3 rounded-2xl bg-white px-4 py-3">
-          <Search className="h-4 w-4 shrink-0 text-[#E63946]" aria-hidden="true" />
+          <Search className="h-4 w-4 shrink-0 text-accent-text" aria-hidden="true" />
           <div className="min-w-0 flex-1">
-            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Votre recherche</p>
+            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">Votre recherche</p>
             <p className="truncate text-sm font-extrabold text-[#0B1220]">SUV · Aéroport Nador</p>
           </div>
           <span className="hidden items-center gap-1 rounded-full bg-[#F5F6F8] px-2.5 py-1 text-[11px] font-bold text-slate-600 sm:inline-flex">
@@ -209,7 +209,7 @@ function MarketplaceIllustration() {
         </ul>
 
         {/* Alternative */}
-        <div className="relative mt-3 flex items-center gap-3 rounded-2xl bg-[#E63946] px-4 py-3 text-white">
+        <div className="relative mt-3 flex items-center gap-3 rounded-2xl bg-action px-4 py-3 text-white">
           <Shuffle className="h-4 w-4 shrink-0" aria-hidden="true" />
           <p className="text-[13px] font-semibold leading-snug">
             Modèle pris ? <span className="font-extrabold">Un équivalent vous est proposé.</span>
@@ -246,7 +246,7 @@ export default function AboutPage() {
               id="hero-title"
               className="mt-5 text-balance text-[40px] font-extrabold leading-[1.02] tracking-[-0.03em] sm:text-6xl lg:text-[68px]"
             >
-              Cherchez la voiture, <span className="text-[#E63946]">pas l’agence.</span>
+              Cherchez la voiture, <span className="text-accent-text">pas l’agence.</span>
             </h1>
 
             <p className="mt-6 text-pretty text-base leading-7 text-slate-300 sm:text-lg sm:leading-8">
@@ -257,7 +257,7 @@ export default function AboutPage() {
             <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
               <Link
                 href="/search"
-                className={`group inline-flex h-13 items-center justify-center gap-2 rounded-xl bg-[#E63946] px-7 text-[15px] font-bold text-white shadow-[0_14px_30px_-12px_rgba(230,57,70,0.7)] transition-colors hover:bg-[#C92F3B] motion-reduce:transition-none ${focusRing} focus-visible:ring-offset-[#0B1220]`}
+                className={`group inline-flex h-13 items-center justify-center gap-2 rounded-xl bg-action px-7 text-[15px] font-bold text-white shadow-[0_14px_30px_-12px_rgba(230,57,70,0.7)] transition-colors hover:bg-action-hover motion-reduce:transition-none ${focusRing} focus-visible:ring-offset-[#0B1220]`}
               >
                 Explorer les véhicules
                 <ArrowRight
@@ -277,7 +277,7 @@ export default function AboutPage() {
             <ul className="mt-10 grid grid-cols-1 gap-3 text-sm text-slate-300 sm:grid-cols-3 sm:gap-4">
               {['Sans paiement en ligne', 'Agences partenaires vérifiées', 'Contact direct avec l’agence'].map((item) => (
                 <li key={item} className="flex items-center gap-2">
-                  <BadgeCheck className="h-4 w-4 shrink-0 text-[#E63946]" aria-hidden="true" />
+                  <BadgeCheck className="h-4 w-4 shrink-0 text-accent-text" aria-hidden="true" />
                   {item}
                 </li>
               ))}
@@ -319,7 +319,7 @@ export default function AboutPage() {
           {/* Explication visuelle : avant / avec CarDrive */}
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="rounded-3xl border border-slate-200 bg-white p-6">
-              <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-400">Sans CarDrive</p>
+              <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-500">Sans CarDrive</p>
               <p className="mt-2 text-lg font-extrabold">Une agence après l’autre</p>
               <ol className="mt-5 space-y-2.5" aria-label="Démarche sans CarDrive">
                 {['Appeler une première agence', 'Modèle indisponible, rappeler ailleurs', 'Comparer de mémoire', 'Recommencer…'].map(
@@ -346,7 +346,7 @@ export default function AboutPage() {
                 {['Une recherche pour toutes les agences', 'Les véhicules comparés côte à côte', 'Une alternative si le modèle est pris', 'Le contact direct de l’agence'].map(
                   (item) => (
                     <li key={item} className="flex items-center gap-3 text-sm text-slate-200">
-                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#E63946] text-white">
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-action text-white">
                         <Check className="h-4 w-4" aria-hidden="true" />
                       </span>
                       {item}
@@ -383,7 +383,7 @@ export default function AboutPage() {
                   className="group relative flex flex-col rounded-3xl border border-slate-200 bg-[#F5F6F8] p-6 transition-colors duration-300 hover:border-[#0B1220]/20 hover:bg-white motion-reduce:transition-none"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#0B1220] text-white transition-colors duration-300 group-hover:bg-[#E63946] motion-reduce:transition-none">
+                    <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#0B1220] text-white transition-colors duration-300 group-hover:bg-action motion-reduce:transition-none">
                       <Icon className="h-5 w-5" aria-hidden="true" />
                     </span>
                     <span className="text-xs font-bold tabular-nums text-slate-300" aria-hidden="true">
@@ -427,7 +427,7 @@ export default function AboutPage() {
               <li key={step.title} className="relative flex gap-5 pb-10 last:pb-0 lg:flex-col lg:items-center lg:pb-0 lg:text-center">
                 <span
                   className={`relative z-10 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-[15px] font-extrabold ring-8 ring-[#F5F6F8] ${
-                    index === 0 ? 'bg-[#E63946] text-white' : 'bg-[#0B1220] text-white'
+                    index === 0 ? 'bg-action text-white' : 'bg-[#0B1220] text-white'
                   }`}
                 >
                   {index + 1}
@@ -445,7 +445,7 @@ export default function AboutPage() {
         <div className="mt-10 flex justify-center">
           <Link
             href="/search"
-            className={`group inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#0B1220] px-7 text-sm font-bold text-white transition-colors hover:bg-[#E63946] sm:w-auto motion-reduce:transition-none ${focusRing}`}
+            className={`group inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#0B1220] px-7 text-sm font-bold text-white transition-colors hover:bg-action sm:w-auto motion-reduce:transition-none ${focusRing}`}
           >
             Commencer ma recherche
             <ArrowRight
@@ -523,7 +523,7 @@ export default function AboutPage() {
                     href={`/search?location=${encodeURIComponent(location)}`}
                     className={`inline-flex min-h-10 items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 text-sm font-medium text-slate-100 transition-colors hover:border-white/35 hover:bg-white/10 ${focusRing} focus-visible:ring-offset-[#0B1220]`}
                   >
-                    <MapPin className="h-3.5 w-3.5 text-[#E63946]" aria-hidden="true" />
+                    <MapPin className="h-3.5 w-3.5 text-accent-text" aria-hidden="true" />
                     {location}
                   </Link>
                 </li>
@@ -540,7 +540,7 @@ export default function AboutPage() {
         </h2>
 
         <div className="grid gap-5 md:grid-cols-[1.3fr_1fr]">
-          <div className="relative overflow-hidden rounded-3xl bg-[#E63946] p-8 text-white sm:p-10">
+          <div className="relative overflow-hidden rounded-3xl bg-action p-8 text-white sm:p-10">
             <div aria-hidden="true" className="absolute -end-20 -top-24 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
             <div className="relative">
               <p className="text-balance text-2xl font-extrabold leading-tight sm:text-3xl">
@@ -574,7 +574,7 @@ export default function AboutPage() {
             </div>
             <Link
               href="/contact"
-              className={`mt-5 inline-flex min-h-11 items-center gap-2 self-start rounded text-sm font-bold text-[#E63946] hover:text-[#C92F3B] ${focusRing}`}
+              className={`mt-5 inline-flex min-h-11 items-center gap-2 self-start rounded text-sm font-bold text-accent-text hover:text-[#C92F3B] ${focusRing}`}
             >
               Devenir partenaire
               <ArrowRight className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />

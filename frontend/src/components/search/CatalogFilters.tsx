@@ -5,6 +5,7 @@ import { ChevronDown, RotateCcw, Search, X } from 'lucide-react';
 import { CATEGORIES } from '@/lib/constants/catalog';
 import { cn, formatNumber } from '@/lib/utils';
 import type { Agency } from '@/types';
+import type { Facet } from '@/lib/catalog/discovery';
 
 export const ALL_CATEGORIES = 'Tous les types';
 export const PRICE_CEILING = 5000;
@@ -41,6 +42,11 @@ export const FUEL_LABELS: Record<Exclude<CatalogFilterState['fuel'], 'ALL'>, str
   HYBRID: 'Hybride',
 };
 
+function sameText(a: string, b: string): boolean {
+  return a.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') ===
+    b.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
 /** Nombre de critères actifs (le tri n'est pas un filtre). */
 export function countActiveFilters(filters: CatalogFilterState): number {
   return [
@@ -76,12 +82,12 @@ function FilterSection({
           aria-expanded={open}
           aria-controls={contentId}
           onClick={() => setOpen((value) => !value)}
-          className="flex w-full items-center justify-between gap-3 rounded-lg text-start focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#E63946]"
+          className="flex min-h-8 w-full items-center justify-between gap-3 rounded-lg text-start focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#E63946]"
         >
           <span className="text-[13px] font-bold text-[#0B1220]">{title}</span>
           <span className="flex min-w-0 items-center gap-2">
             {summary && (
-              <span className="truncate text-xs font-semibold text-[#E63946]">{summary}</span>
+              <span className="truncate text-xs font-semibold text-accent-text">{summary}</span>
             )}
             <ChevronDown
               className={cn('h-4 w-4 shrink-0 text-slate-400 transition-transform duration-200', open && 'rotate-180')}
@@ -134,6 +140,8 @@ interface CatalogFiltersProps {
   agencies: Agency[];
   /** Masque l'en-tête (le tiroir mobile a le sien). */
   hideHeader?: boolean;
+  /** Options réellement présentes dans le catalogue (sinon : listes par défaut) */
+  facets?: { categories: Facet[]; transmissions: Facet[]; fuels: Facet[] };
 }
 
 export function CatalogFilters({
@@ -143,6 +151,7 @@ export function CatalogFilters({
   brands,
   agencies,
   hideHeader = false,
+  facets,
 }: CatalogFiltersProps) {
   const uid = useId();
   const activeCount = countActiveFilters(filters);
@@ -155,7 +164,7 @@ export function CatalogFilters({
           <h2 className="text-base font-extrabold text-[#0B1220]">
             Filtres
             {activeCount > 0 && (
-              <span className="ms-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#E63946] px-1.5 text-[11px] font-bold text-white">
+              <span className="ms-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-action px-1.5 text-[11px] font-bold text-white">
                 {activeCount}
               </span>
             )}
@@ -164,7 +173,7 @@ export function CatalogFilters({
             type="button"
             onClick={onReset}
             disabled={activeCount === 0}
-            className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-semibold text-slate-500 transition-colors hover:text-[#E63946] disabled:cursor-default disabled:opacity-40 disabled:hover:text-slate-500"
+            className="inline-flex items-center gap-1.5 min-h-8 rounded-lg px-2 py-1 text-xs font-semibold text-ink-tertiary transition-colors hover:text-accent-text disabled:cursor-default disabled:opacity-40 disabled:hover:text-slate-500"
           >
             <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
             Réinitialiser
@@ -205,13 +214,25 @@ export function CatalogFilters({
         summary={filters.category !== ALL_CATEGORIES ? filters.category : undefined}
       >
         <div className="flex flex-wrap gap-2">
-          {CATEGORIES.map((category) => (
+          {/* Catégories réellement présentes, avec leur nombre ; la catégorie active reste proposée pour pouvoir la retirer */}
+          {(facets
+            ? [
+                { value: ALL_CATEGORIES, count: facets.categories.reduce((sum, facet) => sum + facet.count, 0) },
+                ...facets.categories,
+                ...(filters.category !== ALL_CATEGORIES &&
+                !facets.categories.some((facet) => sameText(facet.value, filters.category))
+                  ? [{ value: filters.category, count: 0 }]
+                  : []),
+              ]
+            : CATEGORIES.map((value) => ({ value, count: undefined as number | undefined }))
+          ).map(({ value, count }) => (
             <OptionChip
-              key={category}
-              active={filters.category === category}
-              onClick={() => onChange({ category })}
+              key={value}
+              active={sameText(filters.category, value)}
+              onClick={() => onChange({ category: value })}
             >
-              {category === ALL_CATEGORIES ? 'Toutes' : category}
+              {value === ALL_CATEGORIES ? 'Toutes' : value}
+              {count !== undefined && <span className="ms-1 font-medium opacity-70">({count})</span>}
             </OptionChip>
           ))}
         </div>
@@ -225,18 +246,13 @@ export function CatalogFilters({
           <OptionChip active={filters.transmission === 'ALL'} onClick={() => onChange({ transmission: 'ALL' })}>
             Toutes
           </OptionChip>
-          <OptionChip
-            active={filters.transmission === 'AUTOMATIC'}
-            onClick={() => onChange({ transmission: 'AUTOMATIC' })}
-          >
-            Auto
-          </OptionChip>
-          <OptionChip
-            active={filters.transmission === 'MANUAL'}
-            onClick={() => onChange({ transmission: 'MANUAL' })}
-          >
-            Manuelle
-          </OptionChip>
+          {(['AUTOMATIC', 'MANUAL'] as const)
+            .filter((value) => !facets || facets.transmissions.some((facet) => facet.value === value) || filters.transmission === value)
+            .map((value) => (
+              <OptionChip key={value} active={filters.transmission === value} onClick={() => onChange({ transmission: value })}>
+                {value === 'AUTOMATIC' ? 'Auto' : 'Manuelle'}
+              </OptionChip>
+            ))}
         </div>
       </FilterSection>
 
@@ -248,7 +264,9 @@ export function CatalogFilters({
           <OptionChip active={filters.fuel === 'ALL'} onClick={() => onChange({ fuel: 'ALL' })}>
             Tous
           </OptionChip>
-          {(Object.keys(FUEL_LABELS) as (keyof typeof FUEL_LABELS)[]).map((fuel) => (
+          {(Object.keys(FUEL_LABELS) as (keyof typeof FUEL_LABELS)[])
+            .filter((fuel) => !facets || facets.fuels.some((facet) => facet.value === fuel) || filters.fuel === fuel)
+            .map((fuel) => (
             <OptionChip key={fuel} active={filters.fuel === fuel} onClick={() => onChange({ fuel })}>
               {FUEL_LABELS[fuel]}
             </OptionChip>

@@ -88,7 +88,7 @@ export const nl: Translations = {
     vehicles: 'Beschikbare auto’s',
     agencies: 'Partnerbedrijven',
     satisfaction: 'Tevreden klanten',
-    support: '7/7 WhatsApp-ondersteuning',
+    support: 'WhatsApp-ondersteuning',
   },
   differentiator: {
     badge: 'Slimmer en sneller zoeken',

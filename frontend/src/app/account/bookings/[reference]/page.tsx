@@ -22,15 +22,23 @@ import {
   FileText,
   HelpCircle,
   ExternalLink,
+  Check,
+  X,
 } from 'lucide-react';
 import { MeetingPointBadge } from '@/components/booking/MeetingPointBadge';
+import { StatusBadge } from '@/components/ui/StatusBadge';
+import { bookingNextStepHint, bookingStatusLabel, bookingTimeline } from '@/lib/bookings/status';
+import { cardriveWhatsAppUrl } from '@/lib/constants/contact';
+import { useTranslation } from '@/lib/i18n/LanguageContext';
+import { cn } from '@/lib/utils';
 
 interface BookingDetailPageProps {
   params: Promise<{ reference: string }>;
 }
 
 export default function BookingDetailPage({ params }: BookingDetailPageProps) {
-  const { reference } = use(params);
+  const { reference: referenceParam } = use(params);
+  const { locale } = useTranslation();
   const [booking, setBooking] = useState<Booking | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -38,7 +46,7 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
   useEffect(() => {
     async function fetchBooking() {
       try {
-        const res = await fetch(`/api/bookings/${encodeURIComponent(reference)}`);
+        const res = await fetch(`/api/bookings/${encodeURIComponent(referenceParam)}`);
         const data = await res.json();
         if (data.success && data.booking) {
           setBooking(data.booking);
@@ -53,7 +61,7 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
     }
 
     fetchBooking();
-  }, [reference]);
+  }, [referenceParam]);
 
   if (loading) {
     return (
@@ -75,7 +83,7 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
           </div>
           <h2 className="text-base font-bold text-slate-900">Dossier introuvable</h2>
           <p className="text-xs text-slate-500">
-            Aucune demande ne correspond à la référence <strong>{reference}</strong>.
+            Aucune demande ne correspond à la référence <strong>{referenceParam}</strong>.
           </p>
           <Link
             href="/account"
@@ -89,46 +97,19 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
     );
   }
 
-  // Événements timeline
-  const timelineSteps = [
-    { key: 'REQUESTED', label: 'Demande créée', done: true },
-    { key: 'PDF_READY', label: 'PDF de demande généré', done: true },
-    { key: 'SENT', label: 'Transmise à l’agence', done: true },
-    {
-      key: 'AGENCY_REVIEW',
-      label: 'Examen agence',
-      current: booking.status === 'REQUESTED' || booking.status === 'UNDER_REVIEW' || booking.status === 'PENDING',
-      done: booking.status === 'APPROVED' || booking.status === 'CONFIRMED' || booking.status === 'ACTIVE' || booking.status === 'COMPLETED',
-    },
-    {
-      key: 'APPROVED',
-      label: 'Réservation validée',
-      done: booking.status === 'APPROVED' || booking.status === 'CONFIRMED' || booking.status === 'ACTIVE' || booking.status === 'COMPLETED',
-    },
-    {
-      key: 'READY',
-      label: 'Véhicule prêt',
-      done: booking.status === 'READY_FOR_PICKUP' || booking.status === 'ACTIVE' || booking.status === 'COMPLETED',
-    },
-    {
-      key: 'ACTIVE',
-      label: 'Location en cours',
-      done: booking.status === 'ACTIVE' || booking.status === 'COMPLETED',
-    },
-    {
-      key: 'COMPLETED',
-      label: 'Restitution effectuée',
-      done: booking.status === 'COMPLETED',
-    },
-  ];
-
-  const isConfirmed = ['CONFIRMED', 'APPROVED', 'ACTIVE', 'IN_PROGRESS', 'COMPLETED'].includes(booking.status);
-  const conciergeUrl = `https://wa.me/212661987654?text=${encodeURIComponent(
-    `Bonjour CarDrive Conciergerie, je souhaite un suivi sur mon dossier réf. ${booking.reference || booking.booking_ref} (${booking.vehicle?.brand} ${booking.vehicle?.model}).`
-  )}`;
-  const whatsappText = `Bonjour, je vous contacte concernant mon dossier CarDrive réf. ${booking.reference || booking.booking_ref} pour la ${booking.vehicle?.brand} ${booking.vehicle?.model}.`;
-  const agencyPhone = booking.agency?.whatsapp || booking.agency?.phone || '+212600000000';
-  const agencyWhatsappUrl = `https://wa.me/${agencyPhone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(whatsappText)}`;
+  // Suivi : étapes dérivées des statuts réels de la machine à états
+  const timeline = bookingTimeline(booking.status, locale);
+  const nextStep = bookingNextStepHint(booking.status);
+  const reference = booking.reference || booking.booking_ref || '';
+  const isConfirmed = ['APPROVED', 'CONFIRMED', 'READY_FOR_PICKUP', 'ACTIVE', 'COMPLETED'].includes(booking.status);
+  const conciergeUrl = cardriveWhatsAppUrl(
+    `Bonjour CarDrive, je souhaite un suivi sur mon dossier réf. ${reference} (${booking.vehicle?.brand} ${booking.vehicle?.model}).`
+  );
+  const whatsappText = `Bonjour, je vous contacte concernant mon dossier CarDrive réf. ${reference} pour la ${booking.vehicle?.brand} ${booking.vehicle?.model}.`;
+  // Pas de numéro de repli inventé : sans numéro d'agence, on oriente vers le support CarDrive
+  const agencyDigits = (booking.agency?.whatsapp || booking.agency?.phone || '').replace(/[^0-9]/g, '');
+  const agencyWhatsappUrl = agencyDigits.length >= 8 ? `https://wa.me/${agencyDigits}?text=${encodeURIComponent(whatsappText)}` : null;
+  const contactAgency = isConfirmed && agencyWhatsappUrl;
 
   return (
     <div className="bg-[#F8FAFC] min-h-screen py-10 pb-20">
@@ -154,22 +135,10 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-6">
             <div>
               <div className="flex items-center gap-2 mb-1.5">
-                <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-800">
+                <span className="px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-slate-100 text-slate-800">
                   Dossier CarDrive
                 </span>
-                {booking.status === 'APPROVED' || booking.status === 'CONFIRMED' ? (
-                  <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
-                    ✓ Validé par l’agence
-                  </span>
-                ) : booking.status === 'REJECTED' ? (
-                  <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-red-100 text-red-800">
-                    ✕ Demande refusée
-                  </span>
-                ) : (
-                  <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
-                    ● En attente de validation agence
-                  </span>
-                )}
+                <StatusBadge status={booking.status} locale={locale} size="sm" />
               </div>
 
               <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-950 tracking-tight">
@@ -193,62 +162,71 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
               </a>
 
               <a
-                href={isConfirmed ? agencyWhatsappUrl : conciergeUrl}
+                href={contactAgency ? agencyWhatsappUrl : conciergeUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 shadow-sm transition-all ${
-                  isConfirmed 
+                className={`min-h-11 px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 shadow-sm transition-all ${
+                  contactAgency 
                     ? 'bg-emerald-600 hover:bg-emerald-700 text-white' 
                     : 'bg-[#0B1220] hover:bg-slate-800 text-white'
                 }`}
               >
                 <MessageSquare className="w-4 h-4" />
-                <span>{isConfirmed ? 'Agence (Retrait clés)' : 'Conciergerie CarDrive'}</span>
+                <span>{contactAgency ? 'Contacter l’agence' : 'Support CarDrive'}</span>
               </a>
             </div>
           </div>
 
-          {/* Timeline de progression */}
-          <div className="pt-6">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">
-              Suivi en temps réel de votre demande
+          {/* Suivi de la demande : statuts réels, de l'envoi à la restitution */}
+          <section aria-labelledby="booking-progress" className="pt-6">
+            <h2 id="booking-progress" className="text-sm font-bold text-ink">
+              Suivi de votre demande
             </h2>
+            {nextStep && <p className="mt-1 text-sm leading-relaxed text-ink-secondary">{nextStep}</p>}
 
-            <div className="relative">
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                {timelineSteps.slice(0, 4).map((step, idx) => (
-                  <div
-                    key={step.key}
-                    className={`p-3 rounded-2xl border transition-all ${
-                      step.done
-                        ? 'bg-emerald-50/70 border-emerald-200 text-emerald-950'
-                        : step.current
-                        ? 'bg-blue-50/80 border-blue-300 text-[#0B1220] shadow-sm ring-2 ring-blue-500/20'
-                        : 'bg-slate-50 border-slate-200 text-slate-400'
-                    }`}
+            <ol className="mt-5 grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
+              {timeline.map((step, index) => (
+                <li
+                  key={step.key}
+                  aria-current={step.state === 'current' ? 'step' : undefined}
+                  className={cn(
+                    'flex items-center gap-3 rounded-xl border p-3 sm:flex-col sm:items-start sm:gap-2',
+                    step.state === 'done' && 'border-success-line bg-success-soft',
+                    step.state === 'current' && 'border-ink bg-surface ring-2 ring-ink/10',
+                    step.state === 'stopped' && 'border-danger-line bg-danger-soft',
+                    step.state === 'upcoming' && 'border-line bg-canvas'
+                  )}
+                >
+                  <span
+                    aria-hidden="true"
+                    className={cn(
+                      'flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold',
+                      step.state === 'done' && 'bg-success text-white',
+                      step.state === 'current' && 'bg-ink text-white',
+                      step.state === 'stopped' && 'bg-danger text-white',
+                      step.state === 'upcoming' && 'bg-surface text-ink-secondary ring-1 ring-line-strong'
+                    )}
                   >
-                    <div className="flex items-center gap-2 text-xs font-bold mb-1">
-                      <span
-                        className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${
-                          step.done
-                            ? 'bg-emerald-600 text-white'
-                            : step.current
-                            ? 'bg-[#0B1220] text-white animate-pulse'
-                            : 'bg-slate-200 text-slate-500'
-                        }`}
-                      >
-                        {step.done ? '✓' : idx + 1}
-                      </span>
-                      <span>{step.label}</span>
-                    </div>
-                    <p className="text-[10px] text-slate-500">
-                      {step.done ? 'Complété' : step.current ? 'En cours de traitement' : 'À venir'}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+                    {step.state === 'done' ? <Check className="h-4 w-4" /> : step.state === 'stopped' ? <X className="h-4 w-4" /> : index + 1}
+                  </span>
+                  <span className="min-w-0">
+                    <span className={cn('block text-[13px] font-bold leading-snug', step.state === 'upcoming' ? 'text-ink-secondary' : 'text-ink')}>
+                      {step.label}
+                    </span>
+                    <span className="block text-xs text-ink-secondary">
+                      {step.state === 'done'
+                        ? 'Fait'
+                        : step.state === 'current'
+                          ? 'En cours'
+                          : step.state === 'stopped'
+                            ? bookingStatusLabel(booking.status, locale)
+                            : 'À venir'}
+                    </span>
+                  </span>
+                </li>
+              ))}
+            </ol>
+          </section>
         </div>
 
         {/* Détails en 2 Colonnes */}
@@ -266,13 +244,13 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                 <div className="p-3 bg-slate-50 rounded-xl">
-                  <span className="text-[10px] font-bold uppercase text-slate-400 block mb-0.5">Prise en charge</span>
+                  <span className="text-[11px] font-bold uppercase text-slate-400 block mb-0.5">Prise en charge</span>
                   <p className="font-bold text-slate-900">{booking.start_date} à {booking.pickup_time || '10:00'}</p>
                   <p className="text-slate-500 text-[11px] mt-1">{booking.pickup_location}</p>
                 </div>
 
                 <div className="p-3 bg-slate-50 rounded-xl">
-                  <span className="text-[10px] font-bold uppercase text-slate-400 block mb-0.5">Restitution</span>
+                  <span className="text-[11px] font-bold uppercase text-slate-400 block mb-0.5">Restitution</span>
                   <p className="font-bold text-slate-900">{booking.end_date} à {booking.dropoff_time || '10:00'}</p>
                   <p className="text-slate-500 text-[11px] mt-1">{booking.dropoff_location}</p>
                 </div>
@@ -280,7 +258,7 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
 
               {/* Point de rendez-vous avec logo et consignes */}
               <div className="pt-2 border-t border-slate-100">
-                <span className="text-[10px] font-bold uppercase text-slate-400 block mb-1">
+                <span className="text-[11px] font-bold uppercase text-slate-400 block mb-1">
                   Point de rendez-vous officiel sélectionné :
                 </span>
                 <MeetingPointBadge location={booking.pickup_location} showInstructions={true} />
@@ -299,19 +277,19 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
               </h3>
               <div className="grid grid-cols-2 gap-3 text-slate-700">
                 <div>
-                  <span className="text-[10px] text-slate-400 block">Nom & Prénom</span>
+                  <span className="text-[11px] text-slate-400 block">Nom & Prénom</span>
                   <span className="font-semibold">{booking.customer_name}</span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-slate-400 block">Téléphone</span>
+                  <span className="text-[11px] text-slate-400 block">Téléphone</span>
                   <span className="font-semibold">{booking.customer_phone}</span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-slate-400 block">N° CIN ou Passeport</span>
+                  <span className="text-[11px] text-slate-400 block">N° CIN ou Passeport</span>
                   <span className="font-semibold text-slate-900">{booking.cin || 'Présenté sur place'}</span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-slate-400 block">Permis de conduire</span>
+                  <span className="text-[11px] text-slate-400 block">Permis de conduire</span>
                   <span className="font-semibold">{booking.license_number || 'Présenté sur place'}</span>
                 </div>
               </div>
@@ -356,7 +334,7 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
                   <span>Caution remboursable</span>
                   <span className="font-bold text-slate-800">{formatPrice(booking.deposit_amount)}</span>
                 </div>
-                <div className="flex justify-between text-slate-400 text-[10px]">
+                <div className="flex justify-between text-slate-400 text-[11px]">
                   <span>Modalité de paiement</span>
                   <span>Règlement à la remise des clés en agence</span>
                 </div>
@@ -386,15 +364,17 @@ export default function BookingDetailPage({ params }: BookingDetailPageProps) {
                       <p>WhatsApp : <strong className="text-slate-900">{booking.agency.whatsapp}</strong></p>
                     </div>
 
-                    <a
-                      href={agencyWhatsappUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-full py-2.5 px-3 rounded-xl bg-emerald-50 text-emerald-700 font-bold flex items-center justify-center gap-2 hover:bg-emerald-100 transition-colors"
-                    >
-                      <MessageSquare className="w-4 h-4" />
-                      <span>Contacter l'agence pour la prise des clés</span>
-                    </a>
+                    {agencyWhatsappUrl && (
+                      <a
+                        href={agencyWhatsappUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full min-h-11 py-2.5 px-3 rounded-xl bg-success-soft text-success font-bold flex items-center justify-center gap-2 hover:bg-[#D1FADF] transition-colors"
+                      >
+                        <MessageSquare className="w-4 h-4" aria-hidden="true" />
+                        <span>Contacter l'agence pour la prise des clés</span>
+                      </a>
+                    )}
                   </>
                 ) : (
                   <>

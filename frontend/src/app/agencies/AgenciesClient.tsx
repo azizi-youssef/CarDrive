@@ -155,7 +155,7 @@ export function AgenciesClient() {
   ];
 
   return (
-    <main className="min-h-screen bg-[#F5F6F8]">
+    <div className="min-h-screen bg-canvas">
       {/* ═══════════ HERO ═══════════ */}
       <section className="relative isolate overflow-hidden bg-[#0B1220] text-white">
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -177,7 +177,7 @@ export function AgenciesClient() {
             </nav>
 
             <h1 className="max-w-2xl text-[34px] font-black leading-[1.08] tracking-tight sm:text-5xl">
-              Trouvez votre <span className="text-[#E63946]">agence de location</span> de confiance.
+              Trouvez votre <span className="text-accent-text">agence de location</span> de confiance.
             </h1>
             <p className="mt-4 max-w-xl text-[15px] leading-7 text-slate-400">
               Comparez les loueurs locaux de Nador et de l’Oriental, parcourez leurs flottes et réservez directement en
@@ -217,7 +217,7 @@ export function AgenciesClient() {
               </div>
               <button
                 type="submit"
-                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#E63946] px-6 text-sm font-bold text-white outline-none transition-colors hover:bg-[#C92F3B] focus-visible:ring-2 focus-visible:ring-[#0B1220] focus-visible:ring-offset-2"
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-action px-6 text-sm font-bold text-white outline-none transition-colors hover:bg-action-hover focus-visible:ring-2 focus-visible:ring-[#0B1220] focus-visible:ring-offset-2"
               >
                 Rechercher
                 <ArrowRight className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
@@ -237,7 +237,7 @@ export function AgenciesClient() {
                     }}
                     className="inline-flex min-h-8 items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 text-xs font-semibold text-slate-200 transition-colors hover:border-white/25 hover:bg-white/10"
                   >
-                    <MapPin className="h-3 w-3 text-[#E63946]" aria-hidden="true" />
+                    <MapPin className="h-3 w-3 text-accent-text" aria-hidden="true" />
                     {city.name}
                   </button>
                 ))}
@@ -273,7 +273,7 @@ export function AgenciesClient() {
             <h2 id="annuaire-title" className="text-2xl font-black tracking-tight text-[#0B1220] sm:text-3xl">
               Agences de location
             </h2>
-            <p className="mt-1 text-sm text-slate-500" aria-live="polite">
+            <p className="mt-1 text-sm text-ink-secondary" aria-live="polite">
               {loading
                 ? 'Chargement de l’annuaire…'
                 : error
@@ -313,7 +313,7 @@ export function AgenciesClient() {
                         className={
                           active
                             ? 'rounded-md bg-white/15 px-1.5 text-[11px] tabular-nums'
-                            : 'rounded-md bg-[#F5F6F8] px-1.5 text-[11px] tabular-nums text-slate-500'
+                            : 'rounded-md bg-[#F5F6F8] px-1.5 text-[11px] tabular-nums text-ink-tertiary'
                         }
                       >
                         {city.count}
@@ -345,7 +345,7 @@ export function AgenciesClient() {
                 <button
                   type="button"
                   onClick={clearFilters}
-                  className="inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-xl px-3 text-sm font-bold text-[#E63946] transition-colors hover:bg-red-50"
+                  className="inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-xl px-3 text-sm font-bold text-accent-text transition-colors hover:bg-red-50"
                 >
                   <X className="h-4 w-4" aria-hidden="true" />
                   Effacer
@@ -395,7 +395,7 @@ export function AgenciesClient() {
           {!loading && error && (
             <div role="alert" className="rounded-3xl border border-red-100 bg-white px-6 py-16 text-center">
               <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-red-50">
-                <AlertCircle className="h-6 w-6 text-[#E63946]" aria-hidden="true" />
+                <AlertCircle className="h-6 w-6 text-accent-text" aria-hidden="true" />
               </div>
               <h3 className="mt-5 text-lg font-bold text-[#0B1220]">Impossible de charger les agences</h3>
               <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-slate-500">
@@ -425,7 +425,7 @@ export function AgenciesClient() {
               <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
                 <Link
                   href="/search"
-                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#E63946] px-6 text-sm font-bold text-white transition-colors hover:bg-[#C92F3B]"
+                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-action px-6 text-sm font-bold text-white transition-colors hover:bg-action-hover"
                 >
                   <CarFront className="h-4 w-4" aria-hidden="true" />
                   Voir les véhicules
@@ -482,7 +482,7 @@ export function AgenciesClient() {
             />
             <div className="relative grid gap-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
               <div className="max-w-xl">
-                <span className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-[#E63946]">
+                <span className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-accent-on-dark">
                   <Building2 className="h-4 w-4" aria-hidden="true" />
                   Vous êtes loueur ?
                 </span>
@@ -503,7 +503,7 @@ export function AgenciesClient() {
               <Magnet strength={0.15} className="shrink-0">
                 <Link
                   href="/agency/join"
-                  className="inline-flex min-h-12 w-full items-center justify-center gap-3 rounded-xl bg-[#E63946] px-7 text-sm font-bold text-white transition-colors hover:bg-[#C92F3B] sm:w-auto"
+                  className="inline-flex min-h-12 w-full items-center justify-center gap-3 rounded-xl bg-action px-7 text-sm font-bold text-white transition-colors hover:bg-action-hover sm:w-auto"
                 >
                   Devenir partenaire
                   <ArrowRight className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
@@ -516,13 +516,13 @@ export function AgenciesClient() {
         <div className="mt-8 flex justify-center">
           <Link
             href="/search"
-            className="group inline-flex min-h-10 items-center gap-2 text-sm font-bold text-slate-500 transition-colors hover:text-[#E63946]"
+            className="group inline-flex min-h-10 items-center gap-2 text-sm font-bold text-ink-tertiary transition-colors hover:text-accent-text"
           >
             Découvrir tous les véhicules disponibles
             <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1 motion-reduce:transition-none rtl:rotate-180" aria-hidden="true" />
           </Link>
         </div>
       </section>
-    </main>
+    </div>
   );
 }

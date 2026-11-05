@@ -25,7 +25,7 @@ export const shell = {
 
 export const button = {
   primary:
-    'inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-[#E63946] px-4 py-2.5 text-sm font-bold text-white shadow-[0_10px_20px_-12px_rgba(230,57,70,0.8)] transition-colors hover:bg-[#C92F3B] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B1220] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none',
+    'inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-action px-4 py-2.5 text-sm font-bold text-white shadow-[0_10px_20px_-12px_rgba(230,57,70,0.8)] transition-colors hover:bg-action-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B1220] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none',
   secondary:
     'inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-[#0B1220] transition-colors hover:border-slate-300 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E63946] disabled:cursor-not-allowed disabled:opacity-50',
   ghost:

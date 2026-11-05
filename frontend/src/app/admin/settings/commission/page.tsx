@@ -185,7 +185,7 @@ export default function CommissionSettingsPage() {
               >
                 {plan.badge && (
                   <div className="absolute -top-3 left-6">
-                    <span className="rounded-full bg-[#E63946] px-3 py-0.5 text-[10px] font-bold text-white shadow-xs">
+                    <span className="rounded-full bg-action px-3 py-0.5 text-[11px] font-bold text-white shadow-xs">
                       {plan.badge}
                     </span>
                   </div>
@@ -270,7 +270,7 @@ export default function CommissionSettingsPage() {
 
             {recommendedPlan && (
               <div className="rounded-2xl border border-blue-200 bg-linear-to-br from-blue-50/60 to-white p-5 shadow-xs text-center space-y-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-blue-700">
                   Palier Assigné Automatiquement
                 </span>
                 <p className="text-xl font-extrabold text-[#0B1220]">

@@ -93,7 +93,7 @@ export function MobileNav({
                   <span className="relative">
                     <Icon className="h-5 w-5" aria-hidden="true" />
                     {badge && (
-                      <span className="absolute -end-2.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#E63946] px-1 text-[10px] font-bold text-white" aria-hidden="true">
+                      <span className="absolute -end-2.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-action px-1 text-[10px] font-bold text-white" aria-hidden="true">
                         {pendingCount > 9 ? '9+' : pendingCount}
                       </span>
                     )}

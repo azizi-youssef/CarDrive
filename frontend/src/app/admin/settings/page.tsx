@@ -163,7 +163,7 @@ export default function AdminSettingsPage() {
                       />
                     </div>
 
-                    <span className="rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-slate-500">
+                    <span className="rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-[11px] font-bold uppercase tracking-wide text-slate-500">
                       {section.category}
                     </span>
                   </div>

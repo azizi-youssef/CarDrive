@@ -115,7 +115,7 @@ export function AgencyCustomersPanel({ agencyId }: { agencyId: string }) {
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs">
         {loading ? (
           <div className="flex h-48 items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-[#E63946]" />
+            <Loader2 className="h-8 w-8 animate-spin text-accent-text" />
           </div>
         ) : customers.length === 0 ? (
           <div className="p-12 text-center text-sm text-slate-500">
@@ -139,7 +139,7 @@ export function AgencyCustomersPanel({ agencyId }: { agencyId: string }) {
                   <tr key={c.id} className="hover:bg-slate-50/50">
                     <td className="px-4 py-3 font-semibold text-slate-900">
                       <div>{c.customer_name}</div>
-                      {c.cin && <div className="text-[10px] text-slate-400">CIN : {c.cin}</div>}
+                      {c.cin && <div className="text-[11px] text-slate-400">CIN : {c.cin}</div>}
                     </td>
                     <td className="px-4 py-3 text-slate-600">
                       <div className="flex items-center gap-1.5">
@@ -157,7 +157,7 @@ export function AgencyCustomersPanel({ agencyId }: { agencyId: string }) {
                       <div className="font-medium">
                         {c.vehicle ? `${c.vehicle.brand} ${c.vehicle.model}` : 'Véhicule'}
                       </div>
-                      <div className="font-mono text-[10px] text-slate-400">
+                      <div className="font-mono text-[11px] text-slate-400">
                         {c.reference || c.booking_ref}
                       </div>
                     </td>
@@ -168,7 +168,7 @@ export function AgencyCustomersPanel({ agencyId }: { agencyId: string }) {
                       {formatPrice(c.total_price)}
                     </td>
                     <td className="px-4 py-3 text-center">
-                      <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase text-slate-700">
+                      <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-bold uppercase text-slate-700">
                         {c.status}
                       </span>
                     </td>

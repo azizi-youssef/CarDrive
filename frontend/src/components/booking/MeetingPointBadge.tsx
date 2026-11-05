@@ -55,10 +55,10 @@ export function MeetingPointBadge({
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-xs font-bold text-slate-900">{point.name}</span>
-          <span className="text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">
+          <span className="text-[11px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">
             {point.code}
           </span>
-          <span className={`text-[10px] font-semibold ${point.textColor}`}>
+          <span className={`text-[11px] font-semibold ${point.textColor}`}>
             • {point.badgeLabel}
           </span>
         </div>

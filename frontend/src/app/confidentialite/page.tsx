@@ -17,7 +17,7 @@ export default function ConfidentialitePage() {
       {/* Header */}
       <div className="border-b border-slate-200 bg-white">
         <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
-          <nav className="mb-5 flex items-center gap-1.5 text-xs text-slate-400">
+          <nav aria-label="Fil d’Ariane" className="mb-5 flex items-center gap-1.5 text-xs text-ink-secondary">
             <Link href="/" className="hover:text-slate-600 transition-colors">Accueil</Link>
             <ChevronRight className="h-3.5 w-3.5" />
             <span className="text-slate-700 font-medium">Politique de Confidentialité</span>
@@ -56,7 +56,7 @@ export default function ConfidentialitePage() {
             <Paragraph>
               Le responsable du traitement des données personnelles est <strong>CarDrive</strong>,
               représenté par <strong>Youssef Azizi</strong>, dont le siège est à Nador, Maroc.
-              Contact : <a href="mailto:privacy@cardrive.ma" className="text-[#E63946] hover:underline font-semibold">privacy@cardrive.ma</a>
+              Contact : <a href="mailto:privacy@cardrive.ma" className="text-accent-text hover:underline font-semibold">privacy@cardrive.ma</a>
             </Paragraph>
           </Section>
 
@@ -171,13 +171,13 @@ export default function ConfidentialitePage() {
             </div>
             <Paragraph>
               Pour exercer ces droits, contactez-nous à{' '}
-              <a href="mailto:privacy@cardrive.ma" className="text-[#E63946] hover:underline font-semibold">privacy@cardrive.ma</a>.
+              <a href="mailto:privacy@cardrive.ma" className="text-accent-text hover:underline font-semibold">privacy@cardrive.ma</a>.
               Nous traiterons votre demande dans un délai de <strong>30 jours</strong>.
             </Paragraph>
             <Paragraph>
               En cas de réclamation non résolue, vous pouvez saisir la{' '}
               <strong>Commission Nationale de contrôle de la protection des Données à caractère
-              Personnel (CNDP)</strong> — <a href="https://cndp.ma" target="_blank" rel="noopener noreferrer" className="text-[#E63946] hover:underline font-semibold">cndp.ma</a>.
+              Personnel (CNDP)</strong> — <a href="https://cndp.ma" target="_blank" rel="noopener noreferrer" className="text-accent-text hover:underline font-semibold">cndp.ma</a>.
             </Paragraph>
           </Section>
 
@@ -255,9 +255,9 @@ export default function ConfidentialitePage() {
               Pour toute question relative à la protection de vos données :
             </Paragraph>
             <ul className="mt-3 space-y-1.5 text-sm text-slate-600">
-              <li>📧 <a href="mailto:privacy@cardrive.ma" className="text-[#E63946] hover:underline font-semibold">privacy@cardrive.ma</a></li>
+              <li>📧 <a href="mailto:privacy@cardrive.ma" className="text-accent-text hover:underline font-semibold">privacy@cardrive.ma</a></li>
               <li>📍 CarDrive — Nador, Maroc</li>
-              <li>💬 <Link href="/contact" className="text-[#E63946] hover:underline font-semibold">Formulaire de contact</Link></li>
+              <li>💬 <Link href="/contact" className="text-accent-text hover:underline font-semibold">Formulaire de contact</Link></li>
             </ul>
           </Section>
 
@@ -266,9 +266,9 @@ export default function ConfidentialitePage() {
         {/* Footer links */}
         <div className="mt-14 flex flex-wrap gap-4 border-t border-slate-200 pt-8 text-sm">
           <Link href="/mentions-legales" className="text-slate-500 hover:text-slate-800 transition-colors">Mentions Légales</Link>
-          <span className="text-slate-300">·</span>
+          <span aria-hidden="true" className="text-slate-400">·</span>
           <Link href="/cgv" className="text-slate-500 hover:text-slate-800 transition-colors">Conditions Générales de Vente</Link>
-          <span className="text-slate-300">·</span>
+          <span aria-hidden="true" className="text-slate-400">·</span>
           <Link href="/contact" className="text-slate-500 hover:text-slate-800 transition-colors">Contact</Link>
         </div>
       </div>

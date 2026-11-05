@@ -20,7 +20,17 @@ export type ClientAuthProfile = {
   canAccessAgency: boolean;
 };
 
-export async function fetchClientAuthProfile(): Promise<ClientAuthProfile | null> {
+// Requête en cours partagée : plusieurs composants montés en même temps ne déclenchent qu'un appel
+let inflightProfile: Promise<ClientAuthProfile | null> | null = null;
+
+export function fetchClientAuthProfile(): Promise<ClientAuthProfile | null> {
+  inflightProfile ??= loadClientAuthProfile().finally(() => {
+    inflightProfile = null;
+  });
+  return inflightProfile;
+}
+
+async function loadClientAuthProfile(): Promise<ClientAuthProfile | null> {
   const res = await fetch('/api/auth/me', { cache: 'no-store' });
   if (res.status === 401) return null;
   const body: unknown = await res.json().catch(() => null);

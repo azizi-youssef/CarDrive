@@ -139,7 +139,7 @@ const STRINGS: Record<string, NavStrings> = {
     whatsappHelp: 'Assistance WhatsApp CarDrive',
     badgeVerified: 'Partenaires vérifiés',
     badgePricing: 'Prix transparents',
-    badgeSupport: 'Disponibilité 7j/7',
+    badgeSupport: 'Support local',
     locationTag: "Nador · Région de l'Oriental · Maroc",
     adminBadge: 'Administrateur',
     agencyBadge: 'Agence',
@@ -186,7 +186,7 @@ const STRINGS: Record<string, NavStrings> = {
     whatsappHelp: 'مساعدة واتساب كاردرايف',
     badgeVerified: 'وكالات معتمدة',
     badgePricing: 'أسعار واضحة',
-    badgeSupport: 'متوفر 7/7 أيام',
+    badgeSupport: 'دعم محلي',
     locationTag: 'الناظور · الجهة الشرقية · المغرب',
     adminBadge: 'مدير النظام',
     agencyBadge: 'وكالة',
@@ -233,7 +233,7 @@ const STRINGS: Record<string, NavStrings> = {
     whatsappHelp: 'CarDrive WhatsApp Support',
     badgeVerified: 'Verified Partners',
     badgePricing: 'Transparent Pricing',
-    badgeSupport: '7/7 Availability',
+    badgeSupport: 'Local support',
     locationTag: 'Nador · Oriental Region · Morocco',
     adminBadge: 'Administrator',
     agencyBadge: 'Agency',
@@ -555,7 +555,9 @@ export function Navbar() {
     })();
 
     const supabase = createClient();
-    const authSubscription = supabase?.auth.onAuthStateChange(() => {
+    // INITIAL_SESSION est émis dès l'abonnement : le profil vient d'être chargé ci-dessus (évite un 2e /api/auth/me)
+    const authSubscription = supabase?.auth.onAuthStateChange((event: string) => {
+      if (event === 'INITIAL_SESSION') return;
       void refreshAuthProfile();
     });
 
@@ -776,7 +778,7 @@ export function Navbar() {
       {/* 1. TOP UTILITY BAR (Industrial Deep Navy #0B1220)              */}
       {/* ============================================================== */}
       <div className="hidden border-b border-white/6 bg-[#0B1220] text-[11px] font-medium text-slate-400 sm:block">
-        <div className="mx-auto flex h-8.5 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto flex h-8.5 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8 [&_a]:min-h-6 [&_button]:min-h-6">
           {/* Left: Verified Fleet Status & Quick Transits */}
           <div className="flex min-w-0 items-center gap-4">
             <div className="flex items-center gap-2 font-semibold text-emerald-400">
@@ -855,7 +857,7 @@ export function Navbar() {
                 href={LOGIN_PATH}
                 className="flex items-center gap-1.5 font-medium text-slate-400 transition-colors hover:text-white"
               >
-                <LogIn className="h-3 w-3 text-[#E63946]" aria-hidden="true" />
+                <LogIn className="h-3 w-3 text-accent-text" aria-hidden="true" />
                 <span>{strings.login}</span>
               </Link>
             )}
@@ -1053,7 +1055,7 @@ export function Navbar() {
                       {/* Colonne 1 : lieux de prise en charge */}
                       <div className="p-5">
                         <p className="flex items-center gap-2 px-2 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
-                          <MapPin className="h-3.5 w-3.5 text-[#E63946]" aria-hidden="true" />
+                          <MapPin className="h-3.5 w-3.5 text-accent-text" aria-hidden="true" />
                           {strings.arrivalHubs}
                         </p>
                         <div className="mt-2 space-y-0.5">
@@ -1080,7 +1082,7 @@ export function Navbar() {
                                   className={cn(
                                     'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-colors duration-200',
                                     active
-                                      ? 'bg-[#E63946] text-white'
+                                      ? 'bg-action text-white'
                                       : 'bg-[#F5F6F8] text-[#0B1220] group-hover:bg-[#0B1220] group-hover:text-white'
                                   )}
                                 >
@@ -1092,7 +1094,7 @@ export function Navbar() {
                                       {getLocalized(item.title, locale)}
                                     </span>
                                     {tag && (
-                                      <span className="rounded-full bg-[#E63946]/10 px-2 py-0.5 text-[10px] font-bold text-[#C92F3B]">
+                                      <span className="rounded-full bg-[#E63946]/10 px-2 py-0.5 text-[11px] font-bold text-[#C92F3B]">
                                         {tag}
                                       </span>
                                     )}
@@ -1110,7 +1112,7 @@ export function Navbar() {
                       {/* Colonne 2 : types de véhicule + accès à toute la flotte */}
                       <div className="flex flex-col border-s border-slate-100 bg-[#FAFAFB] p-5">
                         <p className="flex items-center gap-2 px-2 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
-                          <CarFront className="h-3.5 w-3.5 text-[#E63946]" aria-hidden="true" />
+                          <CarFront className="h-3.5 w-3.5 text-accent-text" aria-hidden="true" />
                           {strings.categoriesHubs}
                         </p>
                         <div className="mt-2 space-y-0.5">
@@ -1136,7 +1138,7 @@ export function Navbar() {
                                   className={cn(
                                     'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border transition-colors duration-200',
                                     active
-                                      ? 'border-[#E63946] bg-[#E63946] text-white'
+                                      ? 'border-[#E63946] bg-action text-white'
                                       : 'border-slate-200 bg-white text-[#0B1220] group-hover:border-[#0B1220] group-hover:bg-[#0B1220] group-hover:text-white'
                                   )}
                                 >
@@ -1151,7 +1153,7 @@ export function Navbar() {
                                   </span>
                                 </span>
                                 <ArrowRight
-                                  className="h-4 w-4 shrink-0 text-slate-300 transition-[color,transform] duration-200 group-hover:translate-x-0.5 group-hover:text-[#E63946] rtl:rotate-180 rtl:group-hover:-translate-x-0.5 motion-reduce:transition-none"
+                                  className="h-4 w-4 shrink-0 text-slate-300 transition-[color,transform] duration-200 group-hover:translate-x-0.5 group-hover:text-accent-text rtl:rotate-180 rtl:group-hover:-translate-x-0.5 motion-reduce:transition-none"
                                   aria-hidden="true"
                                 />
                               </Link>
@@ -1180,7 +1182,7 @@ export function Navbar() {
                           <span className="relative mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-white">
                             {strings.viewAllCars}
                             <ArrowRight
-                              className="h-3.5 w-3.5 text-[#E63946] transition-transform group-hover:translate-x-0.5 rtl:rotate-180 rtl:group-hover:-translate-x-0.5 motion-reduce:transition-none"
+                              className="h-3.5 w-3.5 text-accent-text transition-transform group-hover:translate-x-0.5 rtl:rotate-180 rtl:group-hover:-translate-x-0.5 motion-reduce:transition-none"
                               aria-hidden="true"
                             />
                           </span>
@@ -1260,7 +1262,7 @@ export function Navbar() {
                       <span className="block max-w-36 truncate text-xs font-bold text-slate-900">
                         {accountIdentity(authProfile, locale).name}
                       </span>
-                      <span className="block text-[10px] font-medium text-slate-500">
+                      <span className="block text-[11px] font-medium text-slate-500">
                         {accountIdentity(authProfile, locale).badge}
                       </span>
                     </span>
@@ -1287,9 +1289,9 @@ export function Navbar() {
                         <p className="truncate text-xs font-bold text-slate-900">
                           {accountIdentity(authProfile, locale).name}
                         </p>
-                        <p className="truncate text-[10px] text-slate-500">{authProfile.email}</p>
+                        <p className="truncate text-[11px] text-slate-500">{authProfile.email}</p>
                         {authProfile.canAccessAgency && authProfile.agencyName && (
-                          <p className="mt-0.5 truncate text-[10px] font-semibold text-[#0B1220]">
+                          <p className="mt-0.5 truncate text-[11px] font-semibold text-[#0B1220]">
                             {authProfile.agencyName}
                           </p>
                         )}
@@ -1353,7 +1355,7 @@ export function Navbar() {
               <Magnet strength={0.25}>
                 <Link
                   href="/search"
-                  className="group relative inline-flex items-center gap-2 overflow-hidden rounded-xl bg-[#E63946] px-4 py-2.5 text-xs font-bold text-white shadow-xs shadow-red-900/20 transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#C92F3B] hover:shadow-[0_6px_22px_rgba(230,57,70,0.35)] active:translate-y-0 active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-[#0B1220]"
+                  className="group relative inline-flex items-center gap-2 overflow-hidden rounded-xl bg-action px-4 py-2.5 text-xs font-bold text-white shadow-xs shadow-red-900/20 transition-all duration-200 hover:-translate-y-0.5 hover:bg-action-hover hover:shadow-[0_6px_22px_rgba(230,57,70,0.35)] active:translate-y-0 active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-[#0B1220]"
                 >
                   <span
                     className="absolute inset-0 bg-linear-to-br from-white/15 to-transparent pointer-events-none"
@@ -1381,7 +1383,7 @@ export function Navbar() {
               {/* Quick Search Button */}
               <Link
                 href="/search"
-                className="inline-flex items-center gap-1.5 rounded-xl bg-[#E63946]/10 px-3 py-2 text-xs font-bold text-[#E63946] transition-colors hover:bg-[#E63946]/15 focus-visible:outline-2 focus-visible:outline-[#E63946]"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-[#E63946]/10 px-3 py-2 text-xs font-bold text-accent-text transition-colors hover:bg-[#E63946]/15 focus-visible:outline-2 focus-visible:outline-[#E63946]"
               >
                 <Search className="h-3.5 w-3.5" aria-hidden="true" />
                 <span>{strings.search}</span>
@@ -1473,7 +1475,7 @@ export function Navbar() {
               <Link
                 href="/search"
                 aria-label={strings.findCar}
-                className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#E63946]/10 text-[#E63946] transition-colors hover:bg-[#E63946]/15"
+                className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#E63946]/10 text-accent-text transition-colors hover:bg-[#E63946]/15"
               >
                 <Search className="h-4 w-4" aria-hidden="true" />
               </Link>
@@ -1589,7 +1591,7 @@ export function Navbar() {
 
               {/* Main Navigation Links */}
               <div>
-                <p className="mb-2 px-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                <p className="mb-2 px-1 text-[11px] font-bold uppercase tracking-widest text-slate-400">
                   {strings.navigation}
                 </p>
 
@@ -1631,7 +1633,7 @@ export function Navbar() {
                       )}
                     >
                       <span className="flex items-center gap-2">
-                        <Compass className="h-4 w-4 text-[#E63946]" aria-hidden="true" />
+                        <Compass className="h-4 w-4 text-accent-text" aria-hidden="true" />
                         <span>{strings.destinations}</span>
                       </span>
                       <ChevronDown
@@ -1672,7 +1674,7 @@ export function Navbar() {
                                     {title}
                                   </span>
                                   {tag && (
-                                    <span className="text-[9px] font-bold text-[#E63946]">
+                                    <span className="text-[11px] font-bold text-accent-text">
                                       {tag}
                                     </span>
                                   )}
@@ -1694,7 +1696,7 @@ export function Navbar() {
 
               {/* Account Section in Drawer */}
               <div className="border-t border-slate-100 pt-4">
-                <p className="mb-2 px-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                <p className="mb-2 px-1 text-[11px] font-bold uppercase tracking-widest text-slate-400">
                   {strings.account}
                 </p>
 
@@ -1711,10 +1713,10 @@ export function Navbar() {
                         <p className="truncate text-xs font-bold text-slate-900">
                           {accountIdentity(authProfile, locale).name}
                         </p>
-                        <p className="text-[10px] font-semibold text-[#0B1220]">
+                        <p className="text-[11px] font-semibold text-[#0B1220]">
                           {accountIdentity(authProfile, locale).badge}
                         </p>
-                        <p className="truncate text-[10px] text-slate-500">{authProfile.email}</p>
+                        <p className="truncate text-[11px] text-slate-500">{authProfile.email}</p>
                       </div>
                     </div>
 
@@ -1768,7 +1770,7 @@ export function Navbar() {
                       className="flex items-center justify-between rounded-xl border border-slate-200 bg-white p-3 text-xs font-bold text-slate-800 shadow-xs transition-colors hover:bg-slate-50"
                     >
                       <span className="flex items-center gap-2.5">
-                        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#E63946]/10 text-[#E63946]">
+                        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#E63946]/10 text-accent-text">
                           <User className="h-4 w-4" aria-hidden="true" />
                         </span>
                         <span>{strings.login}</span>
@@ -1797,28 +1799,28 @@ export function Navbar() {
               <div className="grid grid-cols-3 gap-2 border-t border-slate-100 pt-4">
                 <div className="rounded-xl bg-slate-50 p-2.5 text-center">
                   <ShieldCheck className="mx-auto h-4 w-4 text-emerald-500" aria-hidden="true" />
-                  <p className="mt-1 text-[9px] font-semibold text-slate-600">
+                  <p className="mt-1 text-[11px] font-semibold text-slate-600">
                     {strings.badgeVerified}
                   </p>
                 </div>
 
                 <div className="rounded-xl bg-slate-50 p-2.5 text-center">
                   <Star className="mx-auto h-4 w-4 text-amber-500" aria-hidden="true" />
-                  <p className="mt-1 text-[9px] font-semibold text-slate-600">
+                  <p className="mt-1 text-[11px] font-semibold text-slate-600">
                     {strings.badgePricing}
                   </p>
                 </div>
 
                 <div className="rounded-xl bg-slate-50 p-2.5 text-center">
                   <Clock3 className="mx-auto h-4 w-4 text-blue-500" aria-hidden="true" />
-                  <p className="mt-1 text-[9px] font-semibold text-slate-600">
+                  <p className="mt-1 text-[11px] font-semibold text-slate-600">
                     {strings.badgeSupport}
                   </p>
                 </div>
               </div>
 
               {/* Region Label */}
-              <div className="flex items-center justify-center gap-1.5 pb-4 text-[10px] text-slate-400">
+              <div className="flex items-center justify-center gap-1.5 pb-4 text-[11px] text-slate-400">
                 <MapPin className="h-3 w-3" aria-hidden="true" />
                 <span>{strings.locationTag}</span>
               </div>

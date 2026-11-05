@@ -44,7 +44,7 @@ function CarSilhouette() {
 
 export default function NotFound() {
   return (
-    <main
+    <div
       className={`relative flex min-h-[80vh] items-center justify-center overflow-hidden bg-[#F3F5F7] px-5 py-16 font-sans text-slate-900`}
     >
       <style>{`@keyframes cardrive-drive{from{transform:translateX(-25vw)}to{transform:translateX(125vw)}}`}</style>
@@ -82,7 +82,7 @@ export default function NotFound() {
           <span className="m-1 ml-4 flex items-center rounded-xl border-[3px] border-[#0B0E13] px-6 py-2 text-7xl font-extrabold leading-none tracking-tighter sm:px-8 sm:text-8xl">
             404
           </span>
-          <span className="flex items-center bg-[#E63946] px-3.5 text-xs font-semibold text-white sm:px-4 sm:text-sm">
+          <span className="flex items-center bg-action px-3.5 text-xs font-semibold text-white sm:px-4 sm:text-sm">
             Introuvable
           </span>
         </div>
@@ -122,7 +122,7 @@ export default function NotFound() {
           </div>
           <button
             type="submit"
-            className="inline-flex h-12 items-center justify-center rounded-lg bg-[#E63946] px-6 text-[15px] font-semibold text-white outline-none transition-colors hover:bg-[#D32F3C] focus-visible:ring-2 focus-visible:ring-[#E63946]/60 focus-visible:ring-offset-2 active:bg-[#BF2935]"
+            className="inline-flex h-12 items-center justify-center rounded-lg bg-action px-6 text-[15px] font-semibold text-white outline-none transition-colors hover:bg-action-hover focus-visible:ring-2 focus-visible:ring-[#E63946]/60 focus-visible:ring-offset-2 active:bg-action-hover"
           >
             Rechercher
           </button>
@@ -152,6 +152,6 @@ export default function NotFound() {
           Retour à l’accueil
         </Link>
       </div>
-    </main>
+    </div>
   );
 }

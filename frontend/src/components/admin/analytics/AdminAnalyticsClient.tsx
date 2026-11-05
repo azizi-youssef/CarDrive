@@ -422,7 +422,7 @@ export function AdminAnalyticsClient() {
                 <div key={loc.location} className="space-y-1.5">
                   <div className="flex items-center justify-between text-xs sm:text-sm">
                     <span className="font-semibold text-slate-800 flex items-center gap-2 truncate">
-                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-50 text-[10px] font-bold text-[#E63946]">
+                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-50 text-[10px] font-bold text-accent-text">
                         {idx + 1}
                       </span>
                       <span className="truncate">{loc.location}</span>
@@ -453,7 +453,7 @@ export function AdminAnalyticsClient() {
             <h2 className="text-base font-bold text-slate-900">Agences les plus actives</h2>
             <p className="text-xs text-slate-500">Classement selon le volume de réservations traitées et avis clients</p>
           </div>
-          <Link href="/admin/agencies" className="text-xs font-semibold text-[#E63946] hover:underline">
+          <Link href="/admin/agencies" className="text-xs font-semibold text-accent-text hover:underline">
             Voir toutes les agences →
           </Link>
         </div>

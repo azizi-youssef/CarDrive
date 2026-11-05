@@ -142,7 +142,7 @@ export function AgencySubscriptionModal({
                   {/* Badge */}
                   {plan.badge && (
                     <div className="absolute -top-2.5 left-4">
-                      <span className="rounded-full bg-[#E63946] px-2.5 py-0.5 text-[10px] font-bold text-white shadow-xs">
+                      <span className="rounded-full bg-action px-2.5 py-0.5 text-[11px] font-bold text-white shadow-xs">
                         {plan.badge}
                       </span>
                     </div>
@@ -152,7 +152,7 @@ export function AgencySubscriptionModal({
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="font-bold text-slate-900 text-base">{plan.name}</h3>
                       {isCurrent && (
-                        <span className="rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5">
+                        <span className="rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold px-2 py-0.5">
                           Actuel
                         </span>
                       )}

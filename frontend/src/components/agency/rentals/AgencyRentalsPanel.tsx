@@ -266,7 +266,7 @@ export function AgencyRentalsPanel({
 
       {loading ? (
         <div className="flex h-48 items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-[#E63946]" />
+          <Loader2 className="h-8 w-8 animate-spin text-accent-text" />
         </div>
       ) : filteredRentals.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white py-16 text-center shadow-xs">
@@ -319,7 +319,7 @@ export function AgencyRentalsPanel({
                       </span>
                       <span
                         className={cn(
-                          'rounded-md px-2 py-0.5 text-[10px] font-bold uppercase',
+                          'rounded-md px-2 py-0.5 text-[11px] font-bold uppercase',
                           isConfirmedOrReady && 'bg-amber-100 text-amber-800',
                           isActive && 'bg-blue-100 text-blue-800',
                           isCompleted && 'bg-emerald-100 text-emerald-800'
@@ -330,7 +330,7 @@ export function AgencyRentalsPanel({
                         {isCompleted && 'Restitué'}
                       </span>
                       {item.isOverdueReturn && (
-                        <span className="rounded-md bg-red-600 px-2 py-0.5 text-[10px] font-bold text-white">
+                        <span className="rounded-md bg-red-600 px-2 py-0.5 text-[11px] font-bold text-white">
                           Retard restitution
                         </span>
                       )}
@@ -448,7 +448,7 @@ export function AgencyRentalsPanel({
                     }
                     className="w-full rounded-xl border border-slate-300 p-2.5 text-sm font-semibold text-slate-900 focus:outline-none focus:ring-1 focus:ring-[#E63946]"
                   />
-                  <p className="mt-0.5 text-[10px] text-slate-500">
+                  <p className="mt-0.5 text-[11px] text-slate-500">
                     Dernier relevé : {activeHandover.rental.vehicle?.currentMileage} km
                   </p>
                 </div>
@@ -491,7 +491,7 @@ export function AgencyRentalsPanel({
                           checklist: { ...handoverForm.checklist, spareTire: e.target.checked },
                         })
                       }
-                      className="rounded text-[#E63946]"
+                      className="rounded text-accent-text"
                     />
                     <span>Roue de secours</span>
                   </label>
@@ -505,7 +505,7 @@ export function AgencyRentalsPanel({
                           checklist: { ...handoverForm.checklist, jack: e.target.checked },
                         })
                       }
-                      className="rounded text-[#E63946]"
+                      className="rounded text-accent-text"
                     />
                     <span>Cric & manivelle</span>
                   </label>
@@ -522,7 +522,7 @@ export function AgencyRentalsPanel({
                           },
                         })
                       }
-                      className="rounded text-[#E63946]"
+                      className="rounded text-accent-text"
                     />
                     <span>Carte grise / Papiers</span>
                   </label>
@@ -536,7 +536,7 @@ export function AgencyRentalsPanel({
                           checklist: { ...handoverForm.checklist, safetyKit: e.target.checked },
                         })
                       }
-                      className="rounded text-[#E63946]"
+                      className="rounded text-accent-text"
                     />
                     <span>Gilet & Triangle</span>
                   </label>

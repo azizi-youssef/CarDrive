@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "npx tsx src/tests/booking-engine.test.ts && npx tsx src/tests/subscription-engine.test.ts && npx tsx src/tests/agency-access-validation.test.ts && npx tsx src/tests/date-only.test.ts && npx tsx src/tests/agency-credentials.test.ts && npx tsx src/tests/agency-management.test.ts && npx tsx src/tests/availability.test.ts && npx tsx src/tests/whatsapp-delivery.test.ts && npx tsx src/tests/i18n.test.ts && npx tsx src/tests/whatsapp-webhook.test.ts && npx tsx src/tests/booking-pdf-link.test.ts && npx tsx src/tests/security-hardening.test.ts"
+    "test": "npx tsx src/tests/booking-engine.test.ts && npx tsx src/tests/subscription-engine.test.ts && npx tsx src/tests/agency-access-validation.test.ts && npx tsx src/tests/date-only.test.ts && npx tsx src/tests/agency-credentials.test.ts && npx tsx src/tests/agency-management.test.ts && npx tsx src/tests/availability.test.ts && npx tsx src/tests/whatsapp-delivery.test.ts && npx tsx src/tests/i18n.test.ts && npx tsx src/tests/whatsapp-webhook.test.ts && npx tsx src/tests/booking-pdf-link.test.ts && npx tsx src/tests/security-hardening.test.ts && npx tsx src/tests/booking-status-display.test.ts && npx tsx src/tests/catalog-discovery.test.ts"
   },
   "dependencies": {
     "@cardrive/shared": "1.0.0",
@@ -16,7 +16,6 @@
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",
     "framer-motion": "^13.5.0",
-    "gsap": "^3.15.0",
     "jspdf": "^4.2.1",
     "lucide-react": "^1.49.0",
     "next": "16.4.5",

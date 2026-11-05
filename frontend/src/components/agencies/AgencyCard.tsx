@@ -65,7 +65,7 @@ export function AgencyCard({ agency, carCount }: AgencyCardProps) {
             </span>
           ) : (
             <span className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-[#F5F6F8] px-2 py-1 text-[11px] font-bold text-slate-600">
-              <Sparkles className="h-3 w-3 text-[#E63946]" aria-hidden="true" />
+              <Sparkles className="h-3 w-3 text-accent-text" aria-hidden="true" />
               Nouveau
             </span>
           )}
@@ -100,7 +100,7 @@ export function AgencyCard({ agency, carCount }: AgencyCardProps) {
         <div className="mt-auto pt-5">
           <span
             aria-hidden="true"
-            className="flex min-h-11 items-center justify-between rounded-xl bg-[#0B1220] px-4 text-sm font-bold text-white transition-colors group-hover:bg-[#E63946]"
+            className="flex min-h-11 items-center justify-between rounded-xl bg-[#0B1220] px-4 text-sm font-bold text-white transition-colors group-hover:bg-action"
           >
             Voir la flotte
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 motion-reduce:transition-none rtl:rotate-180" />

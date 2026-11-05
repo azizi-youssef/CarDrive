@@ -137,7 +137,7 @@ export default async function SeoLandingPage({ params }: PageProps) {
         {/* Breadcrumb Navigation */}
         <div className="bg-white border-b border-slate-200 py-3">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <nav className="flex items-center gap-2 text-xs text-slate-500 font-medium">
+            <nav aria-label="Fil d’Ariane" className="flex items-center gap-2 text-xs text-slate-500 font-medium">
               <Link href="/" className="hover:text-slate-900">Accueil</Link>
               <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
               <Link href="/search" className="hover:text-slate-900">Location de voitures</Link>
@@ -189,7 +189,7 @@ export default async function SeoLandingPage({ params }: PageProps) {
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
             <div>
-              <span className="text-xs font-bold text-[#E63946] tracking-wider uppercase">
+              <span className="text-xs font-bold text-accent-text tracking-wider uppercase">
                 Flotte disponible
               </span>
               <h2 className="text-2xl font-bold text-slate-900 mt-1">
@@ -201,7 +201,7 @@ export default async function SeoLandingPage({ params }: PageProps) {
             </div>
             <Link
               href="/search"
-              className="inline-flex items-center gap-2 text-sm font-semibold text-[#E63946] hover:underline self-start sm:self-auto"
+              className="inline-flex items-center gap-2 text-sm font-semibold text-accent-text hover:underline self-start sm:self-auto"
             >
               Voir tous les véhicules à Nador
               <ArrowRight className="w-4 h-4" />
@@ -238,7 +238,7 @@ export default async function SeoLandingPage({ params }: PageProps) {
         {/* SEO FAQ Section */}
         <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
           <div className="text-center mb-10">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-red-50 text-[#E63946] mb-3">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-red-50 text-accent-text mb-3">
               <HelpCircle className="w-6 h-6" />
             </div>
             <h2 className="text-2xl font-bold text-slate-900">
@@ -279,7 +279,7 @@ export default async function SeoLandingPage({ params }: PageProps) {
                   <Link
                     key={slug}
                     href={`/${slug}`}
-                    className="bg-white hover:bg-blue-50 text-slate-700 hover:text-[#E63946] px-3 py-2 rounded-lg border border-slate-200 font-medium transition"
+                    className="bg-white hover:bg-blue-50 text-slate-700 hover:text-accent-text px-3 py-2 rounded-lg border border-slate-200 font-medium transition"
                   >
                     {item.zoneName}
                   </Link>

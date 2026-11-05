@@ -17,7 +17,7 @@ export default function MentionsLegalesPage() {
       {/* Header */}
       <div className="border-b border-slate-200 bg-white">
         <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
-          <nav className="mb-5 flex items-center gap-1.5 text-xs text-slate-400">
+          <nav aria-label="Fil d’Ariane" className="mb-5 flex items-center gap-1.5 text-xs text-ink-secondary">
             <Link href="/" className="hover:text-slate-600 transition-colors">Accueil</Link>
             <ChevronRight className="h-3.5 w-3.5" />
             <span className="text-slate-700 font-medium">Mentions légales</span>
@@ -91,13 +91,13 @@ export default function MentionsLegalesPage() {
             <Paragraph>
               Pour toute demande relative à vos données personnelles (accès, rectification,
               suppression), contactez-nous à{' '}
-              <a href="mailto:privacy@cardrive.ma" className="text-[#E63946] hover:underline font-semibold">
+              <a href="mailto:privacy@cardrive.ma" className="text-accent-text hover:underline font-semibold">
                 privacy@cardrive.ma
               </a>.
             </Paragraph>
             <Paragraph>
               Consultez notre{' '}
-              <Link href="/confidentialite" className="text-[#E63946] hover:underline font-semibold">
+              <Link href="/confidentialite" className="text-accent-text hover:underline font-semibold">
                 Politique de Confidentialité
               </Link>{' '}
               pour plus d&apos;informations.
@@ -150,13 +150,13 @@ export default function MentionsLegalesPage() {
             </Paragraph>
             <ul className="mt-3 space-y-1.5 text-sm text-slate-600">
               <li>
-                📧 <a href="mailto:contact@cardrive.ma" className="text-[#E63946] hover:underline font-semibold">contact@cardrive.ma</a>
+                📧 <a href="mailto:contact@cardrive.ma" className="text-accent-text hover:underline font-semibold">contact@cardrive.ma</a>
               </li>
               <li>
                 📍 Nador, Région de l&apos;Oriental, Maroc
               </li>
               <li>
-                💬 <Link href="/contact" className="text-[#E63946] hover:underline font-semibold">Formulaire de contact</Link>
+                💬 <Link href="/contact" className="text-accent-text hover:underline font-semibold">Formulaire de contact</Link>
               </li>
             </ul>
           </Section>
@@ -168,11 +168,11 @@ export default function MentionsLegalesPage() {
           <Link href="/cgv" className="text-slate-500 hover:text-slate-800 transition-colors">
             Conditions Générales de Vente
           </Link>
-          <span className="text-slate-300">·</span>
+          <span aria-hidden="true" className="text-slate-400">·</span>
           <Link href="/confidentialite" className="text-slate-500 hover:text-slate-800 transition-colors">
             Politique de Confidentialité
           </Link>
-          <span className="text-slate-300">·</span>
+          <span aria-hidden="true" className="text-slate-400">·</span>
           <Link href="/contact" className="text-slate-500 hover:text-slate-800 transition-colors">
             Contact
           </Link>
@@ -204,7 +204,7 @@ function InfoGrid({ items }: { items: { label: string; value: string }[] }) {
     <dl className="mb-4 grid grid-cols-1 gap-2 rounded-xl border border-slate-200 bg-white p-5 sm:grid-cols-2">
       {items.map(({ label, value }) => (
         <div key={label} className="flex flex-col gap-0.5">
-          <dt className="text-[11px] font-bold uppercase tracking-wider text-slate-400">{label}</dt>
+          <dt className="text-[11px] font-bold uppercase tracking-wider text-slate-500">{label}</dt>
           <dd className="text-sm font-semibold text-slate-800">{value}</dd>
         </div>
       ))}

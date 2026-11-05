@@ -1,5 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
+import { bookingStatusLabel, bookingStatusTone } from '@/lib/bookings/status';
+import type { BadgeTone } from '@/components/ui/Badge';
 import { cn } from '@/lib/utils';
 import { TrendingUp, TrendingDown, Minus, AlertCircle, RotateCcw, ChevronLeft, ChevronRight, Search, type LucideIcon } from 'lucide-react';
 
@@ -168,27 +170,22 @@ export function StatusBadge({
   );
 }
 
-/* ── Booking status badge ──────────────────────────────────────────── */
-const BOOKING_STATUS_CONFIG: Record<string, { label: string; variant: StatusVariant }> = {
-  PENDING: { label: 'En attente', variant: 'warning' },
-  REQUESTED: { label: 'Demandée', variant: 'warning' },
-  UNDER_REVIEW: { label: 'En révision', variant: 'info' },
-  SENT_TO_AGENCY: { label: 'Envoyée agence', variant: 'info' },
-  AGENCY_REVIEW: { label: 'Révision agence', variant: 'info' },
-  CONFIRMED: { label: 'Confirmée', variant: 'success' },
-  APPROVED: { label: 'Approuvée', variant: 'success' },
-  READY_FOR_PICKUP: { label: 'Prête à livrer', variant: 'success' },
-  ACTIVE: { label: 'En cours', variant: 'success' },
-  COMPLETED: { label: 'Terminée', variant: 'neutral' },
-  REJECTED: { label: 'Refusée', variant: 'error' },
-  CANCELLED: { label: 'Annulée', variant: 'error' },
-  EXPIRED: { label: 'Expirée', variant: 'neutral' },
-  ALTERNATIVE_PROPOSED: { label: 'Alternative', variant: 'info' },
+/* ── Booking status badge (source unique : lib/bookings/status.ts) ── */
+const TONE_TO_VARIANT: Record<BadgeTone, StatusVariant> = {
+  success: 'success',
+  warning: 'warning',
+  danger: 'error',
+  info: 'info',
+  neutral: 'neutral',
+  brand: 'neutral',
 };
 
 export function BookingStatusBadge({ status }: { status: string }) {
-  const cfg = BOOKING_STATUS_CONFIG[status] ?? { label: status, variant: 'neutral' as StatusVariant };
-  return <StatusBadge variant={cfg.variant}>{cfg.label}</StatusBadge>;
+  return (
+    <StatusBadge variant={TONE_TO_VARIANT[bookingStatusTone(status)]}>
+      {bookingStatusLabel(status, 'fr', 'business')}
+    </StatusBadge>
+  );
 }
 
 /* ── Agency status badge ───────────────────────────────────────────── */
@@ -485,7 +482,7 @@ export function Btn({
     'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl font-semibold outline-none transition-colors focus-visible:ring-2 focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50';
   const variants = {
     primary:
-      'bg-[#E63946] font-bold text-white shadow-[0_10px_20px_-12px_rgba(230,57,70,0.8)] hover:bg-[#C92F3B] focus-visible:ring-[#0B1220]',
+      'bg-action font-bold text-white shadow-[0_10px_20px_-12px_rgba(230,57,70,0.8)] hover:bg-action-hover focus-visible:ring-[#0B1220]',
     secondary:
       'border border-slate-200 bg-white text-[#0B1220] hover:border-slate-300 hover:bg-[#F8F9FA] focus-visible:ring-[#0B1220]/30',
     outline:

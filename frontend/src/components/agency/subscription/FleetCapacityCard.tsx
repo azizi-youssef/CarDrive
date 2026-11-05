@@ -86,7 +86,7 @@ export function FleetCapacityCard({ subscription, loading, onOpenUpgradeModal }:
             className={cn(
               'flex items-center gap-1.5 whitespace-nowrap rounded-xl px-4 py-2.5 text-xs font-bold transition shadow-xs cursor-pointer',
               is_at_capacity
-                ? 'bg-[#E63946] hover:bg-red-700 text-white'
+                ? 'bg-action hover:bg-red-700 text-white'
                 : 'bg-white hover:bg-slate-50 text-[#0B1220] border border-blue-200'
             )}
           >

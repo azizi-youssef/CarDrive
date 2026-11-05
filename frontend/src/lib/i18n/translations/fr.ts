@@ -86,7 +86,7 @@ export const fr = {
     vehicles: 'Véhicules disponibles',
     agencies: 'Agences partenaires',
     satisfaction: 'Taux de satisfaction',
-    support: 'Support 7j/7 WhatsApp',
+    support: 'Support WhatsApp',
   },
   differentiator: {
     badge: 'Une recherche plus intelligente',

@@ -17,6 +17,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { cn, formatNumber } from '@/lib/utils';
+import { StatusBadge } from '@/components/ui/StatusBadge';
 import { CardSkeleton, EmptyState, ErrorBanner, KpiSkeleton } from '@/components/agency/shell/Feedback';
 
 /* ─────────────────────────────────────────────────────────────────────────
@@ -97,7 +98,7 @@ function PanelLink({ onClick, children }: { onClick: () => void; children: React
     <button
       type="button"
       onClick={onClick}
-      className="inline-flex min-h-9 shrink-0 items-center gap-1 rounded-lg px-2 text-xs font-bold text-[#E63946] transition-colors hover:bg-[#FFF4F5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E63946]"
+      className="inline-flex min-h-9 shrink-0 items-center gap-1 rounded-lg px-2 text-xs font-bold text-accent-text transition-colors hover:bg-[#FFF4F5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E63946]"
     >
       {children}
       <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
@@ -138,13 +139,13 @@ function KpiCard({
           aria-hidden="true"
           className={cn(
             'flex h-9 w-9 shrink-0 items-center justify-center rounded-xl',
-            urgent ? 'bg-[#E63946] text-white' : 'bg-[#F5F6F8] text-[#0B1220]'
+            urgent ? 'bg-action text-white' : 'bg-[#F5F6F8] text-[#0B1220]'
           )}
         >
           <Icon className="h-4.5 w-4.5" />
         </span>
       </div>
-      <p className={cn('mt-3 text-[28px] font-extrabold leading-none tracking-tight tabular-nums sm:text-[32px]', urgent ? 'text-[#E63946]' : 'text-[#0B1220]')}>
+      <p className={cn('mt-3 text-[28px] font-extrabold leading-none tracking-tight tabular-nums sm:text-[32px]', urgent ? 'text-accent-text' : 'text-[#0B1220]')}>
         {value}
       </p>
       {hint && <p className="mt-2 text-xs text-slate-500">{hint}</p>}
@@ -187,19 +188,6 @@ function OccupancyRing({ rate }: { rate: number }) {
     </div>
   );
 }
-
-const BOOKING_STATUS_LABELS: Record<string, { label: string; cls: string }> = {
-  PENDING: { label: 'En attente', cls: 'bg-amber-50 text-amber-800 ring-amber-200' },
-  REQUESTED: { label: 'Demandée', cls: 'bg-amber-50 text-amber-800 ring-amber-200' },
-  UNDER_REVIEW: { label: 'En examen', cls: 'bg-amber-50 text-amber-800 ring-amber-200' },
-  SENT_TO_AGENCY: { label: 'À traiter', cls: 'bg-[#FFF4F5] text-[#B4232F] ring-[#F8C9CD]' },
-  CONFIRMED: { label: 'Confirmée', cls: 'bg-emerald-50 text-emerald-800 ring-emerald-200' },
-  APPROVED: { label: 'Approuvée', cls: 'bg-emerald-50 text-emerald-800 ring-emerald-200' },
-  ACTIVE: { label: 'En cours', cls: 'bg-[#0B1220] text-white ring-[#0B1220]' },
-  COMPLETED: { label: 'Terminée', cls: 'bg-slate-100 text-slate-600 ring-slate-200' },
-  CANCELLED: { label: 'Annulée', cls: 'bg-slate-100 text-slate-500 ring-slate-200' },
-  REJECTED: { label: 'Refusée', cls: 'bg-slate-100 text-slate-500 ring-slate-200' },
-};
 
 /* ─────────────────────────────────────────────────────────────────────────
    MAIN COMPONENT
@@ -324,7 +312,7 @@ export function OverviewPanel({
                   aria-hidden="true"
                   className={cn(
                     'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg',
-                    alert.tone === 'urgent' ? 'bg-[#E63946] text-white' : 'bg-amber-100 text-amber-700'
+                    alert.tone === 'urgent' ? 'bg-action text-white' : 'bg-amber-100 text-amber-700'
                   )}
                 >
                   <AlertTriangle className="h-4 w-4" />
@@ -335,7 +323,7 @@ export function OverviewPanel({
                 <span
                   className={cn(
                     'hidden shrink-0 items-center gap-1 text-xs font-bold sm:inline-flex',
-                    alert.tone === 'urgent' ? 'text-[#E63946]' : 'text-amber-800'
+                    alert.tone === 'urgent' ? 'text-accent-text' : 'text-amber-800'
                   )}
                 >
                   {alert.cta}
@@ -515,7 +503,6 @@ export function OverviewPanel({
             ) : recentActivity.length > 0 ? (
               <ul className="divide-y divide-slate-100">
                 {recentActivity.slice(0, 6).map((entry) => {
-                  const statusInfo = BOOKING_STATUS_LABELS[entry.status] ?? { label: entry.status, cls: 'bg-slate-100 text-slate-600 ring-slate-200' };
                   return (
                     <li key={entry.reference} className="flex items-center gap-3 px-5 py-3">
                       <span aria-hidden="true" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#0B1220] text-sm font-bold text-white">
@@ -528,9 +515,7 @@ export function OverviewPanel({
                           {entry.totalPrice > 0 && ` · ${formatNumber(entry.totalPrice)} MAD`}
                         </p>
                       </div>
-                      <span className={cn('shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold ring-1', statusInfo.cls)}>
-                        {statusInfo.label}
-                      </span>
+                      <StatusBadge status={entry.status} audience="business" size="sm" className="shrink-0" />
                     </li>
                   );
                 })}
@@ -552,7 +537,7 @@ export function OverviewPanel({
                 >
                   <span
                     aria-hidden="true"
-                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#0B1220] text-white transition-colors group-hover:bg-[#E63946]"
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#0B1220] text-white transition-colors group-hover:bg-action"
                   >
                     <Icon className="h-4 w-4" />
                   </span>

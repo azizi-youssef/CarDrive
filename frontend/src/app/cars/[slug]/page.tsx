@@ -247,7 +247,7 @@ export default function CarDetailsPage({ params }: CarDetailsPageProps) {
               {agency && (
                 <Link
                   href={`/agencies/${agency.slug}`}
-                  className="group inline-flex min-h-11 items-center gap-2 font-bold text-[#0B1220] transition-colors hover:text-[#E63946]"
+                  className="group inline-flex min-h-11 items-center gap-2 font-bold text-[#0B1220] transition-colors hover:text-accent-text"
                 >
                   <span className="h-7 w-7 shrink-0 overflow-hidden rounded-lg border border-slate-200 bg-white">
                     <AgencyLogo slug={agency.slug} name={agency.name} logoUrl={agency.logo_url} className="h-full w-full object-cover" />
@@ -283,7 +283,7 @@ export default function CarDetailsPage({ params }: CarDetailsPageProps) {
               aria-label={favorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
               className={cn(
                 'flex h-11 w-11 items-center justify-center rounded-xl border bg-white transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#E63946]',
-                favorite ? 'border-[#F8C9CD] text-[#E63946]' : 'border-slate-200 text-slate-500 hover:border-slate-300 hover:text-[#0B1220]'
+                favorite ? 'border-[#F8C9CD] text-accent-text' : 'border-slate-200 text-slate-500 hover:border-slate-300 hover:text-[#0B1220]'
               )}
             >
               <Heart className={cn('h-5 w-5', favorite && 'fill-current')} aria-hidden="true" />
@@ -317,7 +317,7 @@ export default function CarDetailsPage({ params }: CarDetailsPageProps) {
                 { icon: Users, value: `${vehicle.seats} places` },
               ].map(({ icon: Icon, value }) => (
                 <li key={value} className="flex flex-col items-center gap-1.5 rounded-xl border border-slate-200/80 bg-white px-2 py-3 text-center sm:flex-row sm:justify-center sm:gap-2.5">
-                  <Icon className="h-5 w-5 text-[#E63946]" aria-hidden="true" />
+                  <Icon className="h-5 w-5 text-accent-text" aria-hidden="true" />
                   <span className="text-[13px] font-bold text-[#0B1220] sm:text-sm">{value}</span>
                 </li>
               ))}
@@ -357,7 +357,7 @@ export default function CarDetailsPage({ params }: CarDetailsPageProps) {
               <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                 {specs.map(({ icon: Icon, label, value }) => (
                   <div key={label} className="flex items-start gap-3 rounded-xl bg-[#F5F6F8] p-3.5">
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-[#E63946] shadow-[0_1px_2px_rgba(11,18,32,0.06)]">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-accent-text shadow-[0_1px_2px_rgba(11,18,32,0.06)]">
                       <Icon className="h-4.5 w-4.5" aria-hidden="true" />
                     </span>
                     <div className="min-w-0">
@@ -399,7 +399,7 @@ export default function CarDetailsPage({ params }: CarDetailsPageProps) {
                   <li key={label} className="flex items-center gap-3 rounded-xl border border-dashed border-slate-200 px-3.5 py-3 text-sm text-slate-700">
                     <Icon className="h-5 w-5 shrink-0 text-slate-400" aria-hidden="true" />
                     <span className="flex-1">{label}</span>
-                    <span className="rounded-full bg-[#F5F6F8] px-2 py-0.5 text-[11px] font-bold text-slate-500">Tarif agence</span>
+                    <span className="rounded-full bg-[#F5F6F8] px-2 py-0.5 text-[11px] font-bold text-ink-tertiary">Tarif agence</span>
                   </li>
                 ))}
               </ul>
@@ -416,7 +416,7 @@ export default function CarDetailsPage({ params }: CarDetailsPageProps) {
               <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {conditions.map(({ icon: Icon, label, value, note }) => (
                   <div key={label} className="flex items-start gap-3 rounded-xl border border-slate-100 p-4">
-                    <Icon className="mt-0.5 h-5 w-5 shrink-0 text-[#E63946]" aria-hidden="true" />
+                    <Icon className="mt-0.5 h-5 w-5 shrink-0 text-accent-text" aria-hidden="true" />
                     <div>
                       <dt className="text-xs font-medium text-slate-500">{label}</dt>
                       <dd className="mt-0.5 text-[15px] font-bold text-[#0B1220]">{value}</dd>
@@ -512,7 +512,7 @@ export default function CarDetailsPage({ params }: CarDetailsPageProps) {
           <section aria-labelledby="similar-title" className="mt-12 lg:mt-16">
             <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
               <div>
-                <p className="inline-flex items-center gap-2.5 text-[11px] font-bold uppercase tracking-[0.2em] text-[#E63946]">
+                <p className="inline-flex items-center gap-2.5 text-[11px] font-bold uppercase tracking-[0.2em] text-accent-text">
                   <span className="h-px w-7 bg-current" aria-hidden="true" />
                   Alternatives
                 </p>
@@ -523,7 +523,7 @@ export default function CarDetailsPage({ params }: CarDetailsPageProps) {
                   Même modèle ou même catégorie chez d’autres agences. Disponibilité à vérifier sur chaque fiche.
                 </p>
               </div>
-              <Link href="/search" className="inline-flex min-h-11 items-center gap-1.5 text-sm font-bold text-[#0B1220] hover:text-[#E63946]">
+              <Link href="/search" className="inline-flex min-h-11 items-center gap-1.5 text-sm font-bold text-[#0B1220] hover:text-accent-text">
                 Tout le catalogue
                 <ChevronRight className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
               </Link>

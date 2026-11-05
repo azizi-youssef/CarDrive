@@ -46,7 +46,7 @@ export const SEO_LANDING_PAGES: Record<string, SeoLandingPageData> = {
     slug: 'location-voiture-nador-aeroport',
     h1: 'Location Voiture Aéroport Nador Al-Aroui (NDR) — Accueil VIP & Clés en main',
     title: 'Location Voiture Nador Aéroport (NDR) — Livraison Direct Terminal | CarDrive',
-    metaDescription: 'Réservez votre voiture livrée dès votre atterrissage à l’Aéroport Nador Al-Aroui (NDR). Pas de file d’attente, agences locales contrôlées, assistance 24/7.',
+    metaDescription: 'Réservez votre voiture livrée dès votre atterrissage à l’Aéroport Nador Al-Aroui (NDR). Pas de file d’attente, agences locales contrôlées, assistance locale par WhatsApp.',
     keywords: ['location voiture nador aeroport', 'car rental nador airport', 'aeroport al aroui voiture', 'location auto aéroport nador'],
     zoneName: 'Aéroport Nador Al-Aroui (NDR)',
     zoneType: 'airport',

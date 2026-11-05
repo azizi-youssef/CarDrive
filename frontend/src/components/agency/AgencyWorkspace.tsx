@@ -509,7 +509,7 @@ export function AgencyWorkspace({
         >
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div className="min-w-0">
-              <p className="truncate text-xs font-bold uppercase tracking-[0.16em] text-[#E63946]">{agency.name}</p>
+              <p className="truncate text-xs font-bold uppercase tracking-[0.16em] text-accent-text">{agency.name}</p>
               <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-[#0B1220] sm:text-[32px]">
                 {currentLabel}
               </h1>

@@ -238,7 +238,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className="flex min-h-full flex-col bg-[#F8FAFC] font-sans text-[#0F172A] antialiased selection:bg-[#E63946] selection:text-white"
+        className="flex min-h-full flex-col bg-canvas font-sans text-ink antialiased selection:bg-action selection:text-white"
         suppressHydrationWarning
       >
         <AppShell>{children}</AppShell>

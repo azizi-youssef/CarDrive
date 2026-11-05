@@ -16,14 +16,14 @@ export const LOCATIONS_NADOR: string[] = [
 ];
 
 /** Vehicle category filter options */
+/** Liste de repli (avant chargement du catalogue) : les pages passent sinon les catégories réellement présentes.
+ *  « 7 places » et « Automatique » n'en font plus partie : ce ne sont pas des catégories (boîte = filtre dédié). */
 export const CATEGORIES: string[] = [
   'Tous les types',
-  'Economique',
+  'Économique',
   'SUV',
   'Berline',
   'Luxe',
-  '7 places',
-  'Automatique',
 ];
 
 /** Popular brand filter options */

@@ -127,7 +127,7 @@ function SidebarLogo({ collapsed }: { collapsed: boolean }) {
         />
       </div>
       {!collapsed && (
-        <span className="rounded-md bg-[#E63946] px-1.5 py-0.5 text-[10px] font-bold uppercase leading-none tracking-wider text-white">
+        <span className="rounded-md bg-action px-1.5 py-0.5 text-[11px] font-bold uppercase leading-none tracking-wider text-white">
           Admin
         </span>
       )}
@@ -167,7 +167,7 @@ function NavGroups({ collapsed = false, onNavigate }: { collapsed?: boolean; onN
                         : 'font-medium text-slate-400 hover:bg-white/5 hover:text-white'
                     )}
                   >
-                    <Icon aria-hidden="true" className={cn('h-4.5 w-4.5 shrink-0', active && 'text-[#E63946]')} />
+                    <Icon aria-hidden="true" className={cn('h-4.5 w-4.5 shrink-0', active && 'text-accent-text')} />
                     {!collapsed && <span className="truncate">{item.label}</span>}
                   </Link>
                 </li>

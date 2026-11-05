@@ -175,7 +175,7 @@ export function Topbar({
             >
               <Bell aria-hidden="true" className="h-4 w-4" />
               {alertCount > 0 && (
-                <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#E63946] px-1 text-[10px] font-bold text-white">
+                <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-action px-1 text-[10px] font-bold text-white">
                   {alertCount > 9 ? '9+' : alertCount}
                 </span>
               )}

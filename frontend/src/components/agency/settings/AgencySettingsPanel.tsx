@@ -88,7 +88,7 @@ function Field({
     <div className={className}>
       <label htmlFor={id} className="mb-1.5 flex items-baseline gap-1 text-[13px] font-bold text-[#0B1220]">
         {label}
-        {required && <span className="text-[#E63946]" aria-hidden="true">*</span>}
+        {required && <span className="text-accent-text" aria-hidden="true">*</span>}
       </label>
       {children}
       {error ? (
@@ -285,7 +285,7 @@ export function AgencySettingsPanel({ agencyId, canManage }: { agencyId: string;
                 error={errors.whatsapp}
                 hint={
                   canManage && form.phone && form.whatsapp !== form.phone ? (
-                    <button type="button" onClick={() => update('whatsapp', form.phone)} className="font-bold text-[#E63946] hover:underline">
+                    <button type="button" onClick={() => update('whatsapp', form.phone)} className="font-bold text-accent-text hover:underline">
                       Utiliser le numéro d’accueil
                     </button>
                   ) : (
@@ -328,11 +328,11 @@ export function AgencySettingsPanel({ agencyId, canManage }: { agencyId: string;
           <section aria-labelledby={`${uid}-preview`} className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(11,18,32,0.04)]">
             <div className="flex items-center justify-between gap-2 px-5 py-3">
               <h3 id={`${uid}-preview`} className="flex items-center gap-2 text-[13px] font-extrabold text-[#0B1220]">
-                <Eye className="h-4 w-4 text-[#E63946]" aria-hidden="true" />
+                <Eye className="h-4 w-4 text-accent-text" aria-hidden="true" />
                 Aperçu côté client
               </h3>
               {branding.slug && (
-                <Link href={`/agencies/${branding.slug}`} target="_blank" className="inline-flex min-h-8 items-center gap-1 text-xs font-bold text-[#E63946] hover:underline">
+                <Link href={`/agencies/${branding.slug}`} target="_blank" className="inline-flex min-h-8 items-center gap-1 text-xs font-bold text-accent-text hover:underline">
                   Ma page
                   <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
                 </Link>

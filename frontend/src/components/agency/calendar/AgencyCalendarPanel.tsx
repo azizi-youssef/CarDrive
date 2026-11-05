@@ -398,7 +398,7 @@ export function AgencyCalendarPanel({
       <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-xs">
         {loading ? (
           <div className="flex h-64 items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-[#E63946]" />
+            <Loader2 className="h-8 w-8 animate-spin text-accent-text" />
           </div>
         ) : vehicles.length === 0 ? (
           <div className="p-12 text-center text-sm text-slate-500">
@@ -416,11 +416,11 @@ export function AgencyCalendarPanel({
                     key={day.dateStr}
                     className={cn(
                       'min-w-[42px] border-r border-slate-100 p-2 text-center',
-                      day.isToday && 'bg-red-50 text-[#E63946]'
+                      day.isToday && 'bg-red-50 text-accent-text'
                     )}
                   >
-                    <div className="text-[10px] uppercase text-slate-400">{day.dayName}</div>
-                    <div className={cn('text-sm font-bold', day.isToday && 'text-[#E63946]')}>
+                    <div className="text-[11px] uppercase text-slate-400">{day.dayName}</div>
+                    <div className={cn('text-sm font-bold', day.isToday && 'text-accent-text')}>
                       {day.dayNum}
                     </div>
                   </th>
@@ -453,7 +453,7 @@ export function AgencyCalendarPanel({
                           <p className="truncate font-semibold text-slate-900">
                             {v.brand} {v.model}
                           </p>
-                          <p className="text-[10px] text-slate-400">
+                          <p className="text-[11px] text-slate-400">
                             {v.licensePlate || v.unitNumber || 'Sans immat.'}
                           </p>
                         </div>
@@ -481,7 +481,7 @@ export function AgencyCalendarPanel({
                               onClick={() => setSelectedEvent(matchingEvent)}
                               title={`${matchingEvent.title} (${matchingEvent.startDate} au ${matchingEvent.endDate})`}
                               className={cn(
-                                'h-7 w-full rounded-md text-[10px] font-semibold text-white shadow-xs transition hover:brightness-110',
+                                'h-7 w-full rounded-md text-[11px] font-semibold text-white shadow-xs transition hover:brightness-110',
                                 matchingEvent.type === 'MAINTENANCE' && 'bg-orange-500',
                                 matchingEvent.type === 'BLOCKED' && 'bg-slate-700',
                                 matchingEvent.type === 'BOOKING' &&

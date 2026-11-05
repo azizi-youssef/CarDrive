@@ -249,7 +249,7 @@ export function VehicleFormModal({
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-100 bg-[#0B1220] px-6 py-4 text-white">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#E63946] text-white">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-action text-white">
               <Car className="h-5 w-5" />
             </div>
             <div>
@@ -285,7 +285,7 @@ export function VehicleFormModal({
             <span
               className={cn(
                 'flex h-5 w-5 items-center justify-center rounded-full text-xs',
-                step === 1 ? 'bg-[#E63946] text-white' : 'bg-slate-200 text-slate-700'
+                step === 1 ? 'bg-action text-white' : 'bg-slate-200 text-slate-700'
               )}
             >
               1
@@ -305,7 +305,7 @@ export function VehicleFormModal({
             <span
               className={cn(
                 'flex h-5 w-5 items-center justify-center rounded-full text-xs',
-                step === 2 ? 'bg-[#E63946] text-white' : 'bg-slate-200 text-slate-700'
+                step === 2 ? 'bg-action text-white' : 'bg-slate-200 text-slate-700'
               )}
             >
               2
@@ -325,7 +325,7 @@ export function VehicleFormModal({
             <span
               className={cn(
                 'flex h-5 w-5 items-center justify-center rounded-full text-xs',
-                step === 3 ? 'bg-[#E63946] text-white' : 'bg-slate-200 text-slate-700'
+                step === 3 ? 'bg-action text-white' : 'bg-slate-200 text-slate-700'
               )}
             >
               3
@@ -511,7 +511,7 @@ export function VehicleFormModal({
                         className={cn(
                           'flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-all',
                           active
-                            ? 'border-[#E63946] bg-red-50 text-[#E63946]'
+                            ? 'border-[#E63946] bg-red-50 text-accent-text'
                             : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
                         )}
                       >
@@ -651,14 +651,14 @@ export function VehicleFormModal({
                 >
                   {uploading ? (
                     <div className="flex flex-col items-center gap-2">
-                      <Loader2 className="h-8 w-8 animate-spin text-[#E63946]" />
+                      <Loader2 className="h-8 w-8 animate-spin text-accent-text" />
                       <p className="text-sm font-medium text-slate-600">
                         Téléversement vers Supabase Storage...
                       </p>
                     </div>
                   ) : (
                     <>
-                      <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-[#E63946]">
+                      <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-accent-text">
                         <Upload className="h-6 w-6" />
                       </div>
                       <p className="text-sm font-semibold text-slate-800">
@@ -708,7 +708,7 @@ export function VehicleFormModal({
                           unoptimized
                         />
                         {idx === 0 && (
-                          <span className="absolute left-2 top-2 rounded-md bg-[#E63946] px-1.5 py-0.5 text-[10px] font-bold text-white shadow">
+                          <span className="absolute left-2 top-2 rounded-md bg-action px-1.5 py-0.5 text-[11px] font-bold text-white shadow">
                             Principale
                           </span>
                         )}
@@ -796,7 +796,7 @@ export function VehicleFormModal({
                 <button
                   type="submit"
                   disabled={busy || uploading}
-                  className="flex items-center gap-2 rounded-xl bg-[#E63946] px-6 py-2 text-sm font-semibold text-white shadow hover:bg-red-700 disabled:opacity-50"
+                  className="flex items-center gap-2 rounded-xl bg-action px-6 py-2 text-sm font-semibold text-white shadow hover:bg-red-700 disabled:opacity-50"
                 >
                   {busy || uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                   {uploading

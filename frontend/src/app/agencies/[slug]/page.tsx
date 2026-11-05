@@ -9,6 +9,7 @@ import { AgencyBanner } from '@/components/agencies/AgencyBanner';
 import { Badge } from '@/components/ui/Badge';
 import { useRealtimeRefresh } from '@/lib/supabase/realtime';
 import type { Agency, Vehicle } from '@/types';
+import { cardriveWhatsAppUrl } from '@/lib/constants/contact';
 import {
   MapPin,
   Phone,
@@ -102,12 +103,12 @@ export default function AgencyDetailPage({ params }: AgencyDetailPageProps) {
       {/* Breadcrumb */}
       <div className="bg-white border-b border-slate-200 py-3">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <nav className="flex items-center gap-2 text-xs text-slate-500 font-medium">
+          <nav aria-label="Fil d’Ariane" className="flex min-w-0 items-center gap-2 text-xs text-ink-secondary font-medium">
             <Link href="/" className="hover:text-slate-900">Accueil</Link>
-            <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+            <ChevronRight aria-hidden="true" className="w-3.5 h-3.5 shrink-0 text-slate-400" />
             <Link href="/agencies" className="hover:text-slate-900">Agences</Link>
-            <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-            <span className="text-slate-900 font-semibold">{agency.name}</span>
+            <ChevronRight aria-hidden="true" className="w-3.5 h-3.5 shrink-0 text-slate-400" />
+            <span aria-current="page" className="min-w-0 truncate text-slate-900 font-semibold">{agency.name}</span>
           </nav>
         </div>
       </div>
@@ -128,7 +129,7 @@ export default function AgencyDetailPage({ params }: AgencyDetailPageProps) {
         <div className="bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 shadow-xl shadow-blue-950/5 space-y-6">
           
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-            <div className="flex items-start sm:items-center gap-4">
+            <div className="flex min-w-0 items-start sm:items-center gap-4">
               <div className="w-20 h-20 rounded-2xl border-4 border-white bg-white overflow-hidden shadow-lg relative shrink-0">
                 <AgencyLogo
                   slug={agency.slug}
@@ -138,9 +139,9 @@ export default function AgencyDetailPage({ params }: AgencyDetailPageProps) {
                 />
               </div>
 
-              <div>
-                <div className="flex items-center gap-2">
-                  <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h1 className="break-words text-2xl sm:text-3xl font-extrabold text-slate-900">
                     {agency.name}
                   </h1>
                   {agency.verified && (
@@ -148,17 +149,24 @@ export default function AgencyDetailPage({ params }: AgencyDetailPageProps) {
                   )}
                 </div>
 
-                <div className="flex flex-wrap items-center gap-3 text-xs text-slate-600 mt-1">
+                <div className="flex flex-wrap items-center gap-3 text-xs text-ink-secondary mt-1">
                   <div className="flex items-center gap-1">
                     <MapPin className="w-3.5 h-3.5 text-[#0B1220]" />
                     <span>{agency.address} ({agency.city})</span>
                   </div>
-                  <span>•</span>
-                  <div className="flex items-center gap-1 text-amber-600 font-bold">
-                    <Star className="w-3.5 h-3.5 fill-current" />
-                    <span>{agency.rating.toFixed(1)}</span>
-                    <span className="text-slate-400 font-normal">({agency.review_count} avis)</span>
-                  </div>
+                  <span aria-hidden="true">•</span>
+                  {/* Note affichée uniquement si elle repose sur de vrais avis (la valeur par défaut en base n'en est pas une) */}
+                  {agency.review_count > 0 && agency.rating > 0 ? (
+                    <div className="flex items-center gap-1 text-amber-700 font-bold">
+                      <Star className="w-3.5 h-3.5 fill-current" aria-hidden="true" />
+                      <span>{agency.rating.toFixed(1)}</span>
+                      <span className="text-slate-500 font-normal">
+                        ({agency.review_count} avis)
+                      </span>
+                    </div>
+                  ) : (
+                    <span className="font-semibold text-slate-600">Nouveau partenaire · aucun avis pour le moment</span>
+                  )}
                 </div>
               </div>
             </div>
@@ -174,7 +182,7 @@ export default function AgencyDetailPage({ params }: AgencyDetailPageProps) {
               </a>
 
               <a
-                href={`https://wa.me/212661987654?text=${encodeURIComponent(`Bonjour CarDrive, j'ai une question concernant l'agence partenaire ${agency.name} à ${agency.city}.`)}`}
+                href={cardriveWhatsAppUrl(`Bonjour CarDrive, j'ai une question concernant l'agence partenaire ${agency.name} à ${agency.city}.`)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="px-4 py-2.5 rounded-xl border border-emerald-500 hover:bg-emerald-50 text-emerald-700 text-xs font-semibold flex items-center gap-2 transition-colors"
@@ -189,14 +197,21 @@ export default function AgencyDetailPage({ params }: AgencyDetailPageProps) {
             {agency.description}
           </p>
 
-          <div className="flex flex-wrap items-center gap-6 pt-2 text-xs text-slate-500">
+          {/* Uniquement des informations vérifiables : pas d'horaires en base, pas de paiement ni de caution via CarDrive */}
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 pt-2 text-xs text-slate-600">
+            {agency.verified && (
+              <div className="flex items-center gap-1.5">
+                <ShieldCheck className="w-4 h-4 text-emerald-600" aria-hidden="true" />
+                <span>Agence vérifiée par CarDrive avant sa mise en ligne</span>
+              </div>
+            )}
             <div className="flex items-center gap-1.5">
-              <Clock className="w-4 h-4 text-blue-600" />
-              <span>Ouvert 7j/7 de 08:00 à 21:00</span>
+              <Clock className="w-4 h-4 text-slate-500" aria-hidden="true" />
+              <span>Horaires et disponibilités confirmés par l’agence lors de votre demande</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <ShieldCheck className="w-4 h-4 text-emerald-600" />
-              <span>Agence certifiée CarDrive (Réservation & caution sécurisées)</span>
+              <Car className="w-4 h-4 text-slate-500" aria-hidden="true" />
+              <span>Aucun paiement en ligne : contrat et caution réglés directement à l’agence</span>
             </div>
           </div>
 

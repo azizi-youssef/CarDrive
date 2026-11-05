@@ -80,7 +80,7 @@ function FaqAccordionItem({
         >
           <span
             className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-colors motion-reduce:transition-none ${
-              open ? 'bg-[#E63946] text-white' : 'bg-[#F5F6F8] text-slate-600'
+              open ? 'bg-action text-white' : 'bg-[#F5F6F8] text-slate-600'
             }`}
           >
             <Icon className="h-4.5 w-4.5" aria-hidden="true" />
@@ -90,7 +90,7 @@ function FaqAccordionItem({
           </span>
           <ChevronDown
             className={`h-5 w-5 shrink-0 text-slate-400 transition-transform duration-200 motion-reduce:transition-none ${
-              open ? 'rotate-180 text-[#E63946]' : ''
+              open ? 'rotate-180 text-accent-text' : ''
             }`}
             aria-hidden="true"
           />
@@ -103,7 +103,7 @@ function FaqAccordionItem({
           </p>
           <a
             href={`#${item.id}`}
-            className="mt-3 inline-flex min-h-9 items-center gap-1.5 rounded-lg text-xs font-semibold text-slate-400 transition-colors hover:text-[#E63946] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E63946]"
+            className="mt-3 inline-flex min-h-9 items-center gap-1.5 rounded-lg text-xs font-semibold text-ink-secondary transition-colors hover:text-accent-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E63946]"
           >
             <Link2 className="h-3.5 w-3.5" aria-hidden="true" />
             Lien vers cette question
@@ -200,7 +200,7 @@ export function FaqClient() {
             id="faq-title"
             className="mt-4 max-w-3xl text-balance text-[34px] font-extrabold leading-[1.05] tracking-[-0.03em] sm:text-5xl lg:text-[56px]"
           >
-            Questions fréquentes <span className="text-[#E63946]">CarDrive</span>
+            Questions fréquentes <span className="text-accent-text">CarDrive</span>
           </h1>
           <p className="mt-5 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg sm:leading-8">
             Recherche, réservation, caution, prise en charge à Nador : retrouvez les réponses avant de louer votre
@@ -212,7 +212,7 @@ export function FaqClient() {
       <div className="relative z-10 mx-auto -mt-10 max-w-[1180px] px-4 sm:px-6 lg:px-8">
         <div role="search" className="rounded-2xl bg-white p-2 shadow-[0_18px_50px_-20px_rgba(11,18,32,0.35)] ring-1 ring-slate-200/70">
           <div className="relative flex items-center">
-            <Search className="pointer-events-none absolute start-4 h-5 w-5 text-[#E63946]" aria-hidden="true" />
+            <Search className="pointer-events-none absolute start-4 h-5 w-5 text-accent-text" aria-hidden="true" />
             <label htmlFor="faq-search" className="sr-only">
               Rechercher dans la FAQ
             </label>
@@ -265,7 +265,7 @@ export function FaqClient() {
                     {cat.label}
                     <span
                       className={`rounded-full px-2 py-0.5 text-[11px] tabular-nums ${
-                        active ? 'bg-white/15 text-white' : 'bg-[#F5F6F8] text-slate-500'
+                        active ? 'bg-white/15 text-white' : 'bg-[#F5F6F8] text-ink-tertiary'
                       }`}
                     >
                       {cat.count}
@@ -277,14 +277,14 @@ export function FaqClient() {
           </ul>
 
           <div className="mt-6 hidden rounded-2xl border border-slate-200/80 bg-white p-5 lg:block">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#E63946]/10 text-[#E63946]">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#E63946]/10 text-accent-text">
               <MessageSquare className="h-5 w-5" aria-hidden="true" />
             </span>
             <p className="mt-4 font-extrabold">Besoin d’une réponse précise ?</p>
             <p className="mt-1.5 text-sm leading-6 text-slate-600">Notre équipe vous répond pour votre réservation.</p>
             <Link
               href="/contact"
-              className="mt-4 inline-flex min-h-10 items-center gap-1.5 text-sm font-bold text-[#E63946] hover:text-[#C92F3B]"
+              className="mt-4 inline-flex min-h-10 items-center gap-1.5 text-sm font-bold text-accent-text hover:text-[#C92F3B]"
             >
               Nous contacter
               <ArrowRight className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
@@ -295,7 +295,7 @@ export function FaqClient() {
         <section aria-label="Questions et réponses" className="mt-6 min-w-0 lg:mt-0">
           {results.length === 0 ? (
             <div className="rounded-3xl border border-slate-200 bg-white px-6 py-12 text-center">
-              <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#F5F6F8] text-[#E63946]">
+              <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#F5F6F8] text-accent-text">
                 <FileQuestion className="h-7 w-7" aria-hidden="true" />
               </span>
               <h2 className="mt-4 text-lg font-extrabold">Aucune question ne correspond</h2>
@@ -328,7 +328,7 @@ export function FaqClient() {
                 return (
                   <div key={group.id}>
                     <h2 className="mb-4 flex items-center gap-2.5 text-lg font-extrabold">
-                      <Icon className="h-5 w-5 text-[#E63946]" aria-hidden="true" />
+                      <Icon className="h-5 w-5 text-accent-text" aria-hidden="true" />
                       {group.label}
                     </h2>
                     <ul className="space-y-3">
@@ -380,7 +380,7 @@ export function FaqClient() {
               <div className="flex flex-col gap-3 sm:flex-row md:flex-col lg:flex-row">
                 <Link
                   href="/search"
-                  className="group inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#E63946] px-6 text-sm font-bold text-white transition-colors hover:bg-[#C92F3B] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                  className="group inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-action px-6 text-sm font-bold text-white transition-colors hover:bg-action-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
                 >
                   <Search className="h-4 w-4" aria-hidden="true" />
                   Rechercher une voiture

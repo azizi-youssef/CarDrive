@@ -11,9 +11,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   // Les routes d'administration et agence ont leurs propres interfaces et layouts
+  // « Devenir partenaire » est une page publique : elle garde menu, pied de page et <main>
   const isAdminOrAgency =
     pathname?.startsWith('/admin') ||
-    pathname?.startsWith('/agency');
+    (pathname?.startsWith('/agency') && !pathname.startsWith('/agency/join'));
 
   // La connexion est une page « focus » plein écran : sans navbar ni footer, avec son propre <main>
   const isFocusedAuth = pathname === '/login';

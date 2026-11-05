@@ -20,6 +20,8 @@ interface SearchBarProps {
   initialCategory?: string;
   initialBrand?: string;
   isCompact?: boolean;
+  /** Catégories réellement présentes dans le catalogue (sinon : liste par défaut) */
+  categories?: string[];
 }
 
 const ALL_CATEGORIES_LABEL = 'Tous les types';
@@ -60,9 +62,9 @@ function Field({
     >
       <label
         htmlFor={id}
-        className="mb-0.5 flex items-center gap-1.5 text-xs font-semibold text-slate-500"
+        className="mb-0.5 flex items-center gap-1.5 text-xs font-semibold text-ink-tertiary"
       >
-        <Icon className="h-3.5 w-3.5 shrink-0 text-[#E63946]" aria-hidden="true" />
+        <Icon className="h-3.5 w-3.5 shrink-0 text-accent-text" aria-hidden="true" />
         <span className="truncate">{label}</span>
       </label>
       {children}
@@ -81,6 +83,7 @@ export function SearchBar({
   initialCategory = ALL_CATEGORIES_LABEL,
   initialBrand = ALL_BRANDS_LABEL,
   isCompact = false,
+  categories,
 }: SearchBarProps) {
   const router = useRouter();
   const uid = useId();
@@ -98,7 +101,7 @@ export function SearchBar({
   const [endDate, setEndDate] = useState(initialEndDate);
   const [dateError, setDateError] = useState('');
   const [category, setCategory] = useState(
-    CATEGORIES.includes(initialCategory) ? initialCategory : ALL_CATEGORIES_LABEL
+    initialCategory && initialCategory !== 'ALL' ? initialCategory : ALL_CATEGORIES_LABEL
   );
   // Marque transmise telle quelle (aucun champ dédié dans le formulaire)
   const brand = initialBrand && initialBrand !== 'ALL' ? initialBrand : ALL_BRANDS_LABEL;
@@ -221,7 +224,10 @@ export function SearchBar({
               onChange={(e) => setCategory(e.target.value)}
               className={controlClass}
             >
-              {CATEGORIES.map((cat) => (
+              {(categories && categories.length > 0
+                ? [ALL_CATEGORIES_LABEL, ...categories, ...(category !== ALL_CATEGORIES_LABEL && !categories.includes(category) ? [category] : [])]
+                : CATEGORIES
+              ).map((cat) => (
                 <option key={cat} value={cat}>
                   {cat}
                 </option>
@@ -234,7 +240,7 @@ export function SearchBar({
         <button
           type="submit"
           disabled={!today}
-          className="col-span-2 lg:col-span-1 flex min-h-12 lg:h-auto items-center justify-center gap-2 rounded-xl bg-[#E63946] px-7 py-3.5 text-base lg:text-sm font-bold text-white transition hover:bg-[#C92F3B] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0B1220] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 shadow-sm"
+          className="col-span-2 lg:col-span-1 flex min-h-12 lg:h-auto items-center justify-center gap-2 rounded-xl bg-action px-7 py-3.5 text-base lg:text-sm font-bold text-white transition hover:bg-action-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0B1220] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 shadow-sm"
         >
           <Search className="h-4 w-4" aria-hidden="true" />
           {t.searchBar.searchBtn}

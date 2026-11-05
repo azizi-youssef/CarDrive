@@ -199,7 +199,7 @@ export function ReviewModal({
                 id="review-submit"
                 type="submit"
                 disabled={state === 'sending'}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#E63946] px-5 py-3 text-sm font-bold text-white shadow-md shadow-red-900/20 transition hover:bg-[#C92F3B] disabled:opacity-60"
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-action px-5 py-3 text-sm font-bold text-white shadow-md shadow-red-900/20 transition hover:bg-action-hover disabled:opacity-60"
               >
                 {state === 'sending' ? (
                   <>

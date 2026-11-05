@@ -30,7 +30,7 @@ export function SameModelAlternatives({
             <h3 className="text-base sm:text-lg font-bold text-slate-900">
               Autres offres similaires à Nador
             </h3>
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-red-50 text-[#E63946]">
+            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-red-50 text-accent-text">
               {alternatives.length} offre{alternatives.length > 1 ? 's' : ''}
             </span>
           </div>
@@ -96,7 +96,7 @@ export function SameModelAlternatives({
                   <PriceDisplay price={alt.daily_price} size="sm" />
                   {diff !== 0 && (
                     <span
-                      className={`block text-[10px] font-semibold ${
+                      className={`block text-[11px] font-semibold ${
                         isCheaper ? 'text-emerald-600' : 'text-slate-500'
                       }`}
                     >

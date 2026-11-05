@@ -52,7 +52,7 @@ export function CookieBanner() {
             {t.cookie.desc}{' '}
             <Link
               href="/confidentialite"
-              className="whitespace-nowrap font-semibold text-[#0B1220] underline underline-offset-2 hover:text-[#E63946]"
+              className="whitespace-nowrap font-semibold text-[#0B1220] underline underline-offset-2 hover:text-accent-text"
             >
               {t.cookie.privacy}
             </Link>

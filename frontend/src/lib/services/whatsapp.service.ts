@@ -920,7 +920,7 @@ export class WhatsAppService {
         (bookingRef ? `Pour votre dossier *${bookingRef}* :\n` : '') +
         `• Prise en charge : *${pickupLocation}*\n` +
         (booking?.start_date ? `• Date : *${booking.start_date} à ${booking.pickup_time || '10:00'}*\n` : '') +
-        `• Conciergerie CarDrive (24/7) : *+212 661-987654*\n\n` +
+        `• Assistance CarDrive (lun–ven 9h–18h, sam. 9h–13h) : *+212 661-987654*\n\n` +
         `Répondez *CONFIRMER* pour valider ou *ANNULER* pour vous désister.`;
       actionTaken = `Guide d'assistance envoyé`;
     } else {

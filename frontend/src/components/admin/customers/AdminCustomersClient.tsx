@@ -477,7 +477,7 @@ export function AdminCustomersClient() {
                       </div>
                       <div className="text-right">
                         <span className="font-bold text-slate-900 block">{b.totalPrice} DH</span>
-                        <span className="text-[10px] text-slate-500 uppercase">{b.status}</span>
+                        <span className="text-[11px] text-slate-500 uppercase">{b.status}</span>
                       </div>
                     </div>
                   ))}

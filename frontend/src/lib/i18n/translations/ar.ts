@@ -88,7 +88,7 @@ export const ar: Translations = {
     vehicles: 'سيارة متاحة',
     agencies: 'وكالة شريكة',
     satisfaction: 'نسبة الرضا',
-    support: 'دعم 7/7 عبر واتساب',
+    support: 'دعم عبر واتساب',
   },
   differentiator: {
     badge: 'بحث ذكي وسريع',

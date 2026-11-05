@@ -5,7 +5,8 @@ import { FileText, Loader2 } from 'lucide-react';
 import { cn, formatPrice } from '@/lib/utils';
 import { Pagination, SearchField, SelectField, Th } from '@/components/agency/shell/Controls';
 import { EmptyState, ErrorBanner, TableSkeleton } from '@/components/agency/shell/Feedback';
-import { Badge } from '@/components/ui/Badge';
+import { StatusBadge } from '@/components/ui/StatusBadge';
+import { bookingStatusLabel as sharedBookingStatusLabel } from '@/lib/bookings/status';
 
 /**
  * Réservation telle que renvoyée par /api/agencies/[id]/bookings.
@@ -38,9 +39,9 @@ export type BookingQuery = { q: string; status: string; sort: string };
 
 export const STATUS_FILTERS = [
   { value: '', label: 'Tous les statuts' },
-  { value: 'REQUESTED', label: 'Demandée' },
+  { value: 'REQUESTED', label: 'Nouvelle demande' },
   { value: 'SENT_TO_AGENCY', label: 'À traiter' },
-  { value: 'APPROVED', label: 'Approuvée' },
+  { value: 'APPROVED', label: 'Confirmée' },
   { value: 'ACTIVE', label: 'En cours' },
   { value: 'COMPLETED', label: 'Terminée' },
   { value: 'REJECTED', label: 'Refusée' },
@@ -55,7 +56,7 @@ const SORTS = [
 ] as const;
 
 export function bookingStatusLabel(status: string): string {
-  return STATUS_FILTERS.find((filter) => filter.value === status)?.label ?? status;
+  return sharedBookingStatusLabel(status, 'fr', 'business');
 }
 
 export function bookingStatusVariant(status: string): 'available' | 'pending' | 'rented' {
@@ -203,16 +204,14 @@ export function BookingsPanel({
                     <td className="px-5 py-4 text-right font-semibold tabular-nums text-[#0F172A]">
                       {money(booking.total_price)}
                     </td>
-                    <td className="px-5 py-4 text-right tabular-nums text-[#E63946]">
+                    <td className="px-5 py-4 text-right tabular-nums text-accent-text">
                       {money(booking.commission_amount)}
                     </td>
                     <td className="px-5 py-4 text-right tabular-nums text-slate-600">
                       {money(booking.agency_amount)}
                     </td>
                     <td className="px-5 py-4">
-                      <Badge variant={bookingStatusVariant(booking.status)}>
-                        {bookingStatusLabel(booking.status)}
-                      </Badge>
+                      <StatusBadge status={booking.status} audience="business" size="sm" />
                     </td>
                     <td className="px-5 py-4 text-right">
                       <button

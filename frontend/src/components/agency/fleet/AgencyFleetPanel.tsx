@@ -271,7 +271,7 @@ export function AgencyFleetPanel({
               'flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold shadow-sm transition',
               subscription?.is_at_capacity
                 ? 'bg-amber-600 hover:bg-amber-700 text-white'
-                : 'bg-[#E63946] hover:bg-red-700 text-white'
+                : 'bg-action hover:bg-red-700 text-white'
             )}
             title={
               subscription?.is_at_capacity
@@ -425,8 +425,8 @@ export function AgencyFleetPanel({
                     <div className="flex h-full w-full flex-col items-center justify-center bg-slate-100 p-4 text-center text-slate-400">
                       <Car className="mb-1 h-10 w-10 text-slate-300" />
                       {canManage && (
-                        <label className="mt-1 flex cursor-pointer items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 shadow-xs transition hover:border-[#E63946] hover:text-[#E63946]">
-                          <Camera className="h-3.5 w-3.5 text-[#E63946]" />
+                        <label className="mt-1 flex cursor-pointer items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 shadow-xs transition hover:border-[#E63946] hover:text-accent-text">
+                          <Camera className="h-3.5 w-3.5 text-accent-text" />
                           <span>Ajouter une photo</span>
                           <input
                             type="file"
@@ -449,7 +449,7 @@ export function AgencyFleetPanel({
                     <label
                       title="Téléverser ou modifier la photo directement"
                       className={cn(
-                        'absolute right-3 top-3 z-10 flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg bg-black/60 text-white shadow-xs backdrop-blur-md transition hover:bg-[#E63946]',
+                        'absolute right-3 top-3 z-10 flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg bg-black/60 text-white shadow-xs backdrop-blur-md transition hover:bg-action',
                         uploadingVehicleId === v.id && 'pointer-events-none opacity-80'
                       )}
                     >
@@ -513,7 +513,7 @@ export function AgencyFleetPanel({
                       </p>
                     </div>
                     <div className="text-right">
-                      <span className="text-lg font-bold text-[#E63946]">
+                      <span className="text-lg font-bold text-accent-text">
                         {formatPrice(v.daily_price)}
                       </span>
                       <span className="text-xs text-slate-500"> / jour</span>

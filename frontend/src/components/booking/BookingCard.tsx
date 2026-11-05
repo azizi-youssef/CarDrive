@@ -183,7 +183,7 @@ export function BookingCard({ vehicle, onAvailabilityChange }: BookingCardProps)
       >
         <fieldset>
           <legend className="mb-2 flex items-center gap-2 text-sm font-extrabold text-[#0B1220]">
-            <CalendarDays className="h-4 w-4 text-[#E63946]" aria-hidden="true" />
+            <CalendarDays className="h-4 w-4 text-accent-text" aria-hidden="true" />
             Période de location
           </legend>
           <div className="grid grid-cols-[minmax(0,1fr)_112px] gap-2">
@@ -265,7 +265,7 @@ export function BookingCard({ vehicle, onAvailabilityChange }: BookingCardProps)
 
         <fieldset className="space-y-3">
           <legend className="mb-2 flex items-center gap-2 text-sm font-extrabold text-[#0B1220]">
-            <MapPin className="h-4 w-4 text-[#E63946]" aria-hidden="true" />
+            <MapPin className="h-4 w-4 text-accent-text" aria-hidden="true" />
             Lieux
           </legend>
           <div>
@@ -326,7 +326,7 @@ export function BookingCard({ vehicle, onAvailabilityChange }: BookingCardProps)
         <button
           type="submit"
           disabled={availability === 'checking' && !datesError}
-          className="flex min-h-13 w-full items-center justify-center gap-2 rounded-xl bg-[#E63946] px-5 text-[15px] font-bold text-white shadow-[0_14px_28px_-14px_rgba(230,57,70,0.8)] transition-colors hover:bg-[#C92F3B] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0B1220] disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none aria-disabled:bg-slate-300 aria-disabled:shadow-none"
+          className="flex min-h-13 w-full items-center justify-center gap-2 rounded-xl bg-action px-5 text-[15px] font-bold text-white shadow-[0_14px_28px_-14px_rgba(230,57,70,0.8)] transition-colors hover:bg-action-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0B1220] disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none aria-disabled:bg-slate-300 aria-disabled:shadow-none"
           aria-disabled={!canBook || undefined}
         >
           {availability === 'checking' && !datesError ? (

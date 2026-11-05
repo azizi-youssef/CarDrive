@@ -15,6 +15,7 @@ import { cn, formatPrice } from '@/lib/utils';
 import type { AgencySubscription, SubscriptionPlan } from '@/types';
 import { FleetCapacityCard } from './FleetCapacityCard';
 import { AgencySubscriptionModal } from './AgencySubscriptionModal';
+import { cardriveWhatsAppUrl } from '@/lib/constants/contact';
 
 interface Props {
   agencyId: string;
@@ -94,7 +95,7 @@ export function AgencySubscriptionPanel({ agencyId }: Props) {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-xl font-black tracking-tight text-slate-900 sm:text-2xl flex items-center gap-2.5">
-            <Sparkles className="h-6 w-6 text-[#E63946]" />
+            <Sparkles className="h-6 w-6 text-accent-text" />
             Abonnement & Capacité Flotte
           </h2>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
@@ -125,7 +126,7 @@ export function AgencySubscriptionPanel({ agencyId }: Props) {
           <div className="mt-2 flex items-center gap-2">
             <span className="text-xl font-black text-slate-900">{plan.name}</span>
             {plan.badge && (
-              <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-bold text-[#02306B]">
+              <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[11px] font-bold text-[#02306B]">
                 {plan.badge}
               </span>
             )}
@@ -206,7 +207,7 @@ export function AgencySubscriptionPanel({ agencyId }: Props) {
             </div>
           </div>
           <a
-            href="https://wa.me/212600000000?text=Bonjour,%20je%20souhaite%20des%20informations%20sur%20les%20abonnements%20CarDrive"
+            href={cardriveWhatsAppUrl('Bonjour, je souhaite des informations sur les abonnements CarDrive')}
             target="_blank"
             rel="noopener noreferrer"
             className="shrink-0 inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition shadow-xs"
@@ -242,7 +243,7 @@ export function AgencySubscriptionPanel({ agencyId }: Props) {
                 )}
               >
                 {isCurrent && (
-                  <span className="absolute -top-3 right-4 rounded-full bg-[#02306B] px-3 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-white shadow-xs">
+                  <span className="absolute -top-3 right-4 rounded-full bg-[#02306B] px-3 py-0.5 text-[11px] font-extrabold uppercase tracking-wider text-white shadow-xs">
                     Formule actuelle
                   </span>
                 )}
@@ -251,7 +252,7 @@ export function AgencySubscriptionPanel({ agencyId }: Props) {
                   <div className="flex items-center justify-between">
                     <span className="text-base font-black text-slate-900">{p.name}</span>
                     {p.badge && (
-                      <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-700">
+                      <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-bold text-slate-700">
                         {p.badge}
                       </span>
                     )}

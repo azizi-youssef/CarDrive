@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useRef, useEffect } from 'react';
-import { gsap } from 'gsap';
+import React, { useEffect, useRef } from 'react';
 
 interface MagnetProps {
   children: React.ReactNode;
@@ -10,54 +9,38 @@ interface MagnetProps {
 }
 
 /**
- * Magnet (React Bits style, propulsé par GSAP)
- * Effet d'attraction magnétique interactif au survol des boutons d'action et CTA.
+ * Magnet : léger effet d'attraction au survol des boutons d'action.
+ * Version sans librairie (transform CSS + requestAnimationFrame), inactive sur écran tactile
+ * et si l'utilisateur demande à réduire les animations.
  */
-export function Magnet({
-  children,
-  className = '',
-  strength = 0.35,
-}: MagnetProps) {
+export function Magnet({ children, className = '', strength = 0.35 }: MagnetProps) {
   const magnetRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const el = magnetRef.current;
     if (!el) return;
+    if (window.matchMedia('(pointer: coarse), (prefers-reduced-motion: reduce)').matches) return;
 
-    // Désactivé sur écrans tactiles mobiles
-    if (window.matchMedia('(pointer: coarse)').matches) return;
-
+    let frame = 0;
+    const move = (x: number, y: number) => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        el.style.transform = x || y ? `translate3d(${x}px, ${y}px, 0)` : '';
+      });
+    };
     const handleMouseMove = (e: MouseEvent) => {
       const rect = el.getBoundingClientRect();
-      const x = e.clientX - (rect.left + rect.width / 2);
-      const y = e.clientY - (rect.top + rect.height / 2);
-
-      gsap.to(el, {
-        x: x * strength,
-        y: y * strength,
-        duration: 0.3,
-        ease: 'power2.out',
-        overwrite: 'auto',
-      });
+      move((e.clientX - (rect.left + rect.width / 2)) * strength, (e.clientY - (rect.top + rect.height / 2)) * strength);
     };
+    const handleMouseLeave = () => move(0, 0);
 
-    const handleMouseLeave = () => {
-      gsap.to(el, {
-        x: 0,
-        y: 0,
-        duration: 0.6,
-        ease: 'elastic.out(1.1, 0.4)',
-        overwrite: 'auto',
-      });
-    };
-
+    el.style.transition = 'transform 0.3s cubic-bezier(0.22, 1, 0.36, 1)';
     el.addEventListener('mousemove', handleMouseMove);
     el.addEventListener('mouseleave', handleMouseLeave);
-
     return () => {
+      cancelAnimationFrame(frame);
       el.removeEventListener('mousemove', handleMouseMove);
       el.removeEventListener('mouseleave', handleMouseLeave);
-      gsap.killTweensOf(el);
     };
   }, [strength]);
 
@@ -67,4 +50,3 @@ export function Magnet({
     </div>
   );
 }
-

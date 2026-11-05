@@ -1,7 +1,5 @@
-'use client';
-
-import React, { useRef, useEffect } from 'react';
-import { gsap } from 'gsap';
+import React from 'react';
+import { cn } from '@/lib/utils';
 
 interface GsapRevealProps {
   children: React.ReactNode;
@@ -13,8 +11,10 @@ interface GsapRevealProps {
 }
 
 /**
- * GsapReveal (Propulsé par GSAP)
- * Révélation d'entrée soignée (fade & slide-up) avec timing industriel.
+ * Révélation d'entrée (fondu + léger glissement), en CSS pur.
+ * Remplace l'ancienne version GSAP : aucun JavaScript, pas d'hydratation nécessaire,
+ * et désactivée si l'utilisateur demande à réduire les animations (voir .cd-reveal dans globals.css).
+ * Le nom est conservé pour ne pas changer l'API des pages qui l'utilisent.
  */
 export function GsapReveal({
   children,
@@ -24,51 +24,21 @@ export function GsapReveal({
   yOffset = 24,
   stagger = 0,
 }: GsapRevealProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-
-    if (stagger > 0 && el.children.length > 0) {
-      gsap.fromTo(
-        el.children,
-        { opacity: 0, y: yOffset },
-        {
-          opacity: 1,
-          y: 0,
-          duration,
-          delay,
-          stagger,
-          ease: 'power3.out',
-          clearProps: 'transform',
-        }
-      );
-    } else {
-      gsap.fromTo(
-        el,
-        { opacity: 0, y: yOffset },
-        {
-          opacity: 1,
-          y: 0,
-          duration,
-          delay,
-          ease: 'power3.out',
-          clearProps: 'transform',
-        }
-      );
-    }
-
-    return () => {
-      gsap.killTweensOf(el);
-      if (el.children) gsap.killTweensOf(el.children);
-    };
-  }, [delay, duration, yOffset, stagger]);
-
   return (
-    <div ref={containerRef} className={className}>
+    <div
+      className={cn(stagger > 0 ? 'cd-reveal-stagger' : 'cd-reveal', className)}
+      style={
+        {
+          '--cd-reveal-delay': `${delay}s`,
+          '--cd-reveal-duration': `${duration}s`,
+          '--cd-reveal-y': `${yOffset}px`,
+          '--cd-reveal-stagger': `${stagger}s`,
+        } as React.CSSProperties
+      }
+    >
       {children}
     </div>
   );
 }
 
+export { GsapReveal as Reveal };

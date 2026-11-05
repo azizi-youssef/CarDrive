@@ -29,7 +29,7 @@ export default function AgencyJoinPage() {
         {/* Header */}
         <div className="text-center max-w-2xl mx-auto mb-12">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-100 border border-slate-200/80 text-[#0B1220] text-xs font-semibold mb-4 shadow-2xs">
-            <Sparkles className="w-3.5 h-3.5 text-[#E63946]" />
+            <Sparkles className="w-3.5 h-3.5 text-accent-text" />
             <ShinyText text="Programme Partenaires Nador" className="text-[#0B1220]" />
           </div>
 
@@ -67,9 +67,9 @@ export default function AgencyJoinPage() {
             {/* Left Perks Info (5 cols) */}
             <div className="lg:col-span-5 space-y-6">
               <SpotlightCard className="p-6 shadow-sm space-y-4">
-                <h3 className="font-bold text-base text-[#0B1220]">
+                <h2 className="font-bold text-base text-[#0B1220]">
                   Pourquoi inscrire votre agence ?
-                </h3>
+                </h2>
 
                 <div className="space-y-3.5 text-xs text-slate-600">
                   <div className="flex items-start gap-2.5">
@@ -108,73 +108,73 @@ export default function AgencyJoinPage() {
                 Formulaire d’enregistrement agence
               </h2>
 
-              <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+              <form onSubmit={handleSubmit} className="space-y-4 text-sm">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">
+                  <label htmlFor="join-agency-name" className="block font-semibold text-slate-700 mb-1">
                     Nom commercial de l’agence *
                   </label>
-                  <input
+                  <input id="join-agency-name"
                     type="text"
                     required
                     placeholder="Ex: Nador Prestige Rent"
                     value={agencyName}
                     onChange={(e) => setAgencyName(e.target.value)}
-                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-[#0B1220] focus:ring-1 focus:ring-[#0B1220]/20 transition-all"
+                    className="w-full min-h-11 rounded-xl border border-line-strong bg-surface px-3 text-base text-ink outline-none transition-colors hover:border-[#98A2B3] focus:border-ink focus:ring-4 focus:ring-ink/8 sm:text-sm"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block font-semibold text-slate-700 mb-1">
+                    <label htmlFor="join-contact-name" className="block font-semibold text-slate-700 mb-1">
                       Nom du gérant / responsable *
                     </label>
-                    <input
+                    <input id="join-contact-name"
                       type="text"
                       required
                       placeholder="Ex: Khalid El Idrissi"
                       value={managerName}
                       onChange={(e) => setManagerName(e.target.value)}
-                      className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-[#0B1220] focus:ring-1 focus:ring-[#0B1220]/20 transition-all"
+                      className="w-full min-h-11 rounded-xl border border-line-strong bg-surface px-3 text-base text-ink outline-none transition-colors hover:border-[#98A2B3] focus:border-ink focus:ring-4 focus:ring-ink/8 sm:text-sm"
                     />
                   </div>
 
                   <div>
-                    <label className="block font-semibold text-slate-700 mb-1">
+                    <label htmlFor="join-phone" className="block font-semibold text-slate-700 mb-1">
                       Téléphone / WhatsApp pro *
                     </label>
-                    <input
+                    <input id="join-phone"
                       type="tel"
                       required
                       placeholder="+212 6..."
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-[#0B1220] focus:ring-1 focus:ring-[#0B1220]/20 transition-all"
+                      className="w-full min-h-11 rounded-xl border border-line-strong bg-surface px-3 text-base text-ink outline-none transition-colors hover:border-[#98A2B3] focus:border-ink focus:ring-4 focus:ring-ink/8 sm:text-sm"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">
+                  <label htmlFor="join-city" className="block font-semibold text-slate-700 mb-1">
                     Adresse physique à Nador ou environs *
                   </label>
-                  <input
+                  <input id="join-city"
                     type="text"
                     required
                     placeholder="Ex: Boulevard Mohammed V, Nador"
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
-                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-[#0B1220] focus:ring-1 focus:ring-[#0B1220]/20 transition-all"
+                    className="w-full min-h-11 rounded-xl border border-line-strong bg-surface px-3 text-base text-ink outline-none transition-colors hover:border-[#98A2B3] focus:border-ink focus:ring-4 focus:ring-ink/8 sm:text-sm"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">
+                  <label htmlFor="join-fleet-size" className="block font-semibold text-slate-700 mb-1">
                     Taille approximative de votre flotte
                   </label>
-                  <select
+                  <select id="join-fleet-size"
                     value={fleetSize}
                     onChange={(e) => setFleetSize(e.target.value)}
-                    className="w-full p-2.5 rounded-xl border border-slate-200 bg-white cursor-pointer focus:border-[#0B1220] focus:ring-1 focus:ring-[#0B1220]/20 outline-none transition-all"
+                    className="w-full min-h-11 cursor-pointer rounded-xl border border-line-strong bg-surface px-3 text-base text-ink outline-none transition-colors hover:border-[#98A2B3] focus:border-ink focus:ring-4 focus:ring-ink/8 sm:text-sm"
                   >
                     <option value="1-5 véhicules">1 à 5 véhicules</option>
                     <option value="5-15 véhicules">5 à 15 véhicules</option>
@@ -187,14 +187,14 @@ export default function AgencyJoinPage() {
                   <Magnet strength={0.2} className="w-full">
                     <button
                       type="submit"
-                      className="w-full py-3.5 rounded-xl bg-[#E63946] hover:bg-[#C92F3B] text-white font-bold text-sm shadow-xs hover:shadow-[0_4px_16px_rgba(230,57,70,0.3)] transition-all cursor-pointer active:scale-[0.99]"
+                      className="w-full py-3.5 rounded-xl bg-action hover:bg-action-hover text-white font-bold text-sm shadow-xs hover:shadow-[0_4px_16px_rgba(230,57,70,0.3)] transition-all cursor-pointer active:scale-[0.99]"
                     >
                       Envoyer ma demande de partenariat
                     </button>
                   </Magnet>
                 </div>
 
-                <p className="text-[11px] text-slate-400 text-center">
+                <p className="text-[11px] text-ink-secondary text-center">
                   En soumettant ce formulaire, vous acceptez d’être contacté par l’équipe CarDrive Nador.
                 </p>
               </form>

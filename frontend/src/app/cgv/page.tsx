@@ -17,7 +17,7 @@ export default function CGVPage() {
       {/* Header */}
       <div className="border-b border-slate-200 bg-white">
         <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
-          <nav className="mb-5 flex items-center gap-1.5 text-xs text-slate-400">
+          <nav aria-label="Fil d’Ariane" className="mb-5 flex items-center gap-1.5 text-xs text-ink-secondary">
             <Link href="/" className="hover:text-slate-600 transition-colors">Accueil</Link>
             <ChevronRight className="h-3.5 w-3.5" />
             <span className="text-slate-700 font-medium">Conditions Générales de Vente</span>
@@ -214,9 +214,9 @@ export default function CGVPage() {
               Pour toute réclamation ou question relative aux présentes CGV :
             </Paragraph>
             <ul className="mt-3 space-y-1.5 text-sm text-slate-600">
-              <li>📧 <a href="mailto:contact@cardrive.ma" className="text-[#E63946] hover:underline font-semibold">contact@cardrive.ma</a></li>
+              <li>📧 <a href="mailto:contact@cardrive.ma" className="text-accent-text hover:underline font-semibold">contact@cardrive.ma</a></li>
               <li>📍 Nador, Région de l&apos;Oriental, Maroc</li>
-              <li>💬 <Link href="/contact" className="text-[#E63946] hover:underline font-semibold">Formulaire de contact en ligne</Link></li>
+              <li>💬 <Link href="/contact" className="text-accent-text hover:underline font-semibold">Formulaire de contact en ligne</Link></li>
             </ul>
           </Section>
 
@@ -227,11 +227,11 @@ export default function CGVPage() {
           <Link href="/mentions-legales" className="text-slate-500 hover:text-slate-800 transition-colors">
             Mentions Légales
           </Link>
-          <span className="text-slate-300">·</span>
+          <span aria-hidden="true" className="text-slate-400">·</span>
           <Link href="/confidentialite" className="text-slate-500 hover:text-slate-800 transition-colors">
             Politique de Confidentialité
           </Link>
-          <span className="text-slate-300">·</span>
+          <span aria-hidden="true" className="text-slate-400">·</span>
           <Link href="/contact" className="text-slate-500 hover:text-slate-800 transition-colors">
             Contact
           </Link>

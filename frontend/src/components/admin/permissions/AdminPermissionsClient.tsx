@@ -275,7 +275,7 @@ export function AdminPermissionsClient() {
                         <Td className="font-medium text-slate-800 py-3">
                           <div>
                             <span className="block font-semibold text-slate-900">{perm.name}</span>
-                            <span className="font-mono text-[10px] text-slate-400">{perm.key}</span>
+                            <span className="font-mono text-[11px] text-slate-400">{perm.key}</span>
                           </div>
                         </Td>
                         {ROLES_LIST.filter((r) => r !== 'SUPPORT').map((r) => {

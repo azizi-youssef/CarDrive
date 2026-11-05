@@ -174,7 +174,7 @@ export function AgencyFinancesPanel({ agencyId }: { agencyId: string }) {
                 <span className="text-xs font-bold text-[#0B1220] uppercase tracking-wider">
                   Forfait Concession Actif
                 </span>
-                <span className="rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5">
+                <span className="rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold px-2 py-0.5">
                   {data.subscription.status}
                 </span>
               </div>
@@ -209,7 +209,7 @@ export function AgencyFinancesPanel({ agencyId }: { agencyId: string }) {
 
         {loading ? (
           <div className="flex h-48 items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-[#E63946]" />
+            <Loader2 className="h-8 w-8 animate-spin text-accent-text" />
           </div>
         ) : !data || data.transactions.length === 0 ? (
           <div className="p-12 text-center text-sm text-slate-500">
@@ -242,7 +242,7 @@ export function AgencyFinancesPanel({ agencyId }: { agencyId: string }) {
                     <td className="px-4 py-3 text-right font-semibold text-slate-900">
                       {formatPrice(t.totalPrice)}
                     </td>
-                    <td className="px-4 py-3 text-right font-medium text-[#E63946]">
+                    <td className="px-4 py-3 text-right font-medium text-accent-text">
                       -{formatPrice(t.commissionAmount)}
                     </td>
                     <td className="px-4 py-3 text-right font-bold text-emerald-600">
@@ -251,7 +251,7 @@ export function AgencyFinancesPanel({ agencyId }: { agencyId: string }) {
                     <td className="px-4 py-3 text-center">
                       <span
                         className={cn(
-                          'rounded-md px-2 py-0.5 text-[10px] font-bold uppercase',
+                          'rounded-md px-2 py-0.5 text-[11px] font-bold uppercase',
                           t.status === 'COMPLETED'
                             ? 'bg-emerald-100 text-emerald-800'
                             : t.status === 'ACTIVE'

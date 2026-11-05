@@ -88,7 +88,7 @@ export const de: Translations = {
     vehicles: 'Verfügbare Fahrzeuge',
     agencies: 'Partneragenturen',
     satisfaction: 'Kundenzufriedenheit',
-    support: '7/7 WhatsApp-Support',
+    support: 'WhatsApp-Support',
   },
   differentiator: {
     badge: 'Intelligentere Suche',

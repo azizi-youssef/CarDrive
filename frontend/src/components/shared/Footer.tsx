@@ -82,8 +82,8 @@ const STRINGS: Record<string, FooterStrings> = {
     trust1Desc: 'Des loueurs professionnels immatriculés et rigoureusement sélectionnés.',
     trust2Title: 'Tarifs clairs & sans frais cachés',
     trust2Desc: 'Des conditions transparentes et des prix fixés en direct par les agences.',
-    trust3Title: 'Disponibilité & Support 7j/7',
-    trust3Desc: 'Prise en charge aéroport, port et centre-ville avec assistance WhatsApp continue.',
+    trust3Title: 'Prise en charge & support local',
+    trust3Desc: 'Aéroport, port et centre-ville. Assistance WhatsApp du lundi au vendredi (9h–18h) et le samedi matin.',
     whatsappSupport: 'Assistance WhatsApp CarDrive',
     emailUs: 'contact@cardrive.ma',
     colExplorer: 'Explorer Nador',
@@ -123,8 +123,8 @@ const STRINGS: Record<string, FooterStrings> = {
     trust1Desc: 'مهنيون محليون مرخصون ومختارون بعناية فائقة.',
     trust2Title: 'أسعار واضحة بدون مصاريف خفية',
     trust2Desc: 'شروط شفافة وأسعار مباشرة ومحددة من قبل الوكالات بدون وسيط.',
-    trust3Title: 'توفر واستلام 7/7 أيام',
-    trust3Desc: 'تسليم في المطار، الميناء ووسط المدينة مع دعم متواصل عبر الواتساب.',
+    trust3Title: 'الاستلام والدعم المحلي',
+    trust3Desc: 'المطار والميناء ووسط المدينة. دعم عبر واتساب من الاثنين إلى الجمعة (9:00–18:00) وصباح السبت.',
     whatsappSupport: 'دعم واتساب كاردرايف',
     emailUs: 'contact@cardrive.ma',
     colExplorer: 'الوجهات ونقاط الاستلام',
@@ -164,8 +164,8 @@ const STRINGS: Record<string, FooterStrings> = {
     trust1Desc: 'Licensed, trustworthy local car rental businesses in Nador.',
     trust2Title: 'Transparent Pricing',
     trust2Desc: 'Direct pricing without hidden fees or unexpected commissions.',
-    trust3Title: '7/7 Availability & Support',
-    trust3Desc: 'Direct airport & port handover with continuous WhatsApp customer assistance.',
+    trust3Title: 'Pickup & local support',
+    trust3Desc: 'Airport, port and city centre. WhatsApp support Monday to Friday (9am–6pm) and Saturday morning.',
     whatsappSupport: 'CarDrive WhatsApp Support',
     emailUs: 'contact@cardrive.ma',
     colExplorer: 'Explore Nador',
@@ -205,8 +205,8 @@ const STRINGS: Record<string, FooterStrings> = {
     trust1Desc: 'Registrierte, sorgfältig ausgewählte professionelle Vermieter.',
     trust2Title: 'Klare Preise ohne versteckte Kosten',
     trust2Desc: 'Transparente Bedingungen und Preise direkt von den Agenturen.',
-    trust3Title: 'Verfügbarkeit & Support 7/7',
-    trust3Desc: 'Übergabe am Flughafen, Hafen und im Zentrum mit durchgehender WhatsApp-Hilfe.',
+    trust3Title: 'Übergabe & lokaler Support',
+    trust3Desc: 'Flughafen, Hafen und Zentrum. WhatsApp-Support Mo–Fr (9–18 Uhr) und Samstagvormittag.',
     whatsappSupport: 'CarDrive WhatsApp-Support',
     emailUs: 'contact@cardrive.ma',
     colExplorer: 'Nador entdecken',
@@ -246,8 +246,8 @@ const STRINGS: Record<string, FooterStrings> = {
     trust1Desc: 'Alquiladores profesionales registrados y seleccionados con rigor.',
     trust2Title: 'Precios claros sin costes ocultos',
     trust2Desc: 'Condiciones transparentes y precios fijados directamente por las agencias.',
-    trust3Title: 'Disponibilidad y soporte 7/7',
-    trust3Desc: 'Entrega en aeropuerto, puerto y centro con asistencia continua por WhatsApp.',
+    trust3Title: 'Entrega y soporte local',
+    trust3Desc: 'Aeropuerto, puerto y centro. Soporte por WhatsApp de lunes a viernes (9–18 h) y sábado por la mañana.',
     whatsappSupport: 'Asistencia WhatsApp CarDrive',
     emailUs: 'contact@cardrive.ma',
     colExplorer: 'Explorar Nador',
@@ -287,8 +287,8 @@ const STRINGS: Record<string, FooterStrings> = {
     trust1Desc: 'Geregistreerde, zorgvuldig geselecteerde professionele verhuurders.',
     trust2Title: 'Duidelijke prijzen zonder verborgen kosten',
     trust2Desc: 'Transparante voorwaarden en prijzen rechtstreeks van de bureaus.',
-    trust3Title: 'Beschikbaarheid & support 7/7',
-    trust3Desc: 'Overdracht op luchthaven, haven en centrum met doorlopende WhatsApp-hulp.',
+    trust3Title: 'Overdracht & lokale support',
+    trust3Desc: 'Luchthaven, haven en centrum. WhatsApp-support ma–vr (9–18 u) en zaterdagochtend.',
     whatsappSupport: 'CarDrive WhatsApp-support',
     emailUs: 'contact@cardrive.ma',
     colExplorer: 'Ontdek Nador',
@@ -448,7 +448,7 @@ export function Footer() {
   ];
 
   const legalLinkClass =
-    'inline-flex min-h-11 items-center transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-[#E63946] sm:min-h-0';
+    'inline-flex min-h-11 items-center transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-[#E63946] sm:min-h-6';
 
   return (
     <footer className="relative overflow-hidden border-t border-white/6 bg-[#0B1220] text-slate-300" role="contentinfo">
@@ -484,7 +484,7 @@ export function Footer() {
 
               <Link
                 href="/agency/join"
-                className="group inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-[#E63946] px-6 text-sm font-bold text-white shadow-lg shadow-red-950/30 transition-colors duration-200 hover:bg-[#C92F3B] focus-visible:outline-2 focus-visible:outline-white"
+                className="group inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-action px-6 text-sm font-bold text-white shadow-lg shadow-red-950/30 transition-colors duration-200 hover:bg-action-hover focus-visible:outline-2 focus-visible:outline-white"
               >
                 <span>{strings.agencyCta}</span>
                 <ArrowUpRight

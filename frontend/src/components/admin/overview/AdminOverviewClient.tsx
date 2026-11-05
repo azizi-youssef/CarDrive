@@ -106,7 +106,7 @@ function CardHeader({ title, href, linkLabel, badge }: { title: string; href: st
       </div>
       <Link
         href={href}
-        className="inline-flex min-h-9 items-center gap-1 rounded-lg px-2 text-[13px] font-bold text-[#E63946] outline-none hover:bg-[#E63946]/5 focus-visible:ring-2 focus-visible:ring-[#E63946]"
+        className="inline-flex min-h-9 items-center gap-1 rounded-lg px-2 text-[13px] font-bold text-accent-text outline-none hover:bg-[#E63946]/5 focus-visible:ring-2 focus-visible:ring-[#E63946]"
       >
         {linkLabel}
         <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
@@ -362,7 +362,7 @@ export function AdminOverviewClient({ initialStats, statsError, commissionRate: 
                         <span className="block truncate text-xs text-slate-500">{todo.text}</span>
                       </span>
                       <ArrowRight
-                        className="h-4 w-4 shrink-0 text-slate-300 transition-transform group-hover:translate-x-0.5 group-hover:text-[#E63946] motion-reduce:transition-none rtl:rotate-180"
+                        className="h-4 w-4 shrink-0 text-slate-300 transition-transform group-hover:translate-x-0.5 group-hover:text-accent-text motion-reduce:transition-none rtl:rotate-180"
                         aria-hidden="true"
                       />
                     </Link>
@@ -566,7 +566,7 @@ export function AdminOverviewClient({ initialStats, statsError, commissionRate: 
               linkLabel="Gérer"
               badge={
                 !loading && pendingAgencies.length > 0 ? (
-                  <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#E63946] px-1.5 text-[11px] font-bold text-white">
+                  <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-action px-1.5 text-[11px] font-bold text-white">
                     {pendingAgencies.length}
                   </span>
                 ) : undefined
@@ -620,7 +620,7 @@ export function AdminOverviewClient({ initialStats, statsError, commissionRate: 
               title="Santé de la plateforme"
               href="/admin/health"
               linkLabel="Détails"
-              badge={<Zap className="h-4 w-4 text-[#E63946]" aria-hidden="true" />}
+              badge={<Zap className="h-4 w-4 text-accent-text" aria-hidden="true" />}
             />
             {!healthLoaded ? (
               <div className="flex items-center gap-2 px-5 py-6 text-sm text-slate-500 sm:px-6">

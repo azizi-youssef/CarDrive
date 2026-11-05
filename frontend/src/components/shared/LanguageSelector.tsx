@@ -105,7 +105,7 @@ export function LanguageSelector({ variant = 'navbar', className }: LanguageSele
             role="menu"
             className="absolute bottom-full left-0 mb-2 w-48 overflow-hidden rounded-2xl border border-slate-700 bg-[#0F172A] p-1.5 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-150"
           >
-            <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-800">
+            <div className="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-800">
               Choisir la langue
             </div>
             <div className="mt-1 space-y-0.5">
@@ -127,7 +127,7 @@ export function LanguageSelector({ variant = 'navbar', className }: LanguageSele
                     <div className="flex items-center gap-2.5">
                       <span>{lang.nativeName}</span>
                     </div>
-                    {isActive && <Check className="h-3.5 w-3.5 text-[#E63946]" />}
+                    {isActive && <Check className="h-3.5 w-3.5 text-accent-text" />}
                   </button>
                 );
               })}
@@ -172,7 +172,7 @@ export function LanguageSelector({ variant = 'navbar', className }: LanguageSele
           role="menu"
           className="absolute right-0 top-full mt-2 w-48 overflow-hidden rounded-2xl border border-slate-200 bg-white p-1.5 shadow-[0_12px_40px_rgba(15,23,42,0.12)] z-50 animate-in fade-in zoom-in-95 duration-150"
         >
-          <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100">
+          <div className="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100">
             Langue / Language
           </div>
           <div className="mt-1 space-y-0.5">
@@ -193,11 +193,11 @@ export function LanguageSelector({ variant = 'navbar', className }: LanguageSele
                 >
                   <div className="flex items-center gap-2.5">
                     <span className="font-medium text-slate-900">{lang.nativeName}</span>
-                    <span className="text-[10px] text-slate-400 uppercase font-semibold">
+                    <span className="text-[11px] text-slate-400 uppercase font-semibold">
                       ({lang.code})
                     </span>
                   </div>
-                  {isActive && <Check className="h-3.5 w-3.5 text-[#E63946]" />}
+                  {isActive && <Check className="h-3.5 w-3.5 text-accent-text" />}
                 </button>
               );
             })}

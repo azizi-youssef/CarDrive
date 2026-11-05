@@ -204,7 +204,7 @@ export function AdminFinanceClient({ commissionRate }: Props) {
                 <span className="text-xs font-bold uppercase tracking-wider text-[#0B1220]">
                   Modèle Économique Actif
                 </span>
-                <span className="rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2.5 py-0.5">
+                <span className="rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold px-2.5 py-0.5">
                   Abonnement Mensuel Flotte (0% Commission)
                 </span>
               </div>

@@ -4,7 +4,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { formatPrice } from '@/lib/utils';
-import { Badge } from '@/components/ui/Badge';
+import { StatusBadge } from '@/components/ui/StatusBadge';
+import { useTranslation } from '@/lib/i18n/LanguageContext';
 import { Booking } from '@/types';
 import { useRealtimeRefresh } from '@/lib/supabase/realtime';
 import {
@@ -28,6 +29,7 @@ import { ReviewModal } from '@/components/shared/ReviewModal';
 import { Magnet, GsapReveal } from '@/components/ui/react-bits';
 
 export default function AccountPage() {
+  const { locale } = useTranslation();
   const router = useRouter();
   const searchParams = useSearchParams();
   const requestedTab = searchParams.get('tab');
@@ -151,7 +153,7 @@ export default function AccountPage() {
                     {displayName}
                   </h1>
                   {user && (
-                    <span className="rounded-full bg-emerald-500/20 border border-emerald-500/30 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-emerald-300">
+                    <span className="rounded-full bg-emerald-500/20 border border-emerald-500/30 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-emerald-300">
                       Connecté Google
                     </span>
                   )}
@@ -196,7 +198,7 @@ export default function AccountPage() {
         {!user && !loadingUser && (
           <div className="mb-4 p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#E63946]/10 text-[#E63946] flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-[#E63946]/10 text-accent-text flex items-center justify-center shrink-0">
                 <Sparkles className="w-5 h-5" />
               </div>
               <div>
@@ -232,14 +234,14 @@ export default function AccountPage() {
                   className={cn(
                     'flex items-center gap-2 px-5 py-3.5 text-xs font-semibold border-b-2 whitespace-nowrap transition-colors',
                     activeTab === tab.id
-                      ? 'border-[#E63946] text-[#E63946]'
+                      ? 'border-[#E63946] text-accent-text'
                       : 'border-transparent text-slate-500 hover:text-slate-700'
                   )}
                 >
                   <Icon className="w-4 h-4" />
                   <span>{tab.label}</span>
                   {'count' in tab && tab.count !== undefined && (
-                    <span className="px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-bold">
+                    <span className="px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[11px] font-bold">
                       {tab.count}
                     </span>
                   )}
@@ -256,7 +258,7 @@ export default function AccountPage() {
 
                 {loadingBookings ? (
                   <div className="flex items-center justify-center py-12 text-slate-400 gap-2">
-                    <Loader2 className="w-5 h-5 animate-spin text-[#E63946]" />
+                    <Loader2 className="w-5 h-5 animate-spin text-accent-text" />
                     <span className="text-xs">Chargement de vos réservations...</span>
                   </div>
                 ) : bookings.length > 0 ? (
@@ -275,15 +277,8 @@ export default function AccountPage() {
                               <span className="font-bold text-sm text-slate-900">
                                 {booking.vehicle?.brand} {booking.vehicle?.model}
                               </span>
-                              <Badge
-                                variant={
-                                  booking.status === 'CONFIRMED' ? 'available'
-                                    : booking.status === 'PENDING' ? 'pending'
-                                      : 'rented'
-                                }
-                              >
-                                {booking.status}
-                              </Badge>
+                              {/* Statut traduit et coloré selon la machine à états (jamais « loué » pour une demande) */}
+                              <StatusBadge status={booking.status} locale={locale} size="sm" />
                             </div>
                             <div className="flex items-center gap-2 text-[11px] text-slate-500 mt-0.5">
                               <span className="font-mono font-semibold text-slate-700">{booking.reference || booking.booking_ref}</span>
@@ -296,7 +291,7 @@ export default function AccountPage() {
 
                         <div className="flex items-center gap-3 justify-between sm:justify-end sm:border-l sm:border-slate-200 sm:pl-4">
                           <div className="text-left sm:text-right">
-                            <span className="text-[10px] text-slate-400 block">Total estimé</span>
+                            <span className="text-[11px] text-slate-400 block">Total estimé</span>
                             <span className="text-sm font-extrabold text-slate-900">
                               {formatPrice(booking.total_price)}
                             </span>
@@ -345,7 +340,7 @@ export default function AccountPage() {
                 ) : (
                   <div className="text-center py-12 bg-slate-50/70 rounded-2xl border border-dashed border-slate-200 p-6 space-y-3">
                     <div className="w-12 h-12 rounded-2xl bg-white border border-slate-200/80 text-slate-500 flex items-center justify-center mx-auto shadow-2xs">
-                      <Car className="w-6 h-6 text-[#E63946]" />
+                      <Car className="w-6 h-6 text-accent-text" />
                     </div>
                     <div>
                       <p className="text-sm font-bold text-[#0B1220]">Aucune réservation en cours</p>
@@ -357,7 +352,7 @@ export default function AccountPage() {
                       <Magnet strength={0.2}>
                         <Link
                           href="/search"
-                          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#E63946] hover:bg-[#C92F3B] text-white text-xs font-bold shadow-xs hover:shadow-[0_4px_16px_rgba(230,57,70,0.3)] transition-all"
+                          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-action hover:bg-action-hover text-white text-xs font-bold shadow-xs hover:shadow-[0_4px_16px_rgba(230,57,70,0.3)] transition-all"
                         >
                           Explorer les voitures disponibles
                         </Link>
@@ -421,7 +416,7 @@ export default function AccountPage() {
                   </div>
 
                   <div className="pt-3">
-                    <button className="px-5 py-2.5 rounded-xl bg-[#E63946] hover:bg-[#C92F3B] text-white font-semibold shadow-sm transition-colors">
+                    <button className="px-5 py-2.5 rounded-xl bg-action hover:bg-action-hover text-white font-semibold shadow-sm transition-colors">
                       Enregistrer les modifications
                     </button>
                   </div>
@@ -432,7 +427,7 @@ export default function AccountPage() {
         </div>
 
         <div className="mt-6 text-center text-xs text-slate-500">
-          <Link href="/search" className="text-slate-700 font-semibold hover:text-[#E63946] transition">
+          <Link href="/search" className="text-slate-700 font-semibold hover:text-accent-text transition">
             ← Retourner à la recherche de voitures
           </Link>
         </div>

@@ -333,7 +333,7 @@ export function AdminNotificationsClient() {
         >
           <Webhook className="h-4 w-4" />
           Webhook & Réception auto (Bi-directionnel)
-          <span className="rounded-full bg-emerald-100 px-1.5 py-0.2 text-[10px] font-bold text-emerald-800">
+          <span className="rounded-full bg-emerald-100 px-1.5 py-0.2 text-[11px] font-bold text-emerald-800">
             Nouveau
           </span>
         </button>
@@ -827,7 +827,7 @@ export function AdminNotificationsClient() {
                           <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
                           Traitement webhook réussi
                         </span>
-                        <span className="font-mono text-[10px] text-emerald-700 font-bold uppercase">
+                        <span className="font-mono text-[11px] text-emerald-700 font-bold uppercase">
                           {simResult.intent}
                         </span>
                       </div>

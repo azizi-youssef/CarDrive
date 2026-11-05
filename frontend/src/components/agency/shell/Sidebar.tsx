@@ -149,7 +149,7 @@ export function Sidebar({
                           collapsed && 'justify-center px-0'
                         )}
                       >
-                        <Icon aria-hidden="true" className={cn('h-4.5 w-4.5 shrink-0', isActive && 'text-[#E63946]')} />
+                        <Icon aria-hidden="true" className={cn('h-4.5 w-4.5 shrink-0', isActive && 'text-accent-text')} />
                         {!collapsed && (
                           <>
                             <span className="min-w-0 flex-1 truncate text-left">{section.label}</span>
@@ -158,7 +158,7 @@ export function Sidebar({
                                 className={cn(
                                   'shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold tabular-nums',
                                   section.badge === 'alert'
-                                    ? 'bg-[#E63946] text-white'
+                                    ? 'bg-action text-white'
                                     : isActive
                                       ? 'bg-slate-100 text-slate-600'
                                       : 'bg-white/10 text-slate-300'

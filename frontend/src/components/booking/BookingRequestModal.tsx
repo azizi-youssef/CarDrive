@@ -156,7 +156,7 @@ function Field({
       <label htmlFor={id} className="mb-1.5 flex items-baseline gap-1.5 text-[13px] font-bold text-[#0B1220]">
         {label}
         {required && (
-          <span className="text-[#E63946]" aria-hidden="true">
+          <span className="text-accent-text" aria-hidden="true">
             *
           </span>
         )}
@@ -613,7 +613,7 @@ export function BookingRequestModal({
                 <section aria-labelledby={`${uid}-step1`} className="space-y-5">
                   <StepHeading id={`${uid}-step1`} title="Vos coordonnées et votre permis">
                     Ces informations permettent à l’agence de préparer votre dossier. Les champs marqués{' '}
-                    <span className="text-[#E63946]">*</span> sont obligatoires.
+                    <span className="text-accent-text">*</span> sont obligatoires.
                   </StepHeading>
 
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -678,7 +678,7 @@ export function BookingRequestModal({
 
                   <aside className="rounded-2xl bg-[#F5F6F8] p-4 text-[13px] leading-relaxed text-slate-600">
                     <p className="flex items-center gap-2 font-extrabold text-[#0B1220]">
-                      <LockKeyhole className="h-4 w-4 text-[#E63946]" aria-hidden="true" />
+                      <LockKeyhole className="h-4 w-4 text-accent-text" aria-hidden="true" />
                       Vos données personnelles
                     </p>
                     <ul className="mt-2 list-disc space-y-1 ps-5">
@@ -687,7 +687,7 @@ export function BookingRequestModal({
                       <li><strong>Protection :</strong> envoi chiffré (HTTPS) ; seule l’agence concernée accède à votre dossier.</li>
                       <li><strong>Documents :</strong> aucune photo demandée ici — l’agence vérifie vos pièces originales à la remise des clés.</li>
                     </ul>
-                    <Link href="/confidentialite" target="_blank" className="mt-2 inline-flex min-h-9 items-center font-bold text-[#E63946] hover:underline">
+                    <Link href="/confidentialite" target="_blank" className="mt-2 inline-flex min-h-9 items-center font-bold text-accent-text hover:underline">
                       Lire la politique de confidentialité
                     </Link>
                   </aside>
@@ -788,7 +788,7 @@ export function BookingRequestModal({
                               <span className="block truncate text-xs text-slate-500">{mp.badgeLabel}</span>
                             </span>
                             <span
-                              className={cn('flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2', selected ? 'border-[#E63946] bg-[#E63946] text-white' : 'border-slate-300')}
+                              className={cn('flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2', selected ? 'border-[#E63946] bg-action text-white' : 'border-slate-300')}
                               aria-hidden="true"
                             >
                               {selected && <Check className="h-3 w-3" />}
@@ -878,7 +878,7 @@ export function BookingRequestModal({
                             </span>
                           </span>
                           <span
-                            className={cn('mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2', checked ? 'border-[#E63946] bg-[#E63946] text-white' : 'border-slate-300')}
+                            className={cn('mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2', checked ? 'border-[#E63946] bg-action text-white' : 'border-slate-300')}
                             aria-hidden="true"
                           >
                             {checked && <Check className="h-3 w-3" />}
@@ -1132,7 +1132,7 @@ export function BookingRequestModal({
                   disabled={isSubmitting}
                   aria-busy={isSubmitting}
                   onClick={() => void handleSubmitBookingRequest()}
-                  className="ms-auto flex min-h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-[#E63946] px-5 text-sm font-bold text-white shadow-[0_14px_28px_-14px_rgba(230,57,70,0.8)] transition-colors hover:bg-[#C92F3B] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0B1220] disabled:cursor-wait disabled:opacity-70 sm:flex-none"
+                  className="ms-auto flex min-h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-action px-5 text-sm font-bold text-white shadow-[0_14px_28px_-14px_rgba(230,57,70,0.8)] transition-colors hover:bg-action-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0B1220] disabled:cursor-wait disabled:opacity-70 sm:flex-none"
                 >
                   {isSubmitting ? (
                     <>
@@ -1181,7 +1181,7 @@ function SummaryBlock({ title, onEdit, children }: { title: string; onEdit?: () 
           <button
             type="button"
             onClick={onEdit}
-            className="inline-flex min-h-9 items-center gap-1 rounded-lg px-2 text-[13px] font-bold text-[#E63946] hover:bg-[#FFF4F5]"
+            className="inline-flex min-h-9 items-center gap-1 rounded-lg px-2 text-[13px] font-bold text-accent-text hover:bg-[#FFF4F5]"
           >
             <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
             Modifier
