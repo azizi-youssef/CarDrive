@@ -1,4 +1,5 @@
 import type { Vehicle } from '@/types';
+import { vehicleTypeOf } from '@/lib/vehicles/kind';
 
 /**
  * Découverte du catalogue : options de filtres issues des véhicules réels et recommandation
@@ -21,9 +22,10 @@ function countBy<T extends string>(values: (T | null | undefined)[]): Facet<T>[]
   return [...counts].map(([value, count]) => ({ value, count }));
 }
 
-/** Catégories, boîtes et carburants réellement présents, avec leur nombre de véhicules. */
+/** Types (voitures / motos), catégories, boîtes et carburants réellement présents, avec leur nombre de véhicules. */
 export function catalogFacets(vehicles: Vehicle[]) {
   return {
+    types: countBy(vehicles.map((vehicle) => vehicleTypeOf(vehicle) as string)),
     categories: countBy(vehicles.map((vehicle) => vehicle.category as string)).sort(
       (a, b) => b.count - a.count || a.value.localeCompare(b.value, 'fr')
     ),

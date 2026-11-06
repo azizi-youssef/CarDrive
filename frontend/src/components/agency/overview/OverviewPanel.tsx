@@ -8,6 +8,7 @@ import {
   CalendarCheck,
   CalendarX,
   Car,
+  Motorbike,
   CheckCircle2,
   ChevronRight,
   CircleDollarSign,
@@ -201,6 +202,8 @@ export function OverviewPanel({
   onOpenCalendar,
   onOpenSubscription,
   onAddVehicle,
+  onOpenMotos,
+  fleetTypeCounts,
 }: {
   stats: OverviewResource;
   agenda: AgendaResource;
@@ -211,6 +214,10 @@ export function OverviewPanel({
   onOpenSubscription: () => void;
   /** Ouvre directement le formulaire d'ajout de véhicule (sinon : la flotte) */
   onAddVehicle?: () => void;
+  /** Ouvre la liste des motos */
+  onOpenMotos?: () => void;
+  /** Répartition voitures / motos de la flotte */
+  fleetTypeCounts?: { CAR: number; MOTORCYCLE: number } | null;
 }) {
   const [agendaTab, setAgendaTab] = useState<'pickups' | 'returns'>('pickups');
 
@@ -457,6 +464,25 @@ export function OverviewPanel({
               ))}
             </ul>
           </div>
+          {fleetTypeCounts && (
+            <div className="mx-5 mb-4 grid grid-cols-2 gap-2">
+              {([
+                { key: 'CAR', label: 'Voitures', icon: Car, onClick: onOpenFleet },
+                { key: 'MOTORCYCLE', label: 'Motos', icon: Motorbike, onClick: onOpenMotos ?? onOpenFleet },
+              ] as const).map(({ key, label, icon: Icon, onClick }) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={onClick}
+                  className="flex min-h-11 items-center gap-2 rounded-xl border border-slate-200 px-3 text-start text-sm transition-colors hover:border-slate-300 hover:bg-slate-50"
+                >
+                  <Icon className="h-4 w-4 shrink-0 text-slate-500" aria-hidden="true" />
+                  <span className="min-w-0 flex-1 truncate font-semibold text-slate-700">{label}</span>
+                  <span className="font-extrabold tabular-nums text-[#0B1220]">{fleetTypeCounts[key]}</span>
+                </button>
+              ))}
+            </div>
+          )}
           {d.totalVehicles > 0 && (
             <div className="mx-5 mb-5 flex h-2 overflow-hidden rounded-full bg-slate-100" aria-hidden="true">
               {fleetRows.map((row) =>

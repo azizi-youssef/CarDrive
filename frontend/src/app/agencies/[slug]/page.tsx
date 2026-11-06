@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/Badge';
 import { useRealtimeRefresh } from '@/lib/supabase/realtime';
 import type { Agency, Vehicle } from '@/types';
 import { cardriveWhatsAppUrl } from '@/lib/constants/contact';
+import { isMotorcycle } from '@/lib/vehicles/kind';
 import {
   MapPin,
   Phone,
@@ -20,6 +21,7 @@ import {
   Car,
   ChevronRight,
   Clock,
+  Motorbike,
 } from 'lucide-react';
 
 interface AgencyDetailPageProps {
@@ -217,29 +219,45 @@ export default function AgencyDetailPage({ params }: AgencyDetailPageProps) {
 
         </div>
 
-        {/* Agency Fleet Section */}
-        <div id="agency-fleet" className="mt-12 scroll-mt-24">
-          <div className="flex items-center justify-between mb-6">
+        {/* Agency Fleet Section — voitures et motos présentées séparément */}
+        <div id="agency-fleet" className="mt-12 scroll-mt-24 space-y-10">
+          {vehicles.length === 0 ? (
             <div>
-              <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
+              <h2 className="mb-6 text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
                 Véhicules proposés par l’agence
               </h2>
-              <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-                {vehicles.length} véhicule{vehicles.length > 1 ? 's' : ''} à découvrir
-              </p>
-            </div>
-          </div>
-
-          {vehicles.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {vehicles.map((v) => (
-                <VehicleCard key={v.id} vehicle={v} />
-              ))}
+              <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center text-xs text-slate-500">
+                Aucun véhicule disponible pour le moment chez cette agence.
+              </div>
             </div>
           ) : (
-            <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center text-xs text-slate-500">
-              Aucun véhicule disponible pour le moment chez cette agence.
-            </div>
+            [
+              { key: 'cars', title: 'Voitures', noun: 'voiture', icon: Car, list: vehicles.filter((v) => !isMotorcycle(v)) },
+              { key: 'motos', title: 'Motos et scooters', noun: 'moto', icon: Motorbike, list: vehicles.filter((v) => isMotorcycle(v)) },
+            ]
+              .filter((group) => group.list.length > 0)
+              .map(({ key, title, noun, icon: Icon, list }) => (
+                <section key={key} aria-labelledby={`agency-${key}-title`}>
+                  <div className="mb-6 flex items-center gap-3">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#0B1220] text-white">
+                      <Icon className="h-5 w-5" aria-hidden="true" />
+                    </span>
+                    <div>
+                      <h2 id={`agency-${key}-title`} className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
+                        {title}
+                      </h2>
+                      <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+                        {list.length} {noun}{list.length > 1 ? 's' : ''} proposée{list.length > 1 ? 's' : ''} par l’agence
+                      </p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {list.map((v) => (
+                      <VehicleCard key={v.id} vehicle={v} />
+                    ))}
+                  </div>
+                </section>
+              ))
           )}
         </div>
 

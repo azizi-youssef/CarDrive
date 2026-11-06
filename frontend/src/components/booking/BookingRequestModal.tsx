@@ -12,6 +12,7 @@ import { MEETING_POINTS, getMeetingPoint, type MeetingPoint } from '@/lib/consta
 import { MeetingPointBadge } from './MeetingPointBadge';
 import { addDateDays, formatLocalDate, isValidDateOnly } from '@/lib/utils/date-only';
 import { notifyRealtimeChange } from '@/lib/supabase/realtime';
+import { isMotorcycle, motorcycleLicenseLabel } from '@/lib/vehicles/kind';
 import {
   AlertCircle,
   Anchor,
@@ -130,7 +131,7 @@ function ageOn(birthDate: string, onDate: string): number {
 }
 
 const inputClass =
-  'h-12 w-full rounded-xl border border-slate-200 bg-white px-3.5 text-[15px] font-medium text-[#0B1220] placeholder:text-slate-400 transition focus:border-[#0B1220] focus:outline-none focus:ring-4 focus:ring-[#0B1220]/8 aria-[invalid=true]:border-[#E63946] aria-[invalid=true]:bg-[#FFF6F7] disabled:opacity-60 sm:text-sm';
+  'h-12 w-full rounded-xl border border-slate-200 bg-white px-3.5 text-[15px] font-medium text-ink placeholder:text-slate-400 transition focus:border-ink focus:outline-none focus:ring-4 focus:ring-[#0B1220]/8 aria-[invalid=true]:border-brand aria-[invalid=true]:bg-[#FFF6F7] disabled:opacity-60 sm:text-sm';
 
 function Field({
   id,
@@ -153,7 +154,7 @@ function Field({
 }) {
   return (
     <div className={className}>
-      <label htmlFor={id} className="mb-1.5 flex items-baseline gap-1.5 text-[13px] font-bold text-[#0B1220]">
+      <label htmlFor={id} className="mb-1.5 flex items-baseline gap-1.5 text-[13px] font-bold text-ink">
         {label}
         {required && (
           <span className="text-accent-text" aria-hidden="true">
@@ -164,7 +165,7 @@ function Field({
       </label>
       {children}
       {error ? (
-        <p id={`${id}-error`} className="mt-1.5 flex items-start gap-1 text-[13px] font-semibold text-[#B4232F]">
+        <p id={`${id}-error`} className="mt-1.5 flex items-start gap-1 text-[13px] font-semibold text-action-hover">
           <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
           {error}
         </p>
@@ -404,7 +405,7 @@ export function BookingRequestModal({
         dropoffLocation,
         flightNumber: flightNumber.trim() || undefined,
         flightArrivalTime: flightArrivalTime.trim() || undefined,
-        childSeat,
+        childSeat: isMotorcycle(vehicle) ? false : childSeat,
         additionalDriver,
         customerNotes: customerNotes.trim() || undefined,
       };
@@ -445,6 +446,8 @@ export function BookingRequestModal({
   };
 
   const vehicleTitle = `${vehicle.brand} ${vehicle.model} ${vehicle.year}`;
+  const isMoto = isMotorcycle(vehicle);
+  const motoLicenseLabel = motorcycleLicenseLabel(vehicle.license_required);
   const stepMeta = currentStep <= 4 ? STEPS[currentStep - 1] : null;
   const progress = currentStep <= 4 ? (currentStep / 4) * 100 : 100;
   const motionProps = reduceMotion
@@ -464,10 +467,10 @@ export function BookingRequestModal({
   const errorCount = Object.values(errors).filter(Boolean).length;
 
   return createPortal(
-    <div className="fixed inset-0 z-[90] flex items-end justify-center sm:items-center sm:p-4">
+    <div className="fixed inset-0 z-90 flex items-end justify-center sm:items-center sm:p-4">
       <motion.div
         aria-hidden="true"
-        className="absolute inset-0 bg-[#0B1220]/65 backdrop-blur-[3px]"
+        className="absolute inset-0 bg-ink/65 backdrop-blur-[3px]"
         initial={reduceMotion ? false : { opacity: 0 }}
         animate={{ opacity: 1 }}
         onClick={requestClose}
@@ -482,17 +485,17 @@ export function BookingRequestModal({
         initial={reduceMotion ? false : { opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.25, ease: [0.33, 1, 0.68, 1] }}
-        className="relative flex h-dvh w-full flex-col overflow-hidden bg-white shadow-2xl sm:h-auto sm:max-h-[min(92dvh,880px)] sm:max-w-[760px] sm:rounded-3xl"
+        className="relative flex h-dvh w-full flex-col overflow-hidden bg-white shadow-2xl sm:h-auto sm:max-h-[min(92dvh,880px)] sm:max-w-190 sm:rounded-3xl"
       >
         {/* ── En-tête ───────────────────────────────────────────── */}
-        <header className="shrink-0 bg-[#0B1220] px-4 pb-4 pt-[max(1rem,env(safe-area-inset-top))] text-white sm:px-6 sm:pt-5">
+        <header className="shrink-0 bg-ink px-4 pb-4 pt-[max(1rem,env(safe-area-inset-top))] text-white sm:px-6 sm:pt-5">
           <div className="flex items-start gap-3">
-            <div className="relative hidden h-10 w-[112px] shrink-0 rounded-xl bg-white sm:block">
+            <div className="relative hidden h-10 w-28 shrink-0 rounded-xl bg-white sm:block">
               <Image src="/logo_12.png" alt="CarDrive" fill sizes="112px" className="object-contain px-2.5 py-2" priority />
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-400">
-                Marketplace · <span className="text-[#FF6B76]">Demande de réservation</span>
+                Marketplace · <span className="text-accent-on-dark">Demande de réservation</span>
               </p>
               <h2 id={`${uid}-title`} className="mt-1 truncate text-lg font-extrabold sm:text-xl">
                 {vehicleTitle}
@@ -518,18 +521,18 @@ export function BookingRequestModal({
 
         {/* ── Indicateur d'étapes ───────────────────────────────── */}
         {stepMeta && (
-          <nav aria-label="Étapes de la demande" className="shrink-0 border-b border-slate-200 bg-[#F5F6F8] px-4 py-3 sm:px-6 sm:py-4">
+          <nav aria-label="Étapes de la demande" className="shrink-0 border-b border-slate-200 bg-canvas px-4 py-3 sm:px-6 sm:py-4">
             {/* Mobile : étape courante + progression */}
             <div className="sm:hidden">
               <div className="flex items-center justify-between text-[13px]">
-                <span className="font-extrabold text-[#0B1220]">
+                <span className="font-extrabold text-ink">
                   Étape {currentStep} sur 4 · {stepMeta.label}
                 </span>
                 <span className="font-semibold text-slate-500 tabular-nums">{Math.round(progress)} %</span>
               </div>
               <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-200" aria-hidden="true">
                 <motion.div
-                  className="h-full rounded-full bg-[#E63946]"
+                  className="h-full rounded-full bg-brand"
                   initial={false}
                   animate={{ width: `${progress}%` }}
                   transition={{ duration: reduceMotion ? 0 : 0.3 }}
@@ -550,13 +553,13 @@ export function BookingRequestModal({
                       aria-current={current ? 'step' : undefined}
                       className={cn(
                         'flex shrink-0 items-center gap-2 rounded-full py-1 pe-2 text-[13px] font-bold transition-colors disabled:cursor-default',
-                        current ? 'text-[#0B1220]' : done ? 'text-emerald-700 hover:text-emerald-800' : 'text-slate-400'
+                        current ? 'text-ink' : done ? 'text-emerald-700 hover:text-emerald-800' : 'text-slate-400'
                       )}
                     >
                       <span
                         className={cn(
                           'flex h-8 w-8 items-center justify-center rounded-full text-[13px] transition-colors',
-                          current ? 'bg-[#0B1220] text-white' : done ? 'bg-emerald-600 text-white' : 'border border-slate-300 bg-white text-slate-400'
+                          current ? 'bg-ink text-white' : done ? 'bg-emerald-600 text-white' : 'border border-slate-300 bg-white text-slate-400'
                         )}
                       >
                         {done ? <Check className="h-4 w-4" aria-hidden="true" /> : step.num}
@@ -656,7 +659,14 @@ export function BookingRequestModal({
                   </div>
 
                   <fieldset className="rounded-2xl border border-slate-200 p-4">
-                    <legend className="px-1.5 text-[13px] font-extrabold text-[#0B1220]">Pièce d’identité et permis</legend>
+                    <legend className="px-1.5 text-[13px] font-extrabold text-ink">Pièce d’identité et permis</legend>
+                    {isMoto && (
+                      <p className="mb-3 rounded-xl bg-canvas px-3 py-2.5 text-xs leading-5 text-slate-700">
+                        {motoLicenseLabel
+                          ? <>Pour cette moto, l’agence exige le <strong>{motoLicenseLabel}</strong>. Indiquez le numéro de ce permis et présentez-le en original à la remise.</>
+                          : <>Pour une moto, indiquez le permis que vous présenterez à la remise ; l’agence confirmera s’il convient.</>}
+                      </p>
+                    )}
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                       <Field id={`${uid}-cin`} label="N° CIN ou passeport" required error={errors.cin} className="sm:col-span-2">
                         <input id={`${uid}-cin`} type="text" autoComplete="off" spellCheck={false} value={cin}
@@ -676,8 +686,8 @@ export function BookingRequestModal({
                     </div>
                   </fieldset>
 
-                  <aside className="rounded-2xl bg-[#F5F6F8] p-4 text-[13px] leading-relaxed text-slate-600">
-                    <p className="flex items-center gap-2 font-extrabold text-[#0B1220]">
+                  <aside className="rounded-2xl bg-canvas p-4 text-[13px] leading-relaxed text-slate-600">
+                    <p className="flex items-center gap-2 font-extrabold text-ink">
                       <LockKeyhole className="h-4 w-4 text-accent-text" aria-hidden="true" />
                       Vos données personnelles
                     </p>
@@ -704,7 +714,7 @@ export function BookingRequestModal({
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     {/* Prise en charge */}
                     <fieldset className="rounded-2xl border border-slate-200 p-4">
-                      <legend className="flex items-center gap-2 px-1.5 text-[13px] font-extrabold text-[#0B1220]">
+                      <legend className="flex items-center gap-2 px-1.5 text-[13px] font-extrabold text-ink">
                         <span className="h-2 w-2 rounded-full bg-emerald-500" aria-hidden="true" />
                         Prise en charge
                       </legend>
@@ -728,8 +738,8 @@ export function BookingRequestModal({
 
                     {/* Restitution */}
                     <fieldset className="rounded-2xl border border-slate-200 p-4">
-                      <legend className="flex items-center gap-2 px-1.5 text-[13px] font-extrabold text-[#0B1220]">
-                        <span className="h-2 w-2 rounded-full bg-[#E63946]" aria-hidden="true" />
+                      <legend className="flex items-center gap-2 px-1.5 text-[13px] font-extrabold text-ink">
+                        <span className="h-2 w-2 rounded-full bg-brand" aria-hidden="true" />
                         Restitution
                       </legend>
                       <div className="grid grid-cols-[minmax(0,1fr)_108px] gap-2">
@@ -746,8 +756,8 @@ export function BookingRequestModal({
                     </fieldset>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl bg-[#0B1220] px-4 py-3 text-sm text-white" aria-live="polite">
-                    <CalendarDays className="h-4 w-4 text-[#FF6B76]" aria-hidden="true" />
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl bg-ink px-4 py-3 text-sm text-white" aria-live="polite">
+                    <CalendarDays className="h-4 w-4 text-accent-on-dark" aria-hidden="true" />
                     <strong>{pricing.number_of_days} jour{pricing.number_of_days > 1 ? 's' : ''}</strong>
                     <span className="text-slate-300">
                       {formatLongDate(startDate)} {pickupTime} → {formatLongDate(endDate)} {dropoffTime}
@@ -755,7 +765,7 @@ export function BookingRequestModal({
                   </div>
 
                   <fieldset>
-                    <legend className="mb-2 text-[13px] font-extrabold text-[#0B1220]">Point de prise en charge</legend>
+                    <legend className="mb-2 text-[13px] font-extrabold text-ink">Point de prise en charge</legend>
                     <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                       {MEETING_POINTS.map((mp) => {
                         const selected = pickupLocation === mp.name;
@@ -763,8 +773,8 @@ export function BookingRequestModal({
                           <label
                             key={mp.id}
                             className={cn(
-                              'flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border p-3 transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-[#E63946]',
-                              selected ? 'border-[#0B1220] bg-[#F5F6F8]' : 'border-slate-200 hover:border-slate-300'
+                              'flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border p-3 transition-colors has-focus-visible:ring-2 has-focus-visible:ring-brand',
+                              selected ? 'border-ink bg-canvas' : 'border-slate-200 hover:border-slate-300'
                             )}
                           >
                             <input
@@ -784,11 +794,11 @@ export function BookingRequestModal({
                               <MeetingPointIcon point={mp} className="h-4 w-4" />
                             </span>
                             <span className="min-w-0 flex-1">
-                              <span className="block truncate text-sm font-bold text-[#0B1220]">{mp.shortName}</span>
+                              <span className="block truncate text-sm font-bold text-ink">{mp.shortName}</span>
                               <span className="block truncate text-xs text-slate-500">{mp.badgeLabel}</span>
                             </span>
                             <span
-                              className={cn('flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2', selected ? 'border-[#E63946] bg-action text-white' : 'border-slate-300')}
+                              className={cn('flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2', selected ? 'border-brand bg-action text-white' : 'border-slate-300')}
                               aria-hidden="true"
                             >
                               {selected && <Check className="h-3 w-3" />}
@@ -835,7 +845,7 @@ export function BookingRequestModal({
 
                   {deliveryType === 'AIRPORT' && (
                     <fieldset className="rounded-2xl border border-sky-200 bg-sky-50/60 p-4">
-                      <legend className="flex items-center gap-2 px-1.5 text-[13px] font-extrabold text-[#0B1220]">
+                      <legend className="flex items-center gap-2 px-1.5 text-[13px] font-extrabold text-ink">
                         <Plane className="h-4 w-4 text-sky-700" aria-hidden="true" />
                         Accueil à l’aéroport Nador Al-Aroui
                       </legend>
@@ -853,32 +863,34 @@ export function BookingRequestModal({
                   )}
 
                   <fieldset>
-                    <legend className="mb-2 text-[13px] font-extrabold text-[#0B1220]">Options sur demande</legend>
+                    <legend className="mb-2 text-[13px] font-extrabold text-ink">Options sur demande</legend>
                     <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
                       {[
-                        { checked: childSeat, set: setChildSeat, icon: Baby, title: 'Siège enfant ou rehausseur', desc: 'Selon disponibilité de l’agence' },
+                        ...(isMoto
+                          ? []
+                          : [{ checked: childSeat, set: setChildSeat, icon: Baby, title: 'Siège enfant ou rehausseur', desc: 'Selon disponibilité de l’agence' }]),
                         { checked: additionalDriver, set: setAdditionalDriver, icon: UserPlus, title: 'Conducteur additionnel', desc: 'Second permis présenté à la signature' },
                       ].map(({ checked, set, icon: Icon, title, desc }) => (
                         <label
                           key={title}
                           className={cn(
-                            'flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-[#E63946]',
-                            checked ? 'border-[#0B1220] bg-[#F5F6F8]' : 'border-slate-200 hover:border-slate-300'
+                            'flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition-colors has-focus-visible:ring-2 has-focus-visible:ring-brand',
+                            checked ? 'border-ink bg-canvas' : 'border-slate-200 hover:border-slate-300'
                           )}
                         >
                           <input type="checkbox" checked={checked} onChange={(e) => set(e.target.checked)} className="sr-only" />
-                          <span className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-xl', checked ? 'bg-[#0B1220] text-white' : 'bg-[#F5F6F8] text-slate-500')}>
+                          <span className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-xl', checked ? 'bg-ink text-white' : 'bg-canvas text-slate-500')}>
                             <Icon className="h-5 w-5" aria-hidden="true" />
                           </span>
                           <span className="min-w-0 flex-1">
-                            <span className="block text-sm font-bold text-[#0B1220]">{title}</span>
+                            <span className="block text-sm font-bold text-ink">{title}</span>
                             <span className="block text-xs text-slate-500">{desc}</span>
                             <span className="mt-1.5 inline-block rounded-full bg-white px-2 py-0.5 text-[11px] font-bold text-slate-500 ring-1 ring-slate-200">
                               Tarif fixé par l’agence
                             </span>
                           </span>
                           <span
-                            className={cn('mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2', checked ? 'border-[#E63946] bg-action text-white' : 'border-slate-300')}
+                            className={cn('mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2', checked ? 'border-brand bg-action text-white' : 'border-slate-300')}
                             aria-hidden="true"
                           >
                             {checked && <Check className="h-3 w-3" />}
@@ -909,7 +921,7 @@ export function BookingRequestModal({
                   </StepHeading>
 
                   <SummaryBlock title="Véhicule">
-                    <p className="font-bold text-[#0B1220]">{vehicleTitle}</p>
+                    <p className="font-bold text-ink">{vehicleTitle}</p>
                     <p className="text-slate-500">
                       {vehicle.transmission === 'AUTOMATIC' ? 'Automatique' : 'Manuelle'} · {FUEL_LABELS[vehicle.fuel] ?? vehicle.fuel} · {vehicle.category}
                     </p>
@@ -917,7 +929,7 @@ export function BookingRequestModal({
                   </SummaryBlock>
 
                   <SummaryBlock title="Location" onEdit={() => goToStep(2)}>
-                    <p className="font-bold text-[#0B1220]">
+                    <p className="font-bold text-ink">
                       {formatLongDate(startDate)} {pickupTime} → {formatLongDate(endDate)} {dropoffTime}
                       <span className="ms-2 font-semibold text-slate-500">({pricing.number_of_days} j)</span>
                     </p>
@@ -929,7 +941,7 @@ export function BookingRequestModal({
                   </SummaryBlock>
 
                   <SummaryBlock title="Vos coordonnées" onEdit={() => goToStep(1)}>
-                    <p className="font-bold text-[#0B1220]">{firstName} {lastName}</p>
+                    <p className="font-bold text-ink">{firstName} {lastName}</p>
                     <p className="text-slate-600">{phone}{email ? ` · ${email}` : ''}</p>
                     <p className="text-slate-600">Pièce d’identité : {maskId(cin)} · Permis : {maskId(licenseNumber)}</p>
                   </SummaryBlock>
@@ -937,7 +949,7 @@ export function BookingRequestModal({
                   <SummaryBlock title="Options" onEdit={() => goToStep(3)}>
                     {childSeat || additionalDriver || flightNumber || customerNotes ? (
                       <ul className="space-y-0.5 text-slate-600">
-                        {childSeat && <li>Siège enfant ou rehausseur</li>}
+                        {childSeat && !isMoto && <li>Siège enfant ou rehausseur</li>}
                         {additionalDriver && <li>Conducteur additionnel</li>}
                         {flightNumber && <li>Vol {flightNumber}{flightArrivalTime ? ` · arrivée ${flightArrivalTime}` : ''}</li>}
                         {customerNotes && <li className="line-clamp-2">« {customerNotes} »</li>}
@@ -947,7 +959,7 @@ export function BookingRequestModal({
                     )}
                   </SummaryBlock>
 
-                  <div className="rounded-2xl bg-[#0B1220] p-4 text-sm text-white sm:p-5">
+                  <div className="rounded-2xl bg-ink p-4 text-sm text-white sm:p-5">
                     <dl className="space-y-2">
                       <div className="flex justify-between gap-3 text-slate-300">
                         <dt>{formatMad(pricing.daily_price)} × {pricing.number_of_days} jour{pricing.number_of_days > 1 ? 's' : ''}</dt>
@@ -979,7 +991,7 @@ export function BookingRequestModal({
                   </div>
 
                   <div>
-                    <label className={cn('flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition-colors', errors.consent ? 'border-[#E63946] bg-[#FFF6F7]' : 'border-slate-200')}>
+                    <label className={cn('flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition-colors', errors.consent ? 'border-brand bg-[#FFF6F7]' : 'border-slate-200')}>
                       <input
                         id={`${uid}-consent`}
                         type="checkbox"
@@ -987,18 +999,18 @@ export function BookingRequestModal({
                         onChange={(e) => { setConsent(e.target.checked); clearError('consent'); }}
                         aria-invalid={Boolean(errors.consent) || undefined}
                         aria-describedby={errors.consent ? `${uid}-consent-error` : undefined}
-                        className="mt-0.5 h-5 w-5 shrink-0 accent-[#E63946]"
+                        className="mt-0.5 h-5 w-5 shrink-0 accent-brand"
                       />
                       <span className="text-[13px] leading-relaxed text-slate-700">
                         J’accepte les{' '}
-                        <Link href="/cgv" target="_blank" className="font-bold text-[#0B1220] underline underline-offset-2">conditions générales</Link>{' '}
+                        <Link href="/cgv" target="_blank" className="font-bold text-ink underline underline-offset-2">conditions générales</Link>{' '}
                         et la{' '}
-                        <Link href="/confidentialite" target="_blank" className="font-bold text-[#0B1220] underline underline-offset-2">politique de confidentialité</Link>,
+                        <Link href="/confidentialite" target="_blank" className="font-bold text-ink underline underline-offset-2">politique de confidentialité</Link>,
                         et j’autorise la transmission de ma demande à l’agence.
                       </span>
                     </label>
                     {errors.consent && (
-                      <p id={`${uid}-consent-error`} role="alert" className="mt-1.5 text-[13px] font-semibold text-[#B4232F]">
+                      <p id={`${uid}-consent-error`} role="alert" className="mt-1.5 text-[13px] font-semibold text-action-hover">
                         {errors.consent}
                       </p>
                     )}
@@ -1017,7 +1029,7 @@ export function BookingRequestModal({
                   >
                     <CheckCircle2 className="h-9 w-9" aria-hidden="true" />
                   </motion.span>
-                  <h3 id={`${uid}-done`} tabIndex={-1} data-step-heading className="mt-4 text-xl font-extrabold text-[#0B1220] outline-none">
+                  <h3 id={`${uid}-done`} tabIndex={-1} data-step-heading className="mt-4 text-xl font-extrabold text-ink outline-none">
                     Votre demande a bien été envoyée
                   </h3>
                   <p className="mt-1.5 text-sm text-slate-600">
@@ -1025,9 +1037,9 @@ export function BookingRequestModal({
                   </p>
 
                   {confirmedBookingRef && (
-                    <div className="mt-5 rounded-2xl border border-slate-200 bg-[#F5F6F8] p-4">
+                    <div className="mt-5 rounded-2xl border border-slate-200 bg-canvas p-4">
                       <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Référence de votre demande</p>
-                      <p className="mt-1 font-mono text-xl font-black tracking-wider text-[#0B1220]">{confirmedBookingRef}</p>
+                      <p className="mt-1 font-mono text-xl font-black tracking-wider text-ink">{confirmedBookingRef}</p>
                       <span className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-800">
                         <Clock className="h-3.5 w-3.5" aria-hidden="true" />
                         En attente de validation par l’agence
@@ -1042,7 +1054,7 @@ export function BookingRequestModal({
                       'Vous signez le contrat et réglez à l’agence lors de la remise des clés.',
                     ].map((item, i) => (
                       <li key={item} className="flex gap-3">
-                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#0B1220] text-xs font-bold text-white">{i + 1}</span>
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-ink text-xs font-bold text-white">{i + 1}</span>
                         {item}
                       </li>
                     ))}
@@ -1054,7 +1066,7 @@ export function BookingRequestModal({
                         href={confirmedPdfUrl || `/api/bookings/${encodeURIComponent(confirmedBookingRef)}/pdf`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex min-h-12 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 text-sm font-bold text-[#0B1220] transition-colors hover:border-slate-400"
+                        className="flex min-h-12 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 text-sm font-bold text-ink transition-colors hover:border-slate-400"
                       >
                         <Download className="h-4 w-4" aria-hidden="true" />
                         Télécharger le PDF
@@ -1063,9 +1075,9 @@ export function BookingRequestModal({
                     {confirmedBookingRef && (
                       <Link
                         href={`/account/bookings/${encodeURIComponent(confirmedBookingRef)}`}
-                        className="flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#0B1220] px-4 text-sm font-bold text-white transition-colors hover:bg-slate-800"
+                        className="flex min-h-12 items-center justify-center gap-2 rounded-xl bg-ink px-4 text-sm font-bold text-white transition-colors hover:bg-slate-800"
                       >
-                        <Clock className="h-4 w-4 text-[#FF6B76]" aria-hidden="true" />
+                        <Clock className="h-4 w-4 text-accent-on-dark" aria-hidden="true" />
                         Suivre ma demande
                       </Link>
                     )}
@@ -1088,12 +1100,12 @@ export function BookingRequestModal({
         </div>
 
         {/* ── Pied : navigation ─────────────────────────────────── */}
-        <footer className="flex shrink-0 items-center gap-3 border-t border-slate-200 bg-[#F5F6F8] px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-6 sm:py-4">
+        <footer className="flex shrink-0 items-center gap-3 border-t border-slate-200 bg-canvas px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-6 sm:py-4">
           {currentStep === 5 ? (
             <button
               type="button"
               onClick={onClose}
-              className="ms-auto flex min-h-12 w-full items-center justify-center rounded-xl bg-[#0B1220] px-6 text-sm font-bold text-white transition-colors hover:bg-slate-800 sm:w-auto"
+              className="ms-auto flex min-h-12 w-full items-center justify-center rounded-xl bg-ink px-6 text-sm font-bold text-white transition-colors hover:bg-slate-800 sm:w-auto"
             >
               Fermer
             </button>
@@ -1121,7 +1133,7 @@ export function BookingRequestModal({
                 <button
                   type="button"
                   onClick={handleNext}
-                  className="ms-auto flex min-h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-[#0B1220] px-6 text-sm font-bold text-white transition-colors hover:bg-slate-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#E63946] sm:flex-none"
+                  className="ms-auto flex min-h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-ink px-6 text-sm font-bold text-white transition-colors hover:bg-slate-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand sm:flex-none"
                 >
                   Continuer
                   <ArrowRight className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />
@@ -1132,7 +1144,7 @@ export function BookingRequestModal({
                   disabled={isSubmitting}
                   aria-busy={isSubmitting}
                   onClick={() => void handleSubmitBookingRequest()}
-                  className="ms-auto flex min-h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-action px-5 text-sm font-bold text-white shadow-[0_14px_28px_-14px_rgba(230,57,70,0.8)] transition-colors hover:bg-action-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0B1220] disabled:cursor-wait disabled:opacity-70 sm:flex-none"
+                  className="ms-auto flex min-h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-action px-5 text-sm font-bold text-white shadow-[0_14px_28px_-14px_rgba(230,57,70,0.8)] transition-colors hover:bg-action-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink disabled:cursor-wait disabled:opacity-70 sm:flex-none"
                 >
                   {isSubmitting ? (
                     <>
@@ -1164,7 +1176,7 @@ function StepHeading({ id, title, children }: { id: string; title: string; child
   return (
     <div>
       {/* Reçoit le focus à chaque changement d'étape (navigation clavier / lecteur d'écran) */}
-      <h3 id={id} tabIndex={-1} data-step-heading className="text-lg font-extrabold text-[#0B1220] outline-none sm:text-xl">
+      <h3 id={id} tabIndex={-1} data-step-heading className="text-lg font-extrabold text-ink outline-none sm:text-xl">
         {title}
       </h3>
       <p className="mt-1 text-sm leading-relaxed text-slate-500">{children}</p>

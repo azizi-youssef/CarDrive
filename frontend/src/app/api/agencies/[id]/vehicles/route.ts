@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAgencyPermissionApi } from '@/lib/auth/access-api';
 import { createAdminClient } from '@/lib/supabase/server';
-import { vehicleCreateSchema } from '@/lib/validations/vehicle';
+import { normalizeVehicleKindFields, vehicleCreateSchema } from '@/lib/validations/vehicle';
+import { CAR_CATEGORIES, MOTORCYCLE_CATEGORIES, parseVehicleTypeParam } from '@/lib/vehicles/kind';
+import { isMotorcycleSchemaMissing, MOTORCYCLE_SCHEMA_MISSING_MESSAGE } from '@/lib/vehicles/schema-support';
 import { subscriptionService } from '@/lib/services/subscription.service';
 const slugify = (str: string) =>
   str
@@ -33,6 +35,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
   const pageSize = clampInt(params.get('pageSize'), 15, 100);
   const q = (params.get('q') ?? '').trim();
   const category = params.get('category')?.trim();
+  const vehicleType = parseVehicleTypeParam(params.get('type'));
   const transmission = params.get('transmission')?.trim();
   const fuel = params.get('fuel')?.trim();
   const status = params.get('status')?.trim();
@@ -45,10 +48,17 @@ export async function GET(request: NextRequest, context: RouteContext) {
   let query = supabase
     .from('vehicles')
     .select(
-      'id, agency_id, unit_number, license_plate, brand, model, slug, year, category, transmission, fuel, seats, doors, air_conditioning, mileage, daily_price, weekly_price, monthly_price, deposit, min_rental_days, status, published, featured, created_at, updated_at, images:vehicle_images(url, is_primary, display_order), features:vehicle_features(name)',
+      // « * » : inclut vehicle_type / engine_cc / license_required une fois la migration motos appliquée,
+      // sans échouer avant.
+      '*, images:vehicle_images(url, is_primary, display_order), features:vehicle_features(name)',
       { count: 'exact' }
     )
     .eq('agency_id', agencyId);
+
+  // Filtre voitures / motos par catégorie (chaque catégorie appartient à un seul type)
+  if (vehicleType) {
+    query = query.in('category', [...(vehicleType === 'MOTORCYCLE' ? MOTORCYCLE_CATEGORIES : CAR_CATEGORIES)]);
+  }
 
   if (category && category !== 'all' && category !== 'Tous les types') {
     query = query.ilike('category', category);
@@ -86,7 +96,13 @@ export async function GET(request: NextRequest, context: RouteContext) {
   }
 
   const start = (page - 1) * pageSize;
-  const { data, error, count } = await query.range(start, start + pageSize - 1);
+  const countByType = (categories: readonly string[]) =>
+    supabase.from('vehicles').select('id', { count: 'exact', head: true }).eq('agency_id', agencyId).in('category', [...categories]);
+  const [{ data, error, count }, carsCount, motosCount] = await Promise.all([
+    query.range(start, start + pageSize - 1),
+    countByType(CAR_CATEGORIES),
+    countByType(MOTORCYCLE_CATEGORIES),
+  ]);
 
   if (error) {
     console.error('[AgencyVehicles] List error:', error.message);
@@ -119,6 +135,8 @@ export async function GET(request: NextRequest, context: RouteContext) {
       pageSize,
       total: count ?? 0,
       totalPages: Math.max(1, Math.ceil((count ?? 0) / pageSize)),
+      // Voitures et motos gérées séparément dans le tableau de bord
+      typeCounts: { CAR: carsCount.count ?? 0, MOTORCYCLE: motosCount.count ?? 0 },
     },
   });
 }
@@ -162,7 +180,8 @@ export async function POST(request: NextRequest, context: RouteContext) {
   const supabase = await createAdminClient();
   if (!supabase) return failure('Service de base de données indisponible.', 503);
 
-  const input = parsed.data;
+  const input = normalizeVehicleKindFields(parsed.data);
+  const isMotorcycle = input.vehicle_type === 'MOTORCYCLE';
   const rawSlug = slugify(`${input.brand}-${input.model}-${input.year}`);
   const uniqueSuffix = Math.random().toString(36).substring(2, 7);
   const slug = `${rawSlug}-${uniqueSuffix}`;
@@ -192,12 +211,24 @@ export async function POST(request: NextRequest, context: RouteContext) {
       published: input.published,
       unit_number: unitNumber,
       license_plate: input.license_plate || null,
+      // Colonnes motos envoyées uniquement pour une moto : une voiture s'enregistre même
+      // si la migration motos n'est pas encore appliquée (vehicle_type vaut 'CAR' par défaut).
+      ...(isMotorcycle
+        ? {
+            vehicle_type: 'MOTORCYCLE',
+            engine_cc: input.engine_cc ?? null,
+            license_required: input.license_required ?? null,
+          }
+        : {}),
     })
     .select()
     .single();
 
   if (insertError) {
     console.error('[AgencyVehicles] Insert error:', insertError.message);
+    if (isMotorcycle && isMotorcycleSchemaMissing(insertError)) {
+      return failure(MOTORCYCLE_SCHEMA_MISSING_MESSAGE, 503);
+    }
     return failure(`Erreur lors de la création du véhicule: ${insertError.message}`, 500);
   }
 

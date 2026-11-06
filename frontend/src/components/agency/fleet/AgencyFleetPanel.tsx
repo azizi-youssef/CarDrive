@@ -24,15 +24,36 @@ import {
   Gauge,
   Sparkles,
   Camera,
+  Motorbike,
 } from 'lucide-react';
 import { cn, formatPrice } from '@/lib/utils';
 import { VehicleFormModal, type EditableVehicle } from './VehicleFormModal';
 import { FleetCapacityCard } from '../subscription/FleetCapacityCard';
 import { AgencySubscriptionModal } from '../subscription/AgencySubscriptionModal';
 import type { AgencySubscription, SubscriptionPlan } from '@/types';
+import {
+  CAR_CATEGORIES,
+  MOTORCYCLE_CATEGORIES,
+  VEHICLE_TYPE_LABELS,
+  formatEngineCc,
+  vehicleTypeOf,
+  type MotorcycleLicense,
+  type VehicleType,
+} from '@/lib/vehicles/kind';
+
+const FUEL_LABELS: Record<string, string> = {
+  DIESEL: 'Diesel',
+  GASOLINE: 'Essence',
+  HYBRID: 'Hybride',
+  ELECTRIC: 'Électrique',
+};
 
 export type VehicleRow = {
   id: string;
+  /** Absent tant que la migration motos n'est pas appliquée (voir vehicleTypeOf) */
+  vehicle_type?: VehicleType;
+  engine_cc?: number | null;
+  license_required?: MotorcycleLicense | null;
   brand: string;
   model: string;
   year: number;
@@ -57,11 +78,14 @@ export type VehicleRow = {
 
 export function AgencyFleetPanel({
   agencyId,
+  vehicleType,
   canManage,
   onOpenCalendar,
   onNotify,
 }: {
   agencyId: string;
+  /** Voitures et motos sont gérées dans deux listes distinctes */
+  vehicleType: VehicleType;
   canManage: boolean;
   onOpenCalendar?: (vehicleId?: string) => void;
   /** Retour utilisateur (bandeau de notification du portail) */
@@ -76,6 +100,10 @@ export function AgencyFleetPanel({
   // Filters & Search
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('all');
+  const isMotoList = vehicleType === 'MOTORCYCLE';
+  const typeCategories: readonly string[] = isMotoList ? MOTORCYCLE_CATEGORIES : CAR_CATEGORIES;
+  const noun = isMotoList ? 'moto' : 'voiture';
+  const ListIcon = isMotoList ? Motorbike : Car;
   const [status, setStatus] = useState('all');
   const [sort, setSort] = useState('created_at');
   const [page, setPage] = useState(1);
@@ -157,6 +185,7 @@ export function AgencyFleetPanel({
         sort,
       });
       if (category !== 'all') params.set('category', category);
+      params.set('type', vehicleType);
       if (status !== 'all') params.set('status', status);
 
       const res = await fetch(`/api/agencies/${agencyId}/vehicles?${params.toString()}`);
@@ -172,7 +201,7 @@ export function AgencyFleetPanel({
     } finally {
       setLoading(false);
     }
-  }, [agencyId, page, search, category, status, sort]);
+  }, [agencyId, page, search, category, vehicleType, status, sort]);
 
   useEffect(() => {
     void loadVehicles();
@@ -252,8 +281,12 @@ export function AgencyFleetPanel({
       {/* Top Banner & Action */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
+          <h2 className="flex items-center gap-2 text-lg font-extrabold text-[#0B1220]">
+            <ListIcon className="h-5 w-5 text-slate-500" aria-hidden="true" />
+            {isMotoList ? 'Motos et scooters' : 'Voitures'}
+          </h2>
           <p className="text-sm text-slate-500">
-            {totalCount} véhicule{totalCount > 1 ? 's' : ''} enregistré{totalCount > 1 ? 's' : ''} au
+            {totalCount} {noun}{totalCount > 1 ? 's' : ''} enregistrée{totalCount > 1 ? 's' : ''} au
             catalogue de votre agence.
           </p>
         </div>
@@ -276,11 +309,11 @@ export function AgencyFleetPanel({
             title={
               subscription?.is_at_capacity
                 ? 'Capacité maximale atteinte pour votre forfait'
-                : 'Ajouter un véhicule'
+                : `Ajouter une ${noun}`
             }
           >
             <Plus className="h-4 w-4" />
-            {subscription?.is_at_capacity ? 'Augmenter le forfait' : 'Ajouter un véhicule'}
+            {subscription?.is_at_capacity ? 'Augmenter le forfait' : `Ajouter une ${noun}`}
           </button>
         )}
       </div>
@@ -309,6 +342,7 @@ export function AgencyFleetPanel({
         </div>
 
         <select
+          aria-label="Catégorie"
           value={category}
           onChange={(e) => {
             setCategory(e.target.value);
@@ -317,14 +351,11 @@ export function AgencyFleetPanel({
           className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-[#E63946] focus:outline-none"
         >
           <option value="all">Toutes les catégories</option>
-          <option value="Économique">Économique</option>
-          <option value="SUV">SUV</option>
-          <option value="Berline">Berline</option>
-          <option value="Luxe">Luxe</option>
-          <option value="7 places">7 places</option>
-          <option value="Automatique">Automatique</option>
-          <option value="Citadine">Citadine</option>
-          <option value="Compacte">Compacte</option>
+          {typeCategories.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
         </select>
 
         <select
@@ -384,21 +415,25 @@ export function AgencyFleetPanel({
       ) : vehicles.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white py-16 text-center">
           <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
-            <Car className="h-7 w-7" />
+            <ListIcon className="h-7 w-7" aria-hidden="true" />
           </div>
-          <h3 className="text-base font-semibold text-slate-800">Aucun véhicule trouvé</h3>
+          <h3 className="text-base font-semibold text-slate-800">
+            {isMotoList ? 'Aucune moto trouvée' : 'Aucune voiture trouvée'}
+          </h3>
           <p className="mt-1 max-w-sm text-sm text-slate-500">
             {search || category !== 'all' || status !== 'all'
               ? 'Essayez de modifier vos filtres ou termes de recherche.'
-              : 'Commencez par ajouter votre premier véhicule pour le proposer sur la marketplace.'}
+              : isMotoList
+                ? 'Ajoutez votre première moto ou votre premier scooter pour les proposer sur la marketplace.'
+                : 'Commencez par ajouter votre première voiture pour la proposer sur la marketplace.'}
           </p>
           {canManage && (
             <button
               type="button"
-              onClick={() => setEditingVehicle('new')}
+              onClick={() => (subscription?.is_at_capacity ? setUpgradeModalOpen(true) : setEditingVehicle('new'))}
               className="mt-4 rounded-xl bg-[#0B1220] px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800"
             >
-              Ajouter un véhicule
+              {`Ajouter une ${noun}`}
             </button>
           )}
         </div>
@@ -406,6 +441,9 @@ export function AgencyFleetPanel({
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {vehicles.map((v) => {
             const mainImg = v.images[0] || null;
+            const type = vehicleTypeOf(v);
+            const isMoto = type === 'MOTORCYCLE';
+            const PlaceholderIcon = isMoto ? Motorbike : Car;
             return (
               <div
                 key={v.id}
@@ -423,7 +461,7 @@ export function AgencyFleetPanel({
                     />
                   ) : (
                     <div className="flex h-full w-full flex-col items-center justify-center bg-slate-100 p-4 text-center text-slate-400">
-                      <Car className="mb-1 h-10 w-10 text-slate-300" />
+                      <PlaceholderIcon className="mb-1 h-10 w-10 text-slate-300" aria-hidden="true" />
                       {canManage && (
                         <label className="mt-1 flex cursor-pointer items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 shadow-xs transition hover:border-[#E63946] hover:text-accent-text">
                           <Camera className="h-3.5 w-3.5 text-accent-text" />
@@ -496,8 +534,9 @@ export function AgencyFleetPanel({
                   </div>
 
                   {/* Category Pill */}
-                  <div className="absolute bottom-3 right-3 rounded-lg bg-black/60 px-2.5 py-1 text-xs font-medium text-white backdrop-blur-md">
-                    {v.category}
+                  <div className="absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-lg bg-black/60 px-2.5 py-1 text-xs font-medium text-white backdrop-blur-md">
+                    {isMoto && <Motorbike className="h-3.5 w-3.5" aria-hidden="true" />}
+                    {isMoto ? `${VEHICLE_TYPE_LABELS.MOTORCYCLE.singular} · ${v.category}` : v.category}
                   </div>
                 </div>
 
@@ -521,11 +560,14 @@ export function AgencyFleetPanel({
                   </div>
 
                   {/* Specs Quick Pill */}
-                  <div className="mt-3 flex items-center gap-3 text-xs text-slate-600">
+                  <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-600">
                     <span className="rounded-md bg-slate-100 px-2 py-1">
                       {v.transmission === 'AUTOMATIC' ? 'Automatique' : 'Manuelle'}
                     </span>
-                    <span className="rounded-md bg-slate-100 px-2 py-1">{v.fuel}</span>
+                    <span className="rounded-md bg-slate-100 px-2 py-1">{FUEL_LABELS[v.fuel] ?? v.fuel}</span>
+                    {isMoto && formatEngineCc(v.engine_cc) && (
+                      <span className="rounded-md bg-slate-100 px-2 py-1">{formatEngineCc(v.engine_cc)}</span>
+                    )}
                     <span className="rounded-md bg-slate-100 px-2 py-1">
                       {v.mileage.toLocaleString()} km
                     </span>
@@ -538,7 +580,7 @@ export function AgencyFleetPanel({
                         <>
                           <button
                             type="button"
-                            onClick={() => setEditingVehicle(v)}
+                            onClick={() => setEditingVehicle({ ...v, vehicle_type: type })}
                             title="Modifier les informations"
                             className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                           >
@@ -624,6 +666,7 @@ export function AgencyFleetPanel({
         <VehicleFormModal
           agencyId={agencyId}
           initialVehicle={editingVehicle === 'new' ? null : editingVehicle}
+          initialType={vehicleType}
           onClose={() => setEditingVehicle(null)}
           onSuccess={() => {
             setEditingVehicle(null);

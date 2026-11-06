@@ -22,6 +22,8 @@ interface SearchBarProps {
   isCompact?: boolean;
   /** Catégories réellement présentes dans le catalogue (sinon : liste par défaut) */
   categories?: string[];
+  /** Catalogue visé par la recherche : /search (voitures) ou /motos */
+  basePath?: string;
 }
 
 const ALL_CATEGORIES_LABEL = 'Tous les types';
@@ -84,6 +86,7 @@ export function SearchBar({
   initialBrand = ALL_BRANDS_LABEL,
   isCompact = false,
   categories,
+  basePath = '/search',
 }: SearchBarProps) {
   const router = useRouter();
   const uid = useId();
@@ -144,7 +147,7 @@ export function SearchBar({
     if (effectiveEndDate) params.set('endDate', effectiveEndDate);
     if (category && category !== ALL_CATEGORIES_LABEL) params.set('category', category);
     if (brand && brand !== ALL_BRANDS_LABEL && brand !== 'ALL') params.set('brand', brand);
-    router.push(`/search?${params.toString()}`);
+    router.push(`${basePath}?${params.toString()}`);
   };
 
   return (

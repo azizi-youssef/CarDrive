@@ -96,6 +96,8 @@ export function AgencyWorkspace({
   const [rangeInput, setRangeInput] = useState(() => resolveRange('30d'));
 
   const [stats, setStats] = useState<OverviewResource>({ loading: true, error: null, data: null });
+  // Nombre de voitures et de motos (navigation et vue d'ensemble)
+  const [fleetTypeCounts, setFleetTypeCounts] = useState<{ CAR: number; MOTORCYCLE: number } | null>(null);
   const [agenda, setAgenda] = useState<AgendaResource>({ loading: true, error: null, data: null });
 
   const [bookings, setBookings] = useState<BookingsPage | null>(null);
@@ -255,6 +257,7 @@ export function AgencyWorkspace({
       if (nextQuery.q) params.set('q', nextQuery.q);
       if (nextQuery.status) params.set('status', nextQuery.status);
       if (nextQuery.sort) params.set('sort', nextQuery.sort);
+      if (nextQuery.type) params.set('type', nextQuery.type);
 
       try {
         const json = await readJson(
@@ -429,6 +432,20 @@ export function AgencyWorkspace({
     [notify]
   );
 
+  // Rafraîchi à chaque changement de section (ajout, suppression ou modification de véhicule)
+  useEffect(() => {
+    let active = true;
+    fetch(`/api/agencies/${agency.id}/vehicles?pageSize=1`, { cache: 'no-store' })
+      .then((res) => res.json())
+      .then((json) => {
+        if (active && json?.success && json.meta?.typeCounts) setFleetTypeCounts(json.meta.typeCounts);
+      })
+      .catch(() => undefined);
+    return () => {
+      active = false;
+    };
+  }, [agency.id, section]);
+
   const pending = stats.data?.pendingBookings ?? 0;
 
   const sections: AgencySection[] = AGENCY_SECTIONS.map((sec) => {
@@ -440,10 +457,10 @@ export function AgencyWorkspace({
       };
     }
     if (sec.id === 'fleet') {
-      return {
-        ...sec,
-        count: stats.data?.totalVehicles,
-      };
+      return { ...sec, count: fleetTypeCounts?.CAR ?? stats.data?.totalVehicles };
+    }
+    if (sec.id === 'fleet_motos') {
+      return { ...sec, count: fleetTypeCounts?.MOTORCYCLE };
     }
     return { ...sec };
   });
@@ -569,6 +586,8 @@ export function AgencyWorkspace({
                 onRetry={() => void loadOverview(resolveRange(rangePreset))}
                 onOpenBookings={() => setSection('bookings')}
                 onOpenFleet={() => setSection('fleet')}
+                onOpenMotos={() => setSection('fleet_motos')}
+                fleetTypeCounts={fleetTypeCounts}
                 onOpenCalendar={() => setSection('calendar')}
                 onOpenSubscription={() => setSection('subscription')}
                 onAddVehicle={canEditFleet(profile?.role) ? () => setSection('add_vehicle') : undefined}
@@ -590,10 +609,12 @@ export function AgencyWorkspace({
             />
           )}
 
-          {section === 'fleet' && (
+          {(section === 'fleet' || section === 'fleet_motos') && (
             <div className="space-y-6">
               <AgencyFleetPanel
+                key={section}
                 agencyId={agency.id}
+                vehicleType={section === 'fleet_motos' ? 'MOTORCYCLE' : 'CAR'}
                 canManage={canEditFleet(profile?.role)}
                 onOpenCalendar={() => setSection('calendar')}
                 onNotify={notify}

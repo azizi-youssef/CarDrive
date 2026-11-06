@@ -1,8 +1,17 @@
 'use client';
 
 import React, { useCallback, useEffect, useRef, useState, useMemo } from 'react';
-import { Car, RefreshCw } from 'lucide-react';
+import Link from 'next/link';
+import { Car, Motorbike, RefreshCw } from 'lucide-react';
 import type { Vehicle } from '@/types';
+import {
+  CAR_CATEGORIES,
+  MOTORCYCLE_CATEGORIES,
+  VEHICLE_TYPE_LABELS,
+  formatEngineCc,
+  vehicleTypeOf,
+  type VehicleType,
+} from '@/lib/vehicles/kind';
 import {
   AdminCard, TableWrapper, Th, Td, TableSkeletonRows,
   EmptyState, Pagination, SearchInput, SelectFilter, Btn, ErrorBanner, StatusBadge,
@@ -10,17 +19,15 @@ import {
 import { useRealtimeRefresh } from '@/lib/supabase/realtime';
 
 const PAGE_SIZE = 20;
-const CATEGORY_OPTIONS = [
-  { value: 'ALL', label: 'Toutes catégories' },
-  { value: 'Économique', label: 'Économique' },
-  { value: 'SUV', label: 'SUV' },
-  { value: 'Berline', label: 'Berline' },
-  { value: 'Luxe', label: 'Luxe' },
-  { value: '7 places', label: '7 places' },
-  { value: 'Automatique', label: 'Automatique' },
-];
+const FLEET_PATHS: Record<VehicleType, string> = { CAR: '/admin/fleet', MOTORCYCLE: '/admin/fleet/motos' };
 
-export function AdminFleetClient() {
+/** Flotte de la marketplace : voitures et motos dans deux listes distinctes */
+export function AdminFleetClient({ vehicleType = 'CAR' }: { vehicleType?: VehicleType }) {
+  const isMotoList = vehicleType === 'MOTORCYCLE';
+  const categoryOptions = [
+    { value: 'ALL', label: 'Toutes catégories' },
+    ...(isMotoList ? MOTORCYCLE_CATEGORIES : CAR_CATEGORIES).map((value) => ({ value, label: value })),
+  ];
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -56,9 +63,16 @@ export function AdminFleetClient() {
     pollingIntervalMs: 60_000, // Realtime pousse les changements ; le polling ne sert que de filet de sécurité
   });
 
+  const typeCounts = useMemo(() => {
+    const counts: Record<VehicleType, number> = { CAR: 0, MOTORCYCLE: 0 };
+    for (const v of vehicles) counts[vehicleTypeOf(v)] += 1;
+    return counts;
+  }, [vehicles]);
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return vehicles.filter((v) => {
+      if (vehicleTypeOf(v) !== vehicleType) return false;
       if (category !== 'ALL' && v.category !== category) return false;
       if (!q) return true;
       return (
@@ -67,7 +81,7 @@ export function AdminFleetClient() {
         (v.license_plate ?? '').toLowerCase().includes(q)
       );
     });
-  }, [vehicles, search, category]);
+  }, [vehicles, search, category, vehicleType]);
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginated = useMemo(() => filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE), [filtered, page]);
@@ -81,11 +95,33 @@ export function AdminFleetClient() {
   return (
     <div className="space-y-5">
       {error && <ErrorBanner message={error} onRetry={() => void load('refresh')} retrying={refreshing} />}
+      <nav aria-label="Type de véhicule" className="inline-flex rounded-xl border border-slate-200 bg-white p-1">
+        {(['CAR', 'MOTORCYCLE'] as const).map((type) => {
+          const active = type === vehicleType;
+          const Icon = type === 'MOTORCYCLE' ? Motorbike : Car;
+          return (
+            <Link
+              key={type}
+              href={FLEET_PATHS[type]}
+              aria-current={active ? 'page' : undefined}
+              className={
+                active
+                  ? 'inline-flex min-h-9 items-center gap-2 rounded-lg bg-[#0B1220] px-3.5 text-sm font-semibold text-white'
+                  : 'inline-flex min-h-9 items-center gap-2 rounded-lg px-3.5 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+              }
+            >
+              <Icon className="h-4 w-4" aria-hidden="true" />
+              {VEHICLE_TYPE_LABELS[type].plural}
+              {!loading && <span className={active ? 'text-slate-300' : 'text-slate-400'}>{typeCounts[type]}</span>}
+            </Link>
+          );
+        })}
+      </nav>
       <AdminCard noPadding>
         <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:p-5 border-b border-slate-100">
           <SearchInput value={search} onChange={setSearch} placeholder="Marque, modèle, agence, plaque…" className="flex-1" />
           <div className="flex items-center gap-2">
-            <SelectFilter value={category} onChange={setCategory} options={CATEGORY_OPTIONS} />
+            <SelectFilter value={category} onChange={setCategory} options={categoryOptions} />
             <Btn variant="secondary" size="sm" onClick={() => void load('refresh')} disabled={refreshing}>
               <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin' : ''}`} />
             </Btn>
@@ -94,7 +130,7 @@ export function AdminFleetClient() {
         <TableWrapper>
           <thead className="bg-slate-50">
             <tr>
-              <Th>Véhicule</Th>
+              <Th>{isMotoList ? 'Moto' : 'Voiture'}</Th>
               <Th className="hidden sm:table-cell">Catégorie</Th>
               <Th className="hidden md:table-cell">Agence</Th>
               <Th className="hidden lg:table-cell">Prix/jour</Th>
@@ -107,14 +143,28 @@ export function AdminFleetClient() {
             {loading ? <TableSkeletonRows cols={7} rows={8} /> :
               paginated.length === 0 ? (
                 <tr><td colSpan={7} className="py-0">
-                  <EmptyState icon={Car} title="Aucun véhicule" description="Aucun résultat pour ces filtres." />
+                  <EmptyState
+                    icon={isMotoList ? Motorbike : Car}
+                    title={isMotoList ? 'Aucune moto' : 'Aucune voiture'}
+                    description={
+                      search || category !== 'ALL'
+                        ? 'Aucun résultat pour ces filtres.'
+                        : isMotoList
+                          ? 'Aucune agence n’a encore publié de moto.'
+                          : 'Aucune agence n’a encore publié de voiture.'
+                    }
+                  />
                 </td></tr>
               ) : paginated.map((v) => (
                 <tr key={v.id} className="hover:bg-slate-50 transition-colors">
                   <Td>
                     <div>
                       <p className="text-sm font-semibold text-slate-900">{v.brand} {v.model}</p>
-                      <p className="text-xs text-slate-500">{v.year} · {v.transmission === 'AUTOMATIC' ? 'Auto' : 'Manuelle'}</p>
+                      <p className="text-xs text-slate-500">
+                        {[v.year, v.transmission === 'AUTOMATIC' ? 'Auto' : 'Manuelle', isMotoList ? formatEngineCc(v.engine_cc) : '']
+                          .filter(Boolean)
+                          .join(' · ')}
+                      </p>
                     </div>
                   </Td>
                   <Td className="hidden sm:table-cell"><span className="text-xs text-slate-600">{v.category}</span></Td>

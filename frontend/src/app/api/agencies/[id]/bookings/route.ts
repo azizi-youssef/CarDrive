@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAgencyPermissionApi } from '@/lib/auth/access-api';
 import { createClient } from '@/lib/supabase/server';
+import { CAR_CATEGORIES, MOTORCYCLE_CATEGORIES, parseVehicleTypeParam } from '@/lib/vehicles/kind';
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -30,6 +31,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
   const pageSize = clampInt(params.get('pageSize'), 15, MAX_PAGE_SIZE);
   const search = (params.get('q') ?? '').trim();
   const status = params.get('status')?.trim() || undefined;
+  const vehicleType = parseVehicleTypeParam(params.get('type'));
   const sort = params.get('sort') === 'amount_asc' ? 'amount_asc'
     : params.get('sort') === 'amount_desc' ? 'amount_desc'
     : params.get('sort') === 'start_date' ? 'start_date'
@@ -42,11 +44,17 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
   // Le RLS garantit l'isolation locative ; le filtre agency_id est explicite
   // afin de ne jamais dependre implicitement des policies.
+  // Filtre voitures / motos : jointure stricte sur le véhicule et sa catégorie
   let query = supabase
     .from('bookings')
-    .select(BOOKING_LIST_COLUMNS, { count: 'exact' })
+    .select(vehicleType ? BOOKING_LIST_COLUMNS.replace('vehicle:vehicles(', 'vehicle:vehicles!inner(') : BOOKING_LIST_COLUMNS, {
+      count: 'exact',
+    })
     .eq('agency_id', agencyId);
 
+  if (vehicleType) {
+    query = query.in('vehicle.category', [...(vehicleType === 'MOTORCYCLE' ? MOTORCYCLE_CATEGORIES : CAR_CATEGORIES)]);
+  }
   if (status) query = query.eq('status', status);
 
   if (search) {

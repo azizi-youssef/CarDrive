@@ -1,6 +1,8 @@
 import type { UserRole, AgencyStatus, BookingStatus } from '@cardrive/shared';
+import type { MotorcycleCategory, MotorcycleLicense, VehicleType } from '@/lib/vehicles/kind';
 
 export type { UserRole, AgencyStatus, BookingStatus };
+export type { MotorcycleCategory, MotorcycleLicense, VehicleType };
 
 /** Taxonomie officielle CarDrive — à utiliser partout (formulaire agence, filtres, validation) */
 export type VehicleCategory =
@@ -12,7 +14,8 @@ export type VehicleCategory =
   | 'Utilitaire'
   | '7 places'
   | 'Automatique'
-  | 'Citadine';
+  | 'Citadine'
+  | MotorcycleCategory;
 
 export const VEHICLE_CATEGORIES: VehicleCategory[] = [
   'Économique',
@@ -113,6 +116,8 @@ export interface Vehicle {
   model: string;
   slug: string;
   year: number;
+  /** Voiture ou moto ; absent avant la migration 20261106000100 (voir vehicleTypeOf) */
+  vehicle_type?: VehicleType;
   category: VehicleCategory;
   transmission: TransmissionType;
   fuel: FuelType;
@@ -139,6 +144,10 @@ export interface Vehicle {
   unlimited_mileage?: boolean;
   /** Âge minimum du conducteur (ex : 21) */
   min_driver_age?: number;
+  /** Motos : cylindrée en cm³ */
+  engine_cc?: number | null;
+  /** Motos : permis exigé par l'agence */
+  license_required?: MotorcycleLicense | null;
 }
 
 export interface Booking {

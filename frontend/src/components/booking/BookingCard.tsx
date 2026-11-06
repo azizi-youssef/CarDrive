@@ -19,6 +19,7 @@ import {
   XCircle,
 } from 'lucide-react';
 import { BookingRequestModal } from './BookingRequestModal';
+import { isMotorcycle } from '@/lib/vehicles/kind';
 
 export type BookingAvailability = 'checking' | 'available' | 'unavailable' | 'error';
 
@@ -319,7 +320,9 @@ export function BookingCard({ vehicle, onAvailabilityChange }: BookingCardProps)
             </div>
           </dl>
           <p className="mt-2 text-xs leading-relaxed text-slate-500">
-            Options éventuelles (siège enfant, conducteur additionnel) et caution confirmées par l’agence.
+            {isMotorcycle(vehicle)
+              ? 'Options éventuelles (conducteur additionnel, équipements) et caution confirmées par l’agence.'
+              : 'Options éventuelles (siège enfant, conducteur additionnel) et caution confirmées par l’agence.'}
           </p>
         </div>
 

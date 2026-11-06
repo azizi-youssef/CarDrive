@@ -14,7 +14,7 @@ const PRICE_FLOOR = 200;
 export type CatalogFilterState = {
   category: string;
   transmission: 'ALL' | 'AUTOMATIC' | 'MANUAL';
-  fuel: 'ALL' | 'DIESEL' | 'GASOLINE' | 'HYBRID';
+  fuel: 'ALL' | 'DIESEL' | 'GASOLINE' | 'HYBRID' | 'ELECTRIC';
   brand: string;
   brandQuery: string;
   agency: string;
@@ -40,6 +40,7 @@ export const FUEL_LABELS: Record<Exclude<CatalogFilterState['fuel'], 'ALL'>, str
   DIESEL: 'Diesel',
   GASOLINE: 'Essence',
   HYBRID: 'Hybride',
+  ELECTRIC: 'Électrique',
 };
 
 function sameText(a: string, b: string): boolean {

@@ -2,7 +2,8 @@
 
 import React, { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import Link from 'next/link';
-import { CalendarDays, Download, RefreshCw, FileText, Wallet, Receipt } from 'lucide-react';
+import { CalendarDays, Download, RefreshCw, FileText, Wallet, Receipt, Motorbike } from 'lucide-react';
+import { isMotorcycle } from '@/lib/vehicles/kind';
 import type { Booking } from '@/types';
 import {
   AdminCard,
@@ -23,6 +24,12 @@ import { fetchAdminBookings } from '@/lib/api/admin-dashboard.api';
 import { formatNumber, formatPrice } from '@/lib/utils';
 
 const PAGE_SIZE = 20;
+
+const TYPE_OPTIONS = [
+  { value: 'ALL', label: 'Voitures et motos' },
+  { value: 'CAR', label: 'Voitures' },
+  { value: 'MOTORCYCLE', label: 'Motos' },
+];
 
 const STATUS_OPTIONS = [
   { value: 'ALL', label: 'Tous les statuts' },
@@ -74,6 +81,7 @@ export function AdminBookingsClient() {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
+  const [typeFilter, setTypeFilter] = useState('ALL');
   const [page, setPage] = useState(0);
   const abortRef = useRef<AbortController | null>(null);
 
@@ -100,6 +108,7 @@ export function AdminBookingsClient() {
     const q = search.trim().toLowerCase();
     return bookings.filter((b) => {
       if (statusFilter !== 'ALL' && b.status !== statusFilter) return false;
+      if (typeFilter !== 'ALL' && (isMotorcycle(b.vehicle) ? 'MOTORCYCLE' : 'CAR') !== typeFilter) return false;
       if (!q) return true;
       return (
         (b.booking_ref ?? b.reference ?? '').toLowerCase().includes(q) ||
@@ -109,12 +118,12 @@ export function AdminBookingsClient() {
         (`${b.vehicle?.brand ?? ''} ${b.vehicle?.model ?? ''}`).toLowerCase().includes(q)
       );
     });
-  }, [bookings, search, statusFilter]);
+  }, [bookings, search, statusFilter, typeFilter]);
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginated = useMemo(() => filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE), [filtered, page]);
 
-  useEffect(() => setPage(0), [search, statusFilter]);
+  useEffect(() => setPage(0), [search, statusFilter, typeFilter]);
 
   // Totals for filtered view
   const totalVolume = useMemo(() => filtered.reduce((s, b) => s + (b.total_price ?? 0), 0), [filtered]);
@@ -161,6 +170,7 @@ export function AdminBookingsClient() {
             className="flex-1"
           />
           <div className="flex items-center gap-2">
+            <SelectFilter value={typeFilter} onChange={setTypeFilter} options={TYPE_OPTIONS} />
             <SelectFilter
               value={statusFilter}
               onChange={setStatusFilter}
@@ -218,7 +228,8 @@ export function AdminBookingsClient() {
                       </div>
                     </Td>
                     <Td className="hidden md:table-cell">
-                      <span className="text-sm text-slate-700">
+                      <span className="inline-flex items-center gap-1.5 text-sm text-slate-700">
+                        {isMotorcycle(b.vehicle) && <Motorbike className="h-4 w-4 shrink-0 text-slate-500" aria-label="Moto" />}
                         {b.vehicle?.brand} {b.vehicle?.model}
                       </span>
                     </Td>

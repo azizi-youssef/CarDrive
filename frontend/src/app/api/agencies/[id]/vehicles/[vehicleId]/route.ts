@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAgencyPermissionApi } from '@/lib/auth/access-api';
 import { createAdminClient } from '@/lib/supabase/server';
-import { vehicleUpdateSchema } from '@/lib/validations/vehicle';
+import { normalizeVehicleKindFields, onlyProvidedFields, vehicleKindIssues, vehicleUpdateSchema, type VehicleUpdateInput } from '@/lib/validations/vehicle';
+import { vehicleTypeOf } from '@/lib/vehicles/kind';
+import { isMotorcycleSchemaMissing, MOTORCYCLE_SCHEMA_MISSING_MESSAGE } from '@/lib/vehicles/schema-support';
 
 type RouteContext = { params: Promise<{ id: string; vehicleId: string }> };
 
@@ -85,10 +87,10 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
   const supabase = await createAdminClient();
   if (!supabase) return failure('Service de base de données indisponible.', 503);
 
-  // Vérifier l'appartenance
+  // Vérifier l'appartenance (toutes les colonnes : nécessaires au contrôle type / catégorie)
   const { data: existing, error: existError } = await supabase
     .from('vehicles')
-    .select('id')
+    .select('*')
     .eq('id', vehicleId)
     .eq('agency_id', agencyId)
     .maybeSingle();
@@ -97,10 +99,44 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     return failure('Véhicule introuvable pour cette agence.', 404);
   }
 
-  const input = parsed.data;
+  // Mise à jour partielle : seuls les champs réellement envoyés sont pris en compte
+  // (le schéma applique sinon ses valeurs par défaut, ce qui effaçait photos et équipements
+  // lors d'une simple publication / dépublication).
+  const provided = new Set(body && typeof body === 'object' ? Object.keys(body as Record<string, unknown>) : []);
+  const input: VehicleUpdateInput = onlyProvidedFields(parsed.data, body);
+
   const updateData: Record<string, any> = {
     updated_at: new Date().toISOString(),
   };
+
+  // Type de véhicule (voiture / moto) : contrôle de cohérence sur l'état fusionné
+  const kindKeys = ['vehicle_type', 'category', 'seats', 'doors', 'engine_cc', 'license_required'] as const;
+  if (kindKeys.some((key) => provided.has(key))) {
+    const schemaSupportsMotorcycles = 'vehicle_type' in existing;
+    const merged = normalizeVehicleKindFields({
+      vehicle_type: input.vehicle_type ?? vehicleTypeOf(existing),
+      category: input.category ?? existing.category,
+      seats: input.seats ?? existing.seats,
+      doors: input.doors ?? existing.doors,
+      air_conditioning: input.air_conditioning ?? existing.air_conditioning,
+      engine_cc: provided.has('engine_cc') ? input.engine_cc ?? null : existing.engine_cc ?? null,
+      license_required: provided.has('license_required') ? input.license_required ?? null : existing.license_required ?? null,
+    });
+    const issues = vehicleKindIssues(merged);
+    if (issues.length > 0) return failure(issues.join(' '), 422);
+    if (merged.vehicle_type === 'MOTORCYCLE' && !schemaSupportsMotorcycles) {
+      return failure(MOTORCYCLE_SCHEMA_MISSING_MESSAGE, 503);
+    }
+    if (schemaSupportsMotorcycles) {
+      updateData.vehicle_type = merged.vehicle_type;
+      updateData.engine_cc = merged.engine_cc ?? null;
+      updateData.license_required = merged.license_required ?? null;
+    }
+    if (merged.vehicle_type === 'MOTORCYCLE') {
+      input.doors = merged.doors ?? 0;
+      input.air_conditioning = false;
+    }
+  }
 
   if (input.brand !== undefined) updateData.brand = input.brand;
   if (input.model !== undefined) updateData.model = input.model;
@@ -132,6 +168,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 
   if (updateError) {
     console.error('[AgencyVehicle] Update error:', updateError.message);
+    if (isMotorcycleSchemaMissing(updateError)) return failure(MOTORCYCLE_SCHEMA_MISSING_MESSAGE, 503);
     return failure(`Erreur de mise à jour: ${updateError.message}`, 500);
   }
 

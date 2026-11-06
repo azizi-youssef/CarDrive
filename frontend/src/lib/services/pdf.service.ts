@@ -1,468 +1,714 @@
 import { jsPDF } from 'jspdf';
-import { Booking } from '@/types';
-import { formatDateFr } from '@/lib/utils';
+import type { Booking } from '@/types';
+import { bookingStatusLabel, bookingStatusTone, bookingNextStepHint } from '@/lib/bookings/status';
+import { formatEngineCc, isMotorcycle, motorcycleLicenseLabel } from '@/lib/vehicles/kind';
+
+/* ================================================================
+   Fiche « Demande de réservation » CarDrive — une seule page A4
+   Principes :
+   - uniquement des données réelles du dossier : jamais de valeur inventée
+     (caution, horaires, lieu, pays…) — une donnée absente est signalée comme telle ;
+   - statut traduit, et une demande non confirmée n'est jamais présentée comme confirmée ;
+   - tient sur une page : la mise en page se resserre si besoin, et seul un message
+     client exceptionnellement long est abrégé (avec mention explicite) ;
+   - aucune donnée interne (commission, marge) n'apparaît sur le document.
+   ================================================================ */
+
+type RGB = readonly [number, number, number];
+
+const COLORS = {
+  ink: [11, 18, 32],
+  text: [16, 24, 40],
+  secondary: [71, 84, 103],
+  muted: [102, 112, 133],
+  line: [228, 231, 236],
+  soft: [245, 246, 248],
+  action: [201, 47, 59],
+  white: [255, 255, 255],
+  onInk: [203, 213, 225],
+} as const satisfies Record<string, RGB>;
+
+const TONES: Record<string, { bg: RGB; fg: RGB }> = {
+  success: { bg: [236, 253, 243], fg: [6, 118, 71] },
+  warning: { bg: [255, 250, 235], fg: [181, 71, 8] },
+  danger: { bg: [254, 243, 242], fg: [180, 35, 24] },
+  info: { bg: [239, 248, 255], fg: [23, 92, 211] },
+  neutral: { bg: [242, 244, 247], fg: [52, 64, 84] },
+  brand: { bg: [253, 237, 238], fg: [166, 30, 42] },
+};
+
+/** Statuts où l'agence a validé la location et où la remise du véhicule reste à venir */
+const CONFIRMED_BEFORE_PICKUP = new Set(['APPROVED', 'CONFIRMED', 'READY_FOR_PICKUP']);
+
+const CONFIRMED_NOTE =
+  "Réservation confirmée par l'agence. Présentez ce document et vos pièces d'identité originales lors de la remise du véhicule.";
+const PENDING_NOTE =
+  "Cette demande n'est pas encore une réservation confirmée : l'agence doit valider la disponibilité et les conditions.";
+const PAYMENT_NOTE =
+  "Aucun paiement en ligne : la location et la caution se règlent directement auprès de l'agence, à la remise du véhicule.";
+const LEGAL_NOTE =
+  "CarDrive met en relation clients et agences partenaires. Le contrat de location est signé avec l'agence, seule responsable du véhicule, du tarif et de la caution.";
+
+const MISSING = 'Non renseigné';
+
+const FUEL_LABELS: Record<string, string> = {
+  DIESEL: 'Diesel',
+  GASOLINE: 'Essence',
+  PETROL: 'Essence',
+  ESSENCE: 'Essence',
+  HYBRID: 'Hybride',
+  ELECTRIC: 'Électrique',
+};
+
+const TRANSMISSION_LABELS: Record<string, string> = {
+  AUTOMATIC: 'Automatique',
+  MANUAL: 'Manuelle',
+};
+
+const DELIVERY_LABELS: Record<string, string> = {
+  AIRPORT: "Remise à l'aéroport",
+  HOTEL: "Remise à l'hôtel",
+  ADDRESS: 'Remise à une adresse',
+  AGENCY_PICKUP: 'Retrait en agence',
+};
+
+/* ---------------------------------------------------------------- */
+/* Utilitaires de formatage                                          */
+/* ---------------------------------------------------------------- */
+
+const SPACES_RE = new RegExp(`[${String.fromCharCode(0x00a0, 0x202f, 0x2009)}]`, 'g');
+const INVISIBLE_RE = new RegExp(`[${String.fromCharCode(0x200b, 0x200c, 0x200d, 0x200e, 0x200f, 0xfeff)}]`, 'g');
 
 /**
- * Charge le logo officiel CarDrive depuis le système de fichiers (côté serveur).
+ * Les polices standard de jsPDF n'encodent que le jeu WinAnsi (Latin-1 étendu) :
+ * la ponctuation typographique est convertie, le reste est conservé tel quel.
  */
-function loadLogoDataUrl(): string | null {
+export function pdfSafeText(value: string): string {
+  return value
+    .replace(/[‘’ʼ]/g, "'")
+    .replace(/[“”]/g, '"')
+    .replace(/[–—−]/g, '-')
+    .replace(/…/g, '...')
+    .replace(/•/g, '·')
+    .replace(SPACES_RE, ' ')
+    .replace(INVISIBLE_RE, '')
+    .trim();
+}
+
+function clean(value: unknown): string {
+  if (value === null || value === undefined) return '';
+  return pdfSafeText(String(value));
+}
+
+/** Valeur d'un champ : une seule ligne logique (retours à la ligne et espaces multiples réduits) */
+function oneLine(value: unknown): string {
+  return clean(value).replace(/\s+/g, ' ');
+}
+
+/** Date « AAAA-MM-JJ » (ou ISO complète) → « JJ/MM/AAAA », sans décalage de fuseau */
+export function formatPdfDate(value?: string | null): string {
+  if (!value) return '';
+  const dateOnly = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value.trim());
+  if (dateOnly) return `${dateOnly[3]}/${dateOnly[2]}/${dateOnly[1]}`;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'Africa/Casablanca' }).format(date);
+}
+
+function formatPdfDateTime(value: Date): string {
+  const parts = new Intl.DateTimeFormat('fr-FR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'Africa/Casablanca',
+  }).format(value);
+  return pdfSafeText(parts.replace(' ', ' à '));
+}
+
+/** « 10:00:00 » → « 10:00 » ; vide si absent ou invalide */
+export function formatPdfTime(value?: string | null): string {
+  const match = value ? /^(\d{1,2}):(\d{2})/.exec(value.trim()) : null;
+  return match ? `${match[1].padStart(2, '0')}:${match[2]}` : '';
+}
+
+/** Montant en dirhams avec séparateur de milliers ; vide si non numérique */
+export function formatPdfAmount(value: unknown): string {
+  const amount = typeof value === 'number' ? value : Number(value);
+  if (!Number.isFinite(amount)) return '';
+  const rounded = Math.round(amount * 100) / 100;
+  const [int, dec] = rounded.toFixed(Number.isInteger(rounded) ? 0 : 2).split('.');
+  return `${int.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')}${dec ? `,${dec}` : ''} DH`;
+}
+
+function plural(count: number, word: string) {
+  return `${count} ${word}${count > 1 ? 's' : ''}`;
+}
+
+/* ---------------------------------------------------------------- */
+/* Logo (lu une seule fois par processus)                            */
+/* ---------------------------------------------------------------- */
+
+interface LogoData {
+  dataUrl: string;
+  width: number;
+  height: number;
+}
+
+let cachedLogo: LogoData | null | undefined;
+
+function loadLogo(): LogoData | null {
+  if (cachedLogo !== undefined) return cachedLogo;
+  cachedLogo = null;
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const fs = require('fs');
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const path = require('path');
-    const candidatePaths = [
-      // Logo actuel du site (les anciens fichiers Logo-CarDrive*.png ont été supprimés)
+    const candidates = [
       path.join(process.cwd(), 'frontend', 'public', 'logo_12.png'),
       path.join(process.cwd(), 'public', 'logo_12.png'),
-      path.join(process.cwd(), 'frontend', 'public', 'Logo-CarDrive2.png'),
-      path.join(process.cwd(), 'public', 'Logo-CarDrive2.png'),
-      path.join(process.cwd(), 'frontend', 'public', 'Logo_CarDrive1.png'),
-      path.join(process.cwd(), 'public', 'Logo_CarDrive1.png'),
-      path.join(process.cwd(), 'frontend', 'public', 'logo_CarDrive.jpeg'),
-      path.join(process.cwd(), 'public', 'logo_CarDrive.jpeg'),
-      path.join(process.cwd(), 'frontend', 'public', 'icon_CarDrive1.png'),
-      path.join(process.cwd(), 'public', 'icon_CarDrive1.png'),
     ];
-
-    for (const p of candidatePaths) {
-      if (fs.existsSync(/*turbopackIgnore: true*/ p)) {
-        const ext = path.extname(p).toLowerCase().replace('.', '');
-        const mime = ext === 'jpg' ? 'jpeg' : ext;
-        const base64 = fs.readFileSync(/*turbopackIgnore: true*/ p).toString('base64');
-        return `data:image/${mime};base64,${base64}`;
-      }
+    for (const candidate of candidates) {
+      if (!fs.existsSync(/*turbopackIgnore: true*/ candidate)) continue;
+      const buffer: Buffer = fs.readFileSync(/*turbopackIgnore: true*/ candidate);
+      // Dimensions lues dans l'en-tête PNG (IHDR) pour conserver les proportions
+      const isPng = buffer.length > 24 && buffer.toString('ascii', 1, 4) === 'PNG';
+      cachedLogo = {
+        dataUrl: `data:image/png;base64,${buffer.toString('base64')}`,
+        width: isPng ? buffer.readUInt32BE(16) : 851,
+        height: isPng ? buffer.readUInt32BE(20) : 229,
+      };
+      break;
     }
   } catch {
-    // Environnement sans fs direct
+    // Environnement sans accès au système de fichiers : en-tête textuel
   }
-  return null;
+  return cachedLogo;
 }
+
+/* ---------------------------------------------------------------- */
+/* Densités de mise en page (essayées dans l'ordre jusqu'à tenir sur une page) */
+/* ---------------------------------------------------------------- */
+
+interface Density {
+  columns: number;
+  /** tailles de police (pt) */
+  label: number;
+  value: number;
+  section: number;
+  small: number;
+  /** espacements (mm) */
+  line: number;
+  labelGap: number;
+  rowGap: number;
+  sectionBefore: number;
+  sectionAfter: number;
+  /** limites de lignes (au-delà : texte abrégé avec « [...] ») */
+  maxFieldLines: number;
+  maxNoteLines: number;
+}
+
+const NORMAL: Density = {
+  columns: 3,
+  label: 6.8,
+  value: 8.4,
+  section: 7.6,
+  small: 7.2,
+  line: 3.6,
+  labelGap: 3.5,
+  rowGap: 5.6,
+  sectionBefore: 2.2,
+  sectionAfter: 4.4,
+  maxFieldLines: 4,
+  maxNoteLines: Number.POSITIVE_INFINITY,
+};
+
+const COMPACT: Density = {
+  columns: 4,
+  label: 6.3,
+  value: 7.8,
+  section: 7.2,
+  small: 6.9,
+  line: 3.3,
+  labelGap: 3.2,
+  rowGap: 4.8,
+  sectionBefore: 1.4,
+  sectionAfter: 3.8,
+  maxFieldLines: 3,
+  maxNoteLines: Number.POSITIVE_INFINITY,
+};
+
+const DENSITIES: Density[] = [
+  NORMAL,
+  COMPACT,
+  { ...COMPACT, maxNoteLines: 10 },
+  { ...COMPACT, maxNoteLines: 5, maxFieldLines: 2 },
+  { ...COMPACT, maxNoteLines: 2, maxFieldLines: 2 },
+];
+
+/* ---------------------------------------------------------------- */
+/* Moteur de mise en page                                            */
+/* ---------------------------------------------------------------- */
+
+const MARGIN_X = 15;
+const MARGIN_TOP = 14;
+/** Hauteur réservée au pied de page (mention légale, référence, pagination) */
+const FOOTER_SPACE = 19;
+const ELLIPSIS = ' [...]';
+
+type FieldItem = { label: string; value: string; full?: boolean; emphasis?: boolean };
+
+class Layout {
+  readonly doc: jsPDF;
+  readonly d: Density;
+  readonly width: number;
+  readonly height: number;
+  readonly contentWidth: number;
+  y = MARGIN_TOP;
+
+  constructor(doc: jsPDF, density: Density) {
+    this.doc = doc;
+    this.d = density;
+    this.width = doc.internal.pageSize.getWidth();
+    this.height = doc.internal.pageSize.getHeight();
+    this.contentWidth = this.width - MARGIN_X * 2;
+  }
+
+  get bottom() {
+    return this.height - FOOTER_SPACE;
+  }
+
+  color(rgb: RGB, kind: 'text' | 'fill' | 'draw' = 'text') {
+    if (kind === 'text') this.doc.setTextColor(rgb[0], rgb[1], rgb[2]);
+    else if (kind === 'fill') this.doc.setFillColor(rgb[0], rgb[1], rgb[2]);
+    else this.doc.setDrawColor(rgb[0], rgb[1], rgb[2]);
+  }
+
+  font(style: 'normal' | 'bold' | 'italic', size: number, rgb: RGB = COLORS.text) {
+    this.doc.setFont('helvetica', style);
+    this.doc.setFontSize(size);
+    this.color(rgb);
+  }
+
+  /** Découpe un texte à la largeur donnée (police déjà réglée), en abrégeant au-delà de maxLines */
+  wrap(text: string, width: number, maxLines = Number.POSITIVE_INFINITY): { lines: string[]; truncated: boolean } {
+    const lines = this.doc.splitTextToSize(text, width) as string[];
+    if (lines.length <= maxLines) return { lines, truncated: false };
+    const kept = lines.slice(0, maxLines);
+    let last = kept[kept.length - 1].trimEnd();
+    while (last.length > 0 && this.doc.getTextWidth(last + ELLIPSIS) > width) last = last.slice(0, -1).trimEnd();
+    kept[kept.length - 1] = last + ELLIPSIS;
+    return { lines: kept, truncated: true };
+  }
+
+  /** Passe à la page suivante si la hauteur demandée ne tient pas (cas de repli uniquement) */
+  ensure(height: number) {
+    if (this.y + height <= this.bottom) return;
+    this.doc.addPage();
+    this.y = MARGIN_TOP;
+  }
+
+  /** Titre de section, gardé sur la même page que les `keepWith` mm de contenu qui suivent */
+  section(title: string, keepWith = 10) {
+    const { d } = this;
+    this.ensure(d.sectionBefore + 1.6 + d.sectionAfter + keepWith);
+    this.y += d.sectionBefore;
+    this.font('bold', d.section, COLORS.action);
+    this.doc.setCharSpace(0.35);
+    this.doc.text(clean(title).toUpperCase(), MARGIN_X, this.y);
+    this.doc.setCharSpace(0);
+    this.y += 1.6;
+    this.color(COLORS.line, 'draw');
+    this.doc.setLineWidth(0.3);
+    this.doc.line(MARGIN_X, this.y, this.width - MARGIN_X, this.y);
+    this.y += d.sectionAfter;
+  }
+
+  /** Grille de champs libellé / valeur ; les valeurs longues passent à la ligne dans leur colonne */
+  fields(items: FieldItem[]) {
+    const { d } = this;
+    const gap = 5;
+    const colWidth = (this.contentWidth - gap * (d.columns - 1)) / d.columns;
+    const rows: FieldItem[][] = [];
+    let current: FieldItem[] = [];
+    for (const item of items) {
+      if (item.full) {
+        if (current.length) rows.push(current);
+        rows.push([item]);
+        current = [];
+        continue;
+      }
+      current.push(item);
+      if (current.length === d.columns) {
+        rows.push(current);
+        current = [];
+      }
+    }
+    if (current.length) rows.push(current);
+
+    for (const row of rows) {
+      const cells = row.map((item) => {
+        const width = item.full ? this.contentWidth : colWidth;
+        const value = oneLine(item.value) || MISSING;
+        this.font(item.emphasis ? 'bold' : 'normal', d.value);
+        return { item, value, lines: this.wrap(value, width, d.maxFieldLines).lines };
+      });
+      const maxLines = Math.max(...cells.map((cell) => cell.lines.length));
+      this.ensure(d.labelGap + (maxLines - 1) * d.line + 1.5);
+      cells.forEach((cell, index) => {
+        const x = MARGIN_X + index * (colWidth + gap);
+        this.font('normal', d.label, COLORS.muted);
+        this.doc.text(clean(cell.item.label), x, this.y);
+        this.font(cell.item.emphasis ? 'bold' : 'normal', d.value, cell.value === MISSING ? COLORS.muted : COLORS.text);
+        cell.lines.forEach((line, i) => this.doc.text(line, x, this.y + d.labelGap + i * d.line));
+      });
+      this.y += d.labelGap + (maxLines - 1) * d.line + d.rowGap;
+    }
+  }
+
+  /** Paragraphe pleine largeur ; renvoie true si le texte a été abrégé */
+  paragraph(
+    text: string,
+    options: { size: number; style?: 'normal' | 'bold' | 'italic'; rgb?: RGB; maxLines?: number; lineHeight?: number }
+  ): boolean {
+    const style = options.style ?? 'normal';
+    const lineHeight = options.lineHeight ?? options.size * 0.43;
+    this.font(style, options.size, options.rgb ?? COLORS.text);
+    const { lines, truncated } = this.wrap(text, this.contentWidth, options.maxLines);
+    for (const line of lines) {
+      this.ensure(lineHeight);
+      this.font(style, options.size, options.rgb ?? COLORS.text);
+      this.doc.text(line, MARGIN_X, this.y);
+      this.y += lineHeight;
+    }
+    this.y += 1.2;
+    return truncated;
+  }
+}
+
+/* ---------------------------------------------------------------- */
+/* Rendu                                                             */
+/* ---------------------------------------------------------------- */
+
+function renderBookingPdf(booking: Booking, d: Density, logo: LogoData | null, generatedAt: Date): jsPDF {
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
+  const layout = new Layout(doc, d);
+  const right = layout.width - MARGIN_X;
+
+  const reference = clean(booking.reference || booking.booking_ref) || 'Référence en attente';
+  const status = clean(booking.status).toUpperCase();
+  const statusLabel = clean(bookingStatusLabel(status, 'fr', 'customer')) || 'Statut inconnu';
+  const tone = TONES[bookingStatusTone(status)] ?? TONES.neutral;
+
+  doc.setProperties({
+    title: `CarDrive - Demande de réservation ${reference}`,
+    subject: 'Demande de réservation de véhicule',
+    author: 'CarDrive',
+    creator: 'CarDrive',
+    keywords: 'CarDrive, réservation, location de voiture, Nador',
+  });
+  doc.setLanguage('fr');
+
+  /* ---------- En-tête ---------- */
+  const top = layout.y;
+  const headerHeight = 22;
+  layout.color(COLORS.ink, 'fill');
+  doc.roundedRect(MARGIN_X, top, layout.contentWidth, headerHeight, 2.5, 2.5, 'F');
+
+  let logoDrawn = false;
+  if (logo) {
+    try {
+      const tile = { x: MARGIN_X + 4, y: top + 4, w: 40, h: 14 };
+      layout.color(COLORS.white, 'fill');
+      doc.roundedRect(tile.x, tile.y, tile.w, tile.h, 1.8, 1.8, 'F');
+      const ratio = logo.width / logo.height;
+      const drawW = Math.min(tile.w - 6, (tile.h - 4.5) * ratio);
+      const drawH = drawW / ratio;
+      const format = /image\/jpe?g/.test(logo.dataUrl) ? 'JPEG' : 'PNG';
+      doc.addImage(logo.dataUrl, format, tile.x + (tile.w - drawW) / 2, tile.y + (tile.h - drawH) / 2, drawW, drawH, 'cardrive-logo', 'FAST');
+      logoDrawn = true;
+    } catch (error) {
+      console.warn('[PdfService] Logo non affiché, en-tête textuel utilisé :', error);
+    }
+  }
+
+  const titleX = logoDrawn ? MARGIN_X + 50 : MARGIN_X + 6;
+  if (logoDrawn) {
+    layout.font('bold', 11.5, COLORS.white);
+    doc.text('Demande de réservation', titleX, top + 10.5);
+    layout.font('normal', 7, COLORS.onInk);
+    doc.text(pdfSafeText('Agences partenaires · Nador et région de l’Oriental'), titleX, top + 16);
+  } else {
+    layout.font('bold', 14, COLORS.white);
+    doc.text('CarDrive', titleX, top + 10);
+    layout.font('normal', 8, COLORS.onInk);
+    doc.text('Demande de réservation', titleX, top + 16);
+  }
+
+  layout.font('normal', 6.3, COLORS.onInk);
+  doc.text('RÉFÉRENCE', right - 5, top + 7, { align: 'right' });
+  layout.font('bold', 11, COLORS.white);
+  doc.text(reference, right - 5, top + 12.8, { align: 'right' });
+  const requestedOn = formatPdfDate(booking.requested_at || booking.created_at);
+  if (requestedOn) {
+    layout.font('normal', 6.8, COLORS.onInk);
+    doc.text(`Demande envoyée le ${requestedOn}`, right - 5, top + 17.6, { align: 'right' });
+  }
+  layout.y = top + headerHeight + 4;
+
+  /* ---------- Statut ---------- */
+  const note = CONFIRMED_BEFORE_PICKUP.has(status) ? CONFIRMED_NOTE : clean(bookingNextStepHint(status)) || PENDING_NOTE;
+  layout.font('normal', d.small);
+  const noteLines = layout.wrap(pdfSafeText(note), layout.contentWidth - 10, 2).lines;
+  const statusTop = layout.y;
+  const statusHeight = 6.6 + noteLines.length * 3.3 + 1.6;
+  layout.color(tone.bg, 'fill');
+  doc.roundedRect(MARGIN_X, statusTop, layout.contentWidth, statusHeight, 1.8, 1.8, 'F');
+  layout.color(tone.fg, 'fill');
+  doc.rect(MARGIN_X, statusTop, 1.2, statusHeight, 'F');
+  layout.font('normal', 6.8, COLORS.secondary);
+  const statusCaption = 'Statut de la demande :';
+  doc.text(statusCaption, MARGIN_X + 5, statusTop + 5);
+  const captionWidth = doc.getTextWidth(statusCaption);
+  layout.font('bold', 9, tone.fg);
+  doc.text(statusLabel, MARGIN_X + 5 + captionWidth + 2, statusTop + 5);
+  layout.font('normal', d.small, COLORS.secondary);
+  noteLines.forEach((line, i) => doc.text(line, MARGIN_X + 5, statusTop + 9.4 + i * 3.3));
+  layout.y = statusTop + statusHeight + 3.5;
+
+  if (status === 'REJECTED' && booking.rejection_reason) {
+    layout.y += 2.5;
+    layout.paragraph(`Motif communiqué par l'agence : ${oneLine(booking.rejection_reason)}`, {
+      size: d.small,
+      rgb: COLORS.secondary,
+      maxLines: 2,
+    });
+  }
+
+  let sectionNumber = 0;
+  const section = (title: string, keepWith?: number) => layout.section(`${++sectionNumber}. ${title}`, keepWith);
+
+  /* ---------- Client ---------- */
+  section('Client et conducteur');
+  const customerName = oneLine(booking.customer_name) || oneLine(`${booking.first_name ?? ''} ${booking.last_name ?? ''}`);
+  const showEmail = Boolean(booking.customer_email) && !booking.customer_email.endsWith('@cardrive.ma');
+  layout.fields([
+    { label: 'Nom complet', value: customerName, emphasis: true },
+    { label: 'Téléphone / WhatsApp', value: oneLine(booking.customer_phone) },
+    ...(showEmail ? [{ label: 'E-mail', value: oneLine(booking.customer_email) }] : []),
+    { label: 'CIN / Passeport', value: oneLine(booking.cin) || 'À présenter à la remise' },
+    { label: 'N° de permis de conduire', value: oneLine(booking.license_number) || 'À présenter à la remise' },
+    { label: 'Validité du permis', value: formatPdfDate(booking.license_expiry) || oneLine(booking.license_expiry) },
+    { label: 'Pays de résidence', value: oneLine(booking.customer_country) },
+  ]);
+
+  /* ---------- Véhicule et agence ---------- */
+  const vehicle = booking.vehicle;
+  const agency = booking.agency;
+  const isMoto = isMotorcycle(vehicle);
+  section(isMoto ? 'Moto et agence partenaire' : 'Véhicule et agence partenaire');
+  const vehicleTitle = vehicle
+    ? oneLine(`${vehicle.brand ?? ''} ${vehicle.model ?? ''}${vehicle.year ? ` (${vehicle.year})` : ''}`)
+    : '';
+  const fuelKey = oneLine(vehicle?.fuel).toUpperCase();
+  const transmissionKey = oneLine(vehicle?.transmission).toUpperCase();
+  layout.fields([
+    { label: isMoto ? 'Moto' : 'Véhicule', value: vehicleTitle, emphasis: true },
+    { label: 'Catégorie', value: isMoto ? `Moto · ${oneLine(vehicle?.category)}` : oneLine(vehicle?.category) },
+    {
+      label: isMoto ? 'Boîte / carburant / cylindrée' : 'Boîte / carburant',
+      value: [
+        TRANSMISSION_LABELS[transmissionKey] ?? oneLine(vehicle?.transmission),
+        FUEL_LABELS[fuelKey] ?? oneLine(vehicle?.fuel),
+        isMoto ? formatEngineCc(vehicle?.engine_cc) : '',
+      ]
+        .filter(Boolean)
+        .join(' · '),
+    },
+    ...(isMoto
+      ? [{ label: 'Permis exigé par l\'agence', value: motorcycleLicenseLabel(vehicle?.license_required) || "À confirmer avec l'agence", emphasis: true }]
+      : []),
+    { label: 'Agence', value: oneLine(agency?.name), emphasis: true },
+    { label: "Adresse de l'agence", value: [oneLine(agency?.address), oneLine(agency?.city)].filter(Boolean).join(', ') },
+    { label: "Contact de l'agence", value: [oneLine(agency?.phone), oneLine(agency?.email)].filter(Boolean).join(' · ') },
+  ]);
+
+  /* ---------- Dates et lieux ---------- */
+  section('Dates et lieux');
+  const at = (date?: string, time?: string) => {
+    const day = formatPdfDate(date);
+    const hour = formatPdfTime(time);
+    if (!day) return '';
+    return hour ? `${day} à ${hour}` : `${day} (heure à convenir avec l'agence)`;
+  };
+  const totalDays = Number(booking.total_days);
+  const hasDays = Number.isFinite(totalDays) && totalDays > 0;
+  const options = [booking.child_seat ? 'Siège enfant' : '', booking.additional_driver ? 'Conducteur additionnel' : '']
+    .filter(Boolean)
+    .join(' · ');
+  layout.fields([
+    { label: 'Prise en charge', value: at(booking.start_date, booking.pickup_time), emphasis: true },
+    { label: 'Restitution', value: at(booking.end_date, booking.dropoff_time), emphasis: true },
+    { label: 'Durée', value: hasDays ? plural(totalDays, 'jour') : '' },
+    { label: 'Lieu de prise en charge', value: oneLine(booking.pickup_location) },
+    { label: 'Lieu de restitution', value: oneLine(booking.dropoff_location) },
+    { label: 'Mode de remise', value: booking.delivery_type ? DELIVERY_LABELS[booking.delivery_type] ?? '' : '' },
+    ...(booking.flight_number
+      ? [
+          { label: "Vol d'arrivée", value: oneLine(booking.flight_number) },
+          { label: "Heure d'atterrissage prévue", value: formatPdfTime(booking.flight_arrival_time) },
+        ]
+      : []),
+    ...(options ? [{ label: 'Options demandées', value: options }] : []),
+  ]);
+
+  /* ---------- Tarification ---------- */
+  const priceHeight = 17;
+  section('Tarification', priceHeight);
+  const priceTop = layout.y - 1.5;
+  layout.color(COLORS.line, 'draw');
+  layout.color(COLORS.soft, 'fill');
+  doc.setLineWidth(0.3);
+  doc.roundedRect(MARGIN_X, priceTop, layout.contentWidth, priceHeight, 1.8, 1.8, 'FD');
+
+  const daily = formatPdfAmount(booking.daily_price);
+  const subtotal = Number(booking.subtotal);
+  const total = Number(booking.total_price);
+  const deposit = Number(booking.deposit_amount ?? vehicle?.deposit);
+  const priceBlocks: Array<[string, string]> = [
+    ['Tarif de la location', daily ? (hasDays ? `${daily} / jour × ${plural(totalDays, 'jour')}` : `${daily} / jour`) : MISSING],
+    ["Caution (remboursable, réglée à l'agence)", Number.isFinite(deposit) && deposit > 0 ? formatPdfAmount(deposit) : "Communiquée par l'agence"],
+  ];
+  if (Number.isFinite(subtotal) && subtotal > 0 && Number.isFinite(total) && Math.abs(subtotal - total) >= 1) {
+    priceBlocks.push(['Sous-total location', formatPdfAmount(subtotal)]);
+  }
+  priceBlocks.forEach(([label, value], index) => {
+    const x = MARGIN_X + 5 + index * 52;
+    layout.font('normal', d.label, COLORS.muted);
+    doc.text(label, x, priceTop + 5.5);
+    layout.font('normal', d.value, COLORS.text);
+    doc.text(value, x, priceTop + 9.8);
+  });
+  layout.font('normal', d.label, COLORS.muted);
+  doc.text('Total de la location', right - 5, priceTop + 5.5, { align: 'right' });
+  layout.font('bold', 12, COLORS.ink);
+  doc.text(formatPdfAmount(booking.total_price) || MISSING, right - 5, priceTop + 10.8, { align: 'right' });
+  layout.font('normal', 6.6, COLORS.muted);
+  doc.text(PAYMENT_NOTE, MARGIN_X + 5, priceTop + 14.6);
+  layout.y = priceTop + priceHeight + 2;
+
+  /* ---------- Message du client ---------- */
+  const notes = clean(booking.customer_notes || booking.notes)
+    .replace(/\r\n?/g, '\n')
+    .replace(/\n{3,}/g, '\n\n');
+  if (notes) {
+    section('Message du client', 6);
+    const truncated = layout.paragraph(`"${notes}"`, {
+      size: d.value,
+      style: 'italic',
+      lineHeight: d.line,
+      maxLines: d.maxNoteLines,
+    });
+    if (truncated) {
+      layout.paragraph('Message abrégé : texte complet dans le dossier de réservation en ligne.', {
+        size: d.label,
+        rgb: COLORS.muted,
+      });
+    }
+  }
+
+  /* ---------- Remise du véhicule ---------- */
+  const boxHeight = 40;
+  section("Remise du véhicule (à compléter avec l'agence)", boxHeight);
+  const boxTop = layout.y - 1.5;
+  layout.color(COLORS.line, 'draw');
+  doc.setLineWidth(0.3);
+  doc.roundedRect(MARGIN_X, boxTop, layout.contentWidth, boxHeight, 1.8, 1.8, 'D');
+
+  const leftX = MARGIN_X + 5;
+  const checkbox = (x: number, y: number, label: string) => {
+    layout.color(COLORS.secondary, 'draw');
+    doc.setLineWidth(0.25);
+    doc.rect(x, y - 2.7, 2.9, 2.9, 'D');
+    layout.font('normal', 7.8, COLORS.text);
+    doc.text(label, x + 4.3, y);
+    return x + 4.3 + doc.getTextWidth(label) + 5;
+  };
+  const labelled = (label: string, y: number) => {
+    layout.font('normal', 7.8, COLORS.text);
+    doc.text(label, leftX, y);
+    return leftX + doc.getTextWidth(label) + 2.5;
+  };
+  const blank = (x: number, y: number, length: number) => {
+    layout.color(COLORS.muted, 'draw');
+    doc.setLineWidth(0.2);
+    doc.line(x, y + 0.6, x + length, y + 0.6);
+  };
+
+  const rowY = (index: number) => boxTop + 6.8 + index * 7;
+  checkbox(checkbox(leftX, rowY(0), 'CIN / Passeport vérifié'), rowY(0), 'Permis de conduire vérifié');
+  blank(labelled('Kilométrage au départ :', rowY(1)), rowY(1), 30);
+  let fuelX = labelled('Carburant :', rowY(2));
+  for (const level of ['1/4', '1/2', '3/4', 'Plein']) fuelX = checkbox(fuelX, rowY(2), level);
+  blank(labelled('Date et heure de remise :', rowY(3)), rowY(3), 40);
+  blank(labelled('Observations :', rowY(4)), rowY(4), 58);
+
+  const signature = { w: 36, h: 25 };
+  const signatureY = boxTop + boxHeight - signature.h - 4;
+  const secondX = right - 5 - signature.w;
+  const firstX = secondX - signature.w - 3;
+  for (const [x, label] of [
+    [firstX, 'Signature du conducteur'],
+    [secondX, 'Cachet et signature agence'],
+  ] as const) {
+    layout.font('normal', 6.6, COLORS.muted);
+    doc.text(label, x, signatureY - 1.8);
+    layout.color(COLORS.line, 'draw');
+    layout.color(COLORS.white, 'fill');
+    doc.roundedRect(x, signatureY, signature.w, signature.h, 1.4, 1.4, 'FD');
+  }
+  layout.y = boxTop + boxHeight + 2;
+
+  /* ---------- Pied de page ---------- */
+  const pages = doc.getNumberOfPages();
+  for (let page = 1; page <= pages; page += 1) {
+    doc.setPage(page);
+    const lineY = layout.height - 17;
+    layout.color(COLORS.line, 'draw');
+    doc.setLineWidth(0.3);
+    doc.line(MARGIN_X, lineY, right, lineY);
+    layout.font('normal', 6.4, COLORS.muted);
+    layout
+      .wrap(LEGAL_NOTE, layout.contentWidth, 2)
+      .lines.forEach((line, i) => doc.text(line, MARGIN_X, lineY + 4 + i * 2.7));
+    doc.text(`${reference} · Document généré le ${formatPdfDateTime(generatedAt)} · cardrive.ma`, MARGIN_X, layout.height - 7.2);
+    doc.text(`Page ${page} / ${pages}`, right, layout.height - 7.2, { align: 'right' });
+  }
+
+  return doc;
+}
+
+/* ---------------------------------------------------------------- */
+/* Service                                                           */
+/* ---------------------------------------------------------------- */
 
 export class PdfService {
   /**
-   * Génère un document PDF officiel "CarDrive — Demande de réservation" (Format A4)
-   * Retourne un ArrayBuffer / Buffer exploitable côté serveur pour téléchargement ou stockage.
+   * Génère la fiche PDF « CarDrive — Demande de réservation » sur une page A4.
+   * Les densités sont essayées de la plus aérée à la plus serrée ; la première
+   * qui tient sur une page est retenue.
    */
   generateBookingRequestPdf(booking: Booking, customLogoDataUrl?: string): Uint8Array {
-    const doc = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: 'a4',
-    });
-
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
-    const margin = 16;
-    const contentWidth = pageWidth - margin * 2;
-
-    // --- COULEURS DU THÈME CARDRIVE ---
-    const primaryNavy = [11, 18, 32]; // #0B1220 (Ink Navy)
-    const brandRed = [230, 57, 70]; // #E63946 (CarDrive Red)
-    const darkSlate = [15, 23, 42]; // #0F172A
-    const mutedSlate = [100, 116, 139]; // #64748B
-    const bgLight = [248, 250, 252]; // #F8FAFC
-    const borderGray = [226, 232, 240]; // #E2E8F0
-
-    let currentY = 16;
-
-    // --- HEADER / EN-TÊTE ---
-    const headerHeight = 26;
-    doc.setFillColor(primaryNavy[0], primaryNavy[1], primaryNavy[2]);
-    doc.roundedRect(margin, currentY, contentWidth, headerHeight, 3, 3, 'F');
-
-    // Logo CarDrive
-    const logoData = customLogoDataUrl || loadLogoDataUrl();
-    let textStartX = margin + 8;
-
-    if (logoData) {
-      try {
-        // Tuile blanche avec bordure discrète pour faire ressortir le logo officiel
-        doc.setFillColor(255, 255, 255);
-        doc.roundedRect(margin + 4, currentY + 4, 52, 18, 2, 2, 'F');
-
-        const format = logoData.includes('image/jpeg') || logoData.includes('image/jpg') ? 'JPEG' : 'PNG';
-        // Logo 851×229 (≈ 3,7:1) : 48 × 13 mm, centré verticalement dans la tuile
-        doc.addImage(logoData, format, margin + 6, currentY + 6.5, 48, 13);
-
-        textStartX = margin + 60;
-      } catch (err) {
-        console.warn('[PdfService] Error drawing logo, using text fallback:', err);
-      }
+    const logo = customLogoDataUrl ? { dataUrl: customLogoDataUrl, width: 851, height: 229 } : loadLogo();
+    const generatedAt = new Date();
+    let doc = renderBookingPdf(booking, DENSITIES[0], logo, generatedAt);
+    for (const density of DENSITIES.slice(1)) {
+      if (doc.getNumberOfPages() === 1) break;
+      doc = renderBookingPdf(booking, density, logo, generatedAt);
     }
-
-    if (!logoData || textStartX === margin + 8) {
-      // Fallback textuel stylisé
-      doc.setTextColor(255, 255, 255);
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(18);
-      doc.text('CarDrive', margin + 8, currentY + 11);
-
-      doc.setFontSize(8);
-      doc.setFont('helvetica', 'normal');
-      doc.text('Smart Car Rental Marketplace • Nador & Oriental', margin + 8, currentY + 18);
-    } else {
-      // Titre / Slogan textuel à côté du logo officiel
-      doc.setTextColor(255, 255, 255);
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(10.5);
-      doc.text('CarDrive Marketplace', textStartX, currentY + 11);
-
-      doc.setFontSize(7.5);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(203, 213, 225);
-      doc.text('Nador & Région de l’Oriental', textStartX, currentY + 17);
-    }
-
-    // Bloc Référence & Date à droite
-    doc.setTextColor(255, 255, 255);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(11);
-    doc.text(booking.reference || booking.booking_ref || 'CD-2026-DEMANDE', pageWidth - margin - 6, currentY + 10, { align: 'right' });
-
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7.5);
-    doc.setTextColor(203, 213, 225);
-    const dateStr = booking.requested_at
-      ? formatDateFr(booking.requested_at)
-      : formatDateFr(new Date());
-    doc.text(`Demande émise le : ${dateStr}`, pageWidth - margin - 6, currentY + 16, { align: 'right' });
-    doc.text('Fiche officielle de remise', pageWidth - margin - 6, currentY + 21, { align: 'right' });
-
-    currentY += headerHeight + 6;
-
-    // --- BANNIÈRE DU TITRE DE DOCUMENT ---
-    doc.setFillColor(bgLight[0], bgLight[1], bgLight[2]);
-    doc.setDrawColor(borderGray[0], borderGray[1], borderGray[2]);
-    doc.roundedRect(margin, currentY, contentWidth, 12, 2, 2, 'FD');
-
-    doc.setTextColor(darkSlate[0], darkSlate[1], darkSlate[2]);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(11);
-    doc.text('DEMANDE DE RÉSERVATION DE VÉHICULE', margin + 6, currentY + 8);
-
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8);
-    doc.setTextColor(brandRed[0], brandRed[1], brandRed[2]);
-    const statusText = `STATUT : ${(booking.status || 'DEMANDE EN COURS').toUpperCase()}`;
-    doc.text(statusText, pageWidth - margin - 6, currentY + 8, { align: 'right' });
-
-    currentY += 18;
-
-    // --- HELPER: SECTION TITLE ---
-    const drawSectionTitle = (title: string, y: number) => {
-      doc.setFillColor(241, 245, 249);
-      doc.rect(margin, y, contentWidth, 7, 'F');
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(9);
-      doc.setTextColor(primaryNavy[0], primaryNavy[1], primaryNavy[2]);
-      doc.text(title.toUpperCase(), margin + 4, y + 5);
-      return y + 10;
-    };
-
-    // --- SECTION 1 : CLIENT & CONDUCTEUR ---
-    currentY = drawSectionTitle('1. Informations Client & Conducteur', currentY);
-
-    doc.setFontSize(8);
-    doc.setTextColor(darkSlate[0], darkSlate[1], darkSlate[2]);
-
-    const colW = (contentWidth - 6) / 2;
-    const clientX1 = margin + 3;
-    const clientX2 = margin + colW + 6;
-
-    // Ligne 1
-    doc.setFont('helvetica', 'bold');
-    doc.text('Nom complet :', clientX1, currentY);
-    doc.setFont('helvetica', 'normal');
-    doc.text(booking.customer_name || `${booking.first_name || ''} ${booking.last_name || ''}`.trim() || 'Non spécifié', clientX1 + 28, currentY);
-
-    doc.setFont('helvetica', 'bold');
-    doc.text('Téléphone / WhatsApp :', clientX2, currentY);
-    doc.setFont('helvetica', 'normal');
-    doc.text(booking.customer_phone || '—', clientX2 + 38, currentY);
-
-    currentY += 6;
-
-    // Ligne 2 (CIN & Pays)
-    doc.setFont('helvetica', 'bold');
-    doc.text('CIN / Passeport :', clientX1, currentY);
-    doc.setFont('helvetica', 'normal');
-    doc.text(booking.cin || 'Présentation sur place', clientX1 + 28, currentY);
-
-    doc.setFont('helvetica', 'bold');
-    doc.text('Pays de résidence :', clientX2, currentY);
-    doc.setFont('helvetica', 'normal');
-    doc.text(booking.customer_country || 'Maroc', clientX2 + 38, currentY);
-
-    currentY += 6;
-
-    // Ligne 3 (Permis)
-    doc.setFont('helvetica', 'bold');
-    doc.text('N° Permis de conduire :', clientX1, currentY);
-    doc.setFont('helvetica', 'normal');
-    doc.text(booking.license_number || 'Présentation à la remise', clientX1 + 38, currentY);
-
-    doc.setFont('helvetica', 'bold');
-    doc.text('Expiration permis :', clientX2, currentY);
-    doc.setFont('helvetica', 'normal');
-    doc.text(booking.license_expiry || '—', clientX2 + 38, currentY);
-
-    if (booking.customer_email && !booking.customer_email.includes('@cardrive.ma')) {
-      currentY += 6;
-      doc.setFont('helvetica', 'bold');
-      doc.text('Email contact :', clientX1, currentY);
-      doc.setFont('helvetica', 'normal');
-      doc.text(booking.customer_email, clientX1 + 28, currentY);
-    }
-
-    currentY += 10;
-
-    // --- SECTION 2 : VÉHICULE DEMANDÉ ---
-    currentY = drawSectionTitle('2. Véhicule & Agence Partenaire', currentY);
-
-    const vehicleTitle = booking.vehicle
-      ? `${booking.vehicle.brand} ${booking.vehicle.model} (${booking.vehicle.year})`
-      : 'Véhicule sélectionné';
-    const agencyName = booking.agency?.name || 'Agence locale partenaire';
-
-    doc.setFont('helvetica', 'bold');
-    doc.text('Véhicule :', clientX1, currentY);
-    doc.setFont('helvetica', 'normal');
-    doc.text(vehicleTitle, clientX1 + 28, currentY);
-
-    doc.setFont('helvetica', 'bold');
-    doc.text('Agence gestionnaire :', clientX2, currentY);
-    doc.setFont('helvetica', 'normal');
-    doc.text(agencyName, clientX2 + 38, currentY);
-
-    currentY += 6;
-
-    doc.setFont('helvetica', 'bold');
-    doc.text('Transmission :', clientX1, currentY);
-    doc.setFont('helvetica', 'normal');
-    doc.text(booking.vehicle?.transmission === 'AUTOMATIC' ? 'Automatique' : 'Manuelle', clientX1 + 28, currentY);
-
-    doc.setFont('helvetica', 'bold');
-    doc.text('Carburant :', clientX2, currentY);
-    doc.setFont('helvetica', 'normal');
-    const fuelLabels: Record<string, string> = {
-      DIESEL: 'Diesel',
-      GASOLINE: 'Essence / Sans-plomb',
-      HYBRID: 'Hybride (Essence + Électrique)',
-      ELECTRIC: 'Électrique (100%)',
-      // Variantes minuscules ou mixtes possibles depuis la DB
-      diesel: 'Diesel',
-      gasoline: 'Essence / Sans-plomb',
-      hybrid: 'Hybride (Essence + Électrique)',
-      electric: 'Électrique (100%)',
-      Diesel: 'Diesel',
-      Gasoline: 'Essence / Sans-plomb',
-      Hybrid: 'Hybride (Essence + Électrique)',
-      Electric: 'Électrique (100%)',
-    };
-    // Normaliser la clé pour robustesse (majuscule)
-    const fuelKey = (booking.vehicle?.fuel || '').trim().toUpperCase();
-    const fuelLabel = fuelKey ? (fuelLabels[fuelKey] || fuelKey) : 'Non renseigné';
-    doc.text(fuelLabel, clientX2 + 38, currentY);
-
-    currentY += 6;
-
-    doc.setFont('helvetica', 'bold');
-    doc.text('Catégorie :', clientX1, currentY);
-    doc.setFont('helvetica', 'normal');
-    doc.text(booking.vehicle?.category || 'Berline / SUV', clientX1 + 28, currentY);
-
-    doc.setFont('helvetica', 'bold');
-    doc.text('Caution requise :', clientX2, currentY);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`${booking.deposit_amount || booking.vehicle?.deposit || 3000} DH (à l'agence)`, clientX2 + 38, currentY);
-
-    currentY += 10;
-
-    // --- SECTION 3 : DÉROULEMENT DE LA LOCATION ---
-    currentY = drawSectionTitle('3. Dates & Modalités de Récupération', currentY);
-
-    doc.setFont('helvetica', 'bold');
-    doc.text('Prise en charge :', clientX1, currentY);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`${booking.start_date} à ${booking.pickup_time || '10:00'}`, clientX1 + 30, currentY);
-
-    doc.setFont('helvetica', 'bold');
-    doc.text('Lieu de prise :', clientX2, currentY);
-    doc.setFont('helvetica', 'normal');
-    doc.text(booking.pickup_location || 'Aéroport Nador', clientX2 + 30, currentY);
-
-    currentY += 6;
-
-    doc.setFont('helvetica', 'bold');
-    doc.text('Restitution :', clientX1, currentY);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`${booking.end_date} à ${booking.dropoff_time || '10:00'}`, clientX1 + 30, currentY);
-
-    doc.setFont('helvetica', 'bold');
-    doc.text('Lieu de retour :', clientX2, currentY);
-    doc.setFont('helvetica', 'normal');
-    doc.text(booking.dropoff_location || 'Aéroport Nador', clientX2 + 30, currentY);
-
-    currentY += 6;
-
-    doc.setFont('helvetica', 'bold');
-    doc.text('Durée totale :', clientX1, currentY);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`${booking.total_days} jour(s)`, clientX1 + 30, currentY);
-
-    doc.setFont('helvetica', 'bold');
-    doc.text('Mode de livraison :', clientX2, currentY);
-    doc.setFont('helvetica', 'normal');
-    const delivLabels: Record<string, string> = {
-      AIRPORT: 'Livraison Aéroport Nador-Al Aroui',
-      HOTEL: 'Livraison Hôtel',
-      ADDRESS: 'Livraison à une adresse',
-      AGENCY_PICKUP: 'Récupération en agence',
-    };
-    doc.text(delivLabels[booking.delivery_type || 'AIRPORT'] || 'Standard', clientX2 + 30, currentY);
-
-    if (booking.flight_number) {
-      currentY += 6;
-      doc.setFont('helvetica', 'bold');
-      doc.text('Vol arrivée :', clientX1, currentY);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`${booking.flight_number} (Atterrissage : ${booking.flight_arrival_time || '—'})`, clientX1 + 30, currentY);
-    }
-
-    // Encadré Spécial : Point de rendez-vous choisi par le client
-    currentY += 8;
-    doc.setFillColor(240, 249, 255); // bg-blue-50
-    doc.setDrawColor(186, 230, 253); // border-blue-200
-    doc.roundedRect(margin, currentY, contentWidth, 13, 2, 2, 'FD');
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8.5);
-    doc.setTextColor(2, 48, 107);
-    doc.text('POINT DE RENDEZ-VOUS CHOISI :', margin + 4, currentY + 5);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(15, 23, 42);
-    doc.text(booking.pickup_location || 'Aéroport Nador Al-Aroui (NDR)', margin + 58, currentY + 5);
-    doc.setFontSize(7.5);
-    doc.setTextColor(100, 116, 139);
-    doc.text('Présentez cette demande PDF officielle avec votre CIN/Passeport physique à l’agent d’accueil CarDrive.', margin + 4, currentY + 10);
-    currentY += 17;
-
-    // --- SECTION 4 : TARIFICATION DE LA LOCATION ---
-    currentY = drawSectionTitle('4. Tarification de la Location', currentY);
-
-    // Tableau de tarification (Aucune mention de commission ou marge plateforme)
-    doc.setFillColor(bgLight[0], bgLight[1], bgLight[2]);
-    doc.setDrawColor(borderGray[0], borderGray[1], borderGray[2]);
-    doc.roundedRect(margin, currentY, contentWidth, 24, 2, 2, 'FD');
-
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8.5);
-    doc.setTextColor(darkSlate[0], darkSlate[1], darkSlate[2]);
-
-    doc.text(`Tarif journalier : ${booking.daily_price} DH / jour`, margin + 6, currentY + 7);
-    doc.text(`Durée de location : ${booking.total_days} jour(s)`, margin + 6, currentY + 14);
-
-    const depositAmount = booking.deposit_amount || booking.vehicle?.deposit || 3000;
-    doc.text(`Caution remboursable : ${depositAmount} DH (à l'agence)`, margin + colW, currentY + 7);
-
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(10);
-    doc.setTextColor(primaryNavy[0], primaryNavy[1], primaryNavy[2]);
-    doc.text(`MONTANT TOTAL LOCATION : ${booking.total_price} DH`, margin + 6, currentY + 20);
-
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7.5);
-    doc.setTextColor(mutedSlate[0], mutedSlate[1], mutedSlate[2]);
-    doc.text('Paiement : à la remise du véhicule auprès de l’agence partenaire', margin + colW, currentY + 20);
-
-    currentY += 30;
-
-    // --- SECTION 5 : NOTES DU CLIENT (si existantes) ---
-    if (booking.customer_notes || booking.notes) {
-      currentY = drawSectionTitle('5. Notes et demandes particulières du client', currentY);
-      doc.setFont('helvetica', 'italic');
-      doc.setFontSize(8);
-      doc.setTextColor(darkSlate[0], darkSlate[1], darkSlate[2]);
-      doc.text(`"${booking.customer_notes || booking.notes}"`, margin + 4, currentY);
-      currentY += 10;
-    }
-
-    // --- SECTION 6 : CADRE DE CONTRÔLE ET REMISE DU VÉHICULE ---
-    currentY = drawSectionTitle('Fiche de Contrôle & Remise du Véhicule (À compléter à la prise en charge)', currentY);
-
-    doc.setDrawColor(borderGray[0], borderGray[1], borderGray[2]);
-    doc.setFillColor(255, 255, 255);
-    doc.roundedRect(margin, currentY, contentWidth, 42, 2, 2, 'D');
-
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-    doc.setTextColor(darkSlate[0], darkSlate[1], darkSlate[2]);
-
-    doc.text('Contrôle des documents :  [  ] CIN / Passeport vérifié       [  ] Permis de conduire vérifié & valide', margin + 6, currentY + 7);
-    doc.line(margin + 6, currentY + 11, pageWidth - margin - 6, currentY + 11);
-
-    doc.text('Kilométrage au départ : _________________ km', margin + 6, currentY + 18);
-
-    // Afficher le type de carburant pré-rempli depuis la fiche véhicule
-    const handoverFuelLabels: Record<string, string> = {
-      DIESEL: 'Diesel',
-      GASOLINE: 'Essence',
-      HYBRID: 'Hybride',
-      ELECTRIC: 'Électrique',
-    };
-    const hFuelKey = (booking.vehicle?.fuel || '').trim().toUpperCase();
-    const hFuelType = hFuelKey ? (handoverFuelLabels[hFuelKey] || hFuelKey) : null;
-
-    if (hFuelType) {
-      // Type connu : afficher proprement avec le type pré-rempli
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(primaryNavy[0], primaryNavy[1], primaryNavy[2]);
-      doc.text(`Type carburant : ${hFuelType}`, margin + 6, currentY + 25);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(darkSlate[0], darkSlate[1], darkSlate[2]);
-      doc.text('  Niveau : [ ] 1/4  [ ] 1/2  [ ] 3/4  [X] Plein  (à cocher au départ)', margin + 6 + 44, currentY + 25);
-    } else {
-      // Type inconnu : cases à cocher sans pré-remplissage
-      doc.text('Carburant & Niveau : _______________  [ ] 1/4  [ ] 1/2  [ ] 3/4  [ ] Plein', margin + 6, currentY + 25);
-    }
-
-    doc.text('Date & heure réelles : _____ / _____ / 2026 à _____ : _____', margin + 6, currentY + 32);
-
-    // Cadre signatures
-    doc.setFont('helvetica', 'bold');
-    doc.text('Signature du Conducteur :', pageWidth - margin - 65, currentY + 17);
-    doc.rect(pageWidth - margin - 65, currentY + 20, 28, 18, 'D');
-
-    doc.text('Cachet & Agence :', pageWidth - margin - 32, currentY + 17);
-    doc.rect(pageWidth - margin - 32, currentY + 20, 26, 18, 'D');
-
-    currentY += 46;
-
-    // --- MENTION LÉGALE & FOOTER ---
-    doc.setFontSize(7);
-    doc.setTextColor(mutedSlate[0], mutedSlate[1], mutedSlate[2]);
-    doc.setFont('helvetica', 'bold');
-    doc.text(
-      "IMPORTANT : CarDrive est l'intermédiaire technologique de mise en relation. Ce document constitue le bon officiel de",
-      pageWidth / 2,
-      pageHeight - 14,
-      { align: 'center' }
-    );
-    doc.setFont('helvetica', 'normal');
-    doc.text(
-      "réservation et de remise, facilitant la préparation et la signature du contrat de location officiel auprès de l'agence partenaire.",
-      pageWidth / 2,
-      pageHeight - 10,
-      { align: 'center' }
-    );
-    doc.text(
-      `Document généré le ${formatDateFr(new Date())} • CarDrive Marketplace • www.cardrive.ma`,
-      pageWidth / 2,
-      pageHeight - 6,
-      { align: 'center' }
-    );
-
-    return doc.output('arraybuffer') as unknown as Uint8Array;
+    return new Uint8Array(doc.output('arraybuffer'));
   }
 }
 

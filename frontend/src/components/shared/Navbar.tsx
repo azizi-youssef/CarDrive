@@ -50,6 +50,7 @@ import { Magnet } from '@/components/ui/react-bits';
 /* ====================================================================== */
 
 interface NavStrings {
+  motos: string;
   verifiedAgencies: string;
   airport: string;
   port: string;
@@ -109,7 +110,8 @@ const STRINGS: Record<string, NavStrings> = {
     retry: 'Réessayer',
     whatsapp: 'WhatsApp',
     home: 'Accueil',
-    cars: 'Véhicules',
+    cars: 'Voitures',
+    motos: 'Motos',
     agencies: 'Agences',
     destinations: 'Destinations',
     howItWorks: 'Fonctionnement',
@@ -157,6 +159,7 @@ const STRINGS: Record<string, NavStrings> = {
     whatsapp: 'واتساب',
     home: 'الرئيسية',
     cars: 'السيارات',
+    motos: 'الدراجات النارية',
     agencies: 'الوكالات',
     destinations: 'الوجهات',
     howItWorks: 'كيف يعمل',
@@ -203,7 +206,8 @@ const STRINGS: Record<string, NavStrings> = {
     retry: 'Retry',
     whatsapp: 'WhatsApp',
     home: 'Home',
-    cars: 'Vehicles',
+    cars: 'Cars',
+    motos: 'Motorbikes',
     agencies: 'Agencies',
     destinations: 'Destinations',
     howItWorks: 'How it works',
@@ -767,6 +771,7 @@ export function Navbar() {
   const navLinks = [
     { href: '/', label: strings.home },
     { href: '/search', label: strings.cars },
+    { href: '/motos', label: strings.motos },
     { href: '/agencies', label: strings.agencies },
     { href: '/about', label: strings.howItWorks },
     { href: '/faq', label: strings.faqHelp },
@@ -814,6 +819,19 @@ export function Navbar() {
 
           {/* Right: Partner Link, Auth Status, WhatsApp Support */}
           <div className="flex shrink-0 items-center gap-3.5">
+            <Link
+              href="/about"
+              aria-current={isNavActive('/about') ? 'page' : undefined}
+              className={cn(
+                'hidden items-center gap-1.5 transition-colors hover:text-white xl:flex',
+                isNavActive('/about') ? 'text-white' : 'text-slate-400'
+              )}
+            >
+              <span>{strings.howItWorks}</span>
+            </Link>
+
+            <span className="hidden h-3 w-px bg-slate-800 xl:block" aria-hidden="true" />
+
             <Link
               href="/agency/join"
               className="hidden items-center gap-1.5 text-slate-400 transition-colors hover:text-white lg:flex"
@@ -892,7 +910,7 @@ export function Navbar() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div
             className={cn(
-              'grid grid-cols-[auto_1fr_auto] items-center gap-2 lg:gap-4 transition-all duration-300',
+              'grid grid-cols-[auto_1fr_auto] items-center gap-2 lg:gap-6 xl:gap-8 transition-all duration-300',
               scrolled ? 'h-14 lg:h-16' : 'h-16 lg:h-20'
             )}
           >
@@ -957,7 +975,7 @@ export function Navbar() {
                 href="/"
                 aria-current={isNavActive('/') ? 'page' : undefined}
                 className={cn(
-                  'relative whitespace-nowrap rounded-xl px-3 py-2 text-[13px] font-semibold transition-all duration-200 focus-visible:outline-2 focus-visible:outline-[#E63946]',
+                  'relative whitespace-nowrap rounded-xl px-2.5 py-2 text-[13px] font-semibold transition-all duration-200 focus-visible:outline-2 focus-visible:outline-[#E63946] xl:px-3',
                   isNavActive('/')
                     ? 'font-bold text-[#0B1220]'
                     : 'text-slate-600 hover:bg-slate-100/70 hover:text-[#0B1220]'
@@ -974,7 +992,7 @@ export function Navbar() {
                 href="/search"
                 aria-current={isNavActive('/search') ? 'page' : undefined}
                 className={cn(
-                  'relative whitespace-nowrap rounded-xl px-3 py-2 text-[13px] font-semibold transition-all duration-200 focus-visible:outline-2 focus-visible:outline-[#E63946]',
+                  'relative whitespace-nowrap rounded-xl px-2.5 py-2 text-[13px] font-semibold transition-all duration-200 focus-visible:outline-2 focus-visible:outline-[#E63946] xl:px-3',
                   isNavActive('/search')
                     ? 'font-bold text-[#0B1220]'
                     : 'text-slate-600 hover:bg-slate-100/70 hover:text-[#0B1220]'
@@ -986,12 +1004,29 @@ export function Navbar() {
                 )}
               </Link>
 
+              {/* 2 bis. Motos (catalogue séparé) */}
+              <Link
+                href="/motos"
+                aria-current={isNavActive('/motos') ? 'page' : undefined}
+                className={cn(
+                  'relative whitespace-nowrap rounded-xl px-2.5 py-2 text-[13px] font-semibold transition-all duration-200 focus-visible:outline-2 focus-visible:outline-[#E63946] xl:px-3',
+                  isNavActive('/motos')
+                    ? 'font-bold text-[#0B1220]'
+                    : 'text-slate-600 hover:bg-slate-100/70 hover:text-[#0B1220]'
+                )}
+              >
+                {strings.motos}
+                {isNavActive('/motos') && (
+                  <span className="absolute inset-x-3 -bottom-px h-0.5 rounded-full bg-[#E63946]" />
+                )}
+              </Link>
+
               {/* 3. Agences */}
               <Link
                 href="/agencies"
                 aria-current={isNavActive('/agencies') ? 'page' : undefined}
                 className={cn(
-                  'relative whitespace-nowrap rounded-xl px-3 py-2 text-[13px] font-semibold transition-all duration-200 focus-visible:outline-2 focus-visible:outline-[#E63946]',
+                  'relative whitespace-nowrap rounded-xl px-2.5 py-2 text-[13px] font-semibold transition-all duration-200 focus-visible:outline-2 focus-visible:outline-[#E63946] xl:px-3',
                   isNavActive('/agencies')
                     ? 'font-bold text-[#0B1220]'
                     : 'text-slate-600 hover:bg-slate-100/70 hover:text-[#0B1220]'
@@ -1020,7 +1055,7 @@ export function Navbar() {
                   onClick={() => setDestinationsOpen((prev) => !prev)}
                   onKeyDown={handleDestinationsTriggerKeyDown}
                   className={cn(
-                    'relative flex whitespace-nowrap items-center gap-1.5 rounded-xl px-3 py-2 text-[13px] font-semibold transition-all duration-200 focus-visible:outline-2 focus-visible:outline-[#E63946]',
+                    'relative flex whitespace-nowrap items-center gap-1.5 rounded-xl px-2.5 xl:px-3 py-2 text-[13px] font-semibold transition-all duration-200 focus-visible:outline-2 focus-visible:outline-[#E63946]',
                     destinationsOpen || isDestinationsActive
                       ? 'bg-slate-100/80 font-bold text-[#0B1220]'
                       : 'text-slate-600 hover:bg-slate-100/70 hover:text-[#0B1220]'
@@ -1199,25 +1234,7 @@ export function Navbar() {
                 )}
               </div>
 
-              {/* 5. Comment ça marche */}
-              <Link
-                href="/about"
-                aria-current={isNavActive('/about') ? 'page' : undefined}
-                className={cn(
-                  // Liens secondaires masqués entre 1024 et 1280 px (menu trop large) ; présents dans le menu mobile
-                  'relative hidden xl:block whitespace-nowrap rounded-xl px-3 py-2 text-[13px] font-semibold transition-all duration-200 focus-visible:outline-2 focus-visible:outline-[#E63946]',
-                  isNavActive('/about')
-                    ? 'font-bold text-[#0B1220]'
-                    : 'text-slate-600 hover:bg-slate-100/70 hover:text-[#0B1220]'
-                )}
-              >
-                {strings.howItWorks}
-                {isNavActive('/about') && (
-                  <span className="absolute inset-x-3 -bottom-px h-0.5 rounded-full bg-[#E63946]" />
-                )}
-              </Link>
-
-              {/* 6. FAQ / Assistance */}
+              {/* 5. Aide (≥ 1280 px ; « Comment ça marche » est dans la barre supérieure) */}
               <Link
                 href="/faq"
                 aria-current={isNavActive('/faq') ? 'page' : undefined}
@@ -1238,7 +1255,7 @@ export function Navbar() {
             {/* -------------------------------------------------------- */}
             {/* DESKTOP ACTIONS (1024px+)                                */}
             {/* -------------------------------------------------------- */}
-            <div className="hidden shrink-0 items-center gap-2.5 lg:flex justify-end">
+            <div className="hidden shrink-0 items-center justify-end gap-2 lg:flex xl:gap-2.5">
               {/* Account Dropdown / Auth Buttons */}
               {authLoading ? (
                 <span
@@ -1255,11 +1272,13 @@ export function Navbar() {
                     aria-expanded={accountMenuOpen}
                     aria-controls={accountMenuId}
                     onClick={() => setAccountMenuOpen((open) => !open)}
-                    className="inline-flex max-w-60 items-center gap-2 rounded-xl border border-slate-200/90 bg-white px-2.5 py-1.5 text-left shadow-xs transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-[#E63946]"
+                    aria-label={`${accountIdentity(authProfile, locale).badge} : ${accountIdentity(authProfile, locale).name}`}
+                    className="inline-flex max-w-52 items-center gap-2 rounded-xl border border-slate-200/90 bg-white px-2 py-1.5 text-left shadow-xs transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-[#E63946] xl:px-2.5"
                   >
                     <AccountAvatar profile={authProfile} className="h-7 w-7 text-xs" />
-                    <span className="min-w-0">
-                      <span className="block max-w-36 truncate text-xs font-bold text-slate-900">
+                    {/* Nom et rôle affichés à partir de 1280 px ; avatar seul en dessous */}
+                    <span className="hidden min-w-0 xl:block">
+                      <span className="block max-w-28 truncate text-xs font-bold text-slate-900">
                         {accountIdentity(authProfile, locale).name}
                       </span>
                       <span className="block text-[11px] font-medium text-slate-500">
@@ -1341,10 +1360,13 @@ export function Navbar() {
               ) : (
                 <Link
                   href={LOGIN_PATH}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200/90 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-xs transition-all duration-200 hover:border-slate-300 hover:bg-slate-50 hover:text-[#0B1220] active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-[#E63946]"
+                  aria-label={strings.login}
+                  title={strings.login}
+                  className="inline-flex h-10 min-w-10 items-center justify-center gap-1.5 rounded-xl border border-slate-200/90 bg-white px-2.5 text-xs font-semibold text-slate-700 shadow-xs transition-all duration-200 hover:border-slate-300 hover:bg-slate-50 hover:text-[#0B1220] active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-[#E63946] xl:px-3"
                 >
                   <User className="h-3.5 w-3.5 text-slate-500" aria-hidden="true" />
-                  <span>{strings.login}</span>
+                  {/* Texte à partir de 1280 px ; icône seule en dessous */}
+                  <span className="hidden xl:inline">{strings.login}</span>
                 </Link>
               )}
 
@@ -1362,8 +1384,7 @@ export function Navbar() {
                     aria-hidden="true"
                   />
                   <Search className="h-3.5 w-3.5" aria-hidden="true" />
-                  <span className="hidden xl:inline">{strings.findCar}</span>
-                  <span className="xl:hidden">{strings.search}</span>
+                  <span>{strings.search}</span>
                   <ArrowRight
                     className={cn(
                       'h-3 w-3 opacity-90 transition-transform duration-200',

@@ -16,8 +16,11 @@ import {
   BellRing,
   CalendarClock,
   CarFront,
+  Motorbike,
+  IdCard,
 } from 'lucide-react';
 import type { Vehicle } from '@/types';
+import { formatEngineCc, isMotorcycle } from '@/lib/vehicles/kind';
 import { cn, formatNumber } from '@/lib/utils';
 import { AgencyLogo } from '@/components/agencies/AgencyLogo';
 import { isOptimizableImage } from '@/lib/utils/images';
@@ -240,6 +243,8 @@ function VehicleCardComponent({
   const vehicleName = `${vehicle.brand} ${vehicle.model}`;
   const detailsHref = `/cars/${encodeURIComponent(vehicle.slug)}`;
   const totalPrice = selectedDays && selectedDays > 0 ? vehicle.daily_price * selectedDays : null;
+  const isMoto = isMotorcycle(vehicle);
+  const engineCc = formatEngineCc(vehicle.engine_cc);
 
   const handleFavorite = useCallback(
     (e: React.MouseEvent) => {
@@ -305,8 +310,9 @@ function VehicleCardComponent({
           <Heart className={cn('h-4 w-4', isFavorite && 'fill-current')} aria-hidden="true" />
         </button>
 
-        <span className="pointer-events-none absolute bottom-3 start-3 z-10 rounded-md bg-[#0B1220]/75 px-2 py-0.5 text-[11px] font-bold uppercase tracking-[0.12em] text-white backdrop-blur-sm">
-          {vehicle.category}
+        <span className="pointer-events-none absolute bottom-3 start-3 z-10 inline-flex items-center gap-1 rounded-md bg-[#0B1220]/75 px-2 py-0.5 text-[11px] font-bold uppercase tracking-[0.12em] text-white backdrop-blur-sm">
+          {isMoto && <Motorbike className="h-3.5 w-3.5" aria-hidden="true" />}
+          {isMoto ? `Moto · ${vehicle.category}` : vehicle.category}
         </span>
       </div>
 
@@ -322,20 +328,34 @@ function VehicleCardComponent({
 
         <ul
           className="mt-3 flex flex-wrap items-center gap-x-3.5 gap-y-1.5 text-[13px] font-medium text-slate-600"
-          aria-label="Caractéristiques du véhicule"
+          aria-label={isMoto ? 'Caractéristiques de la moto' : 'Caractéristiques du véhicule'}
         >
           <li className="inline-flex items-center gap-1.5">
             <Gauge className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
             {vehicle.transmission === 'AUTOMATIC' ? 'Automatique' : 'Manuelle'}
           </li>
-          <li className="inline-flex items-center gap-1.5">
-            <Fuel className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
-            {getFuelLabel(vehicle.fuel)}
-          </li>
-          <li className="inline-flex items-center gap-1.5">
-            <Users className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
-            {vehicle.seats} places
-          </li>
+          {isMoto && engineCc ? (
+            <li className="inline-flex items-center gap-1.5">
+              <Motorbike className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
+              {engineCc}
+            </li>
+          ) : (
+            <li className="inline-flex items-center gap-1.5">
+              <Fuel className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
+              {getFuelLabel(vehicle.fuel)}
+            </li>
+          )}
+          {isMoto && vehicle.license_required ? (
+            <li className="inline-flex items-center gap-1.5">
+              <IdCard className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
+              Permis {vehicle.license_required}
+            </li>
+          ) : (
+            <li className="inline-flex items-center gap-1.5">
+              <Users className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
+              {vehicle.seats} place{vehicle.seats > 1 ? 's' : ''}
+            </li>
+          )}
         </ul>
 
         {agency && (

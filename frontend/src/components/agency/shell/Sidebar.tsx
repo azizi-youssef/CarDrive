@@ -18,6 +18,7 @@ import {
   Home,
   LogOut,
   Sparkles,
+  Motorbike,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -33,6 +34,7 @@ export const AGENCY_SECTIONS: readonly {
   id:
     | 'overview'
     | 'fleet'
+    | 'fleet_motos'
     | 'add_vehicle'
     | 'calendar'
     | 'bookings'
@@ -49,7 +51,8 @@ export const AGENCY_SECTIONS: readonly {
   { id: 'bookings', label: 'Réservations', icon: ClipboardList },
   { id: 'rentals', label: 'Départs & Retours', icon: KeyRound },
   { id: 'calendar', label: 'Calendrier & Dispos', icon: CalendarDays },
-  { id: 'fleet', label: 'Flotte de véhicules', icon: Car },
+  { id: 'fleet', label: 'Voitures', icon: Car },
+  { id: 'fleet_motos', label: 'Motos', icon: Motorbike },
   { id: 'add_vehicle', label: 'Ajouter un véhicule', icon: PlusCircle },
   { id: 'subscription', label: 'Forfait & Capacité', icon: Sparkles },
   { id: 'customers', label: 'Clients', icon: Users },
@@ -61,7 +64,7 @@ export const AGENCY_SECTIONS: readonly {
 /** Regroupement visuel de la navigation (les sections absentes selon le rôle sont ignorées). */
 const SECTION_GROUPS: { title: string; ids: string[] }[] = [
   { title: 'Pilotage', ids: ['overview', 'bookings', 'rentals', 'calendar'] },
-  { title: 'Flotte', ids: ['fleet', 'add_vehicle', 'subscription'] },
+  { title: 'Flotte', ids: ['fleet', 'fleet_motos', 'add_vehicle', 'subscription'] },
   { title: 'Agence', ids: ['customers', 'finances', 'access', 'settings'] },
 ];
 

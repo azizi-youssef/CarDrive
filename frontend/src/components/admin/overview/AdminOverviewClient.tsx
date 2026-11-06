@@ -392,7 +392,11 @@ export function AdminOverviewClient({ initialStats, statsError, commissionRate: 
           icon={Car}
           label="Véhicules référencés"
           value={nf.format(stats?.totalVehicles ?? 0)}
-          sub={`${nf.format(subscriptionStats?.fleetCapacityTotal ?? 0)} places couvertes par les forfaits`}
+          sub={
+            typeof stats?.totalMotorcycles === 'number'
+              ? `${nf.format(Math.max(0, (stats?.totalVehicles ?? 0) - stats.totalMotorcycles))} voitures · ${nf.format(stats.totalMotorcycles)} motos`
+              : `${nf.format(subscriptionStats?.fleetCapacityTotal ?? 0)} places couvertes par les forfaits`
+          }
         />
         <KpiCard
           href="/admin/bookings"

@@ -1,4 +1,5 @@
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient, createClient } from '@/lib/supabase/server';
+import { MOTORCYCLE_CATEGORIES } from '@/lib/vehicles/kind';
 import type { AdminStats, AgencyStats } from '@/lib/api/stats.api';
 
 function requireSupabase() {
@@ -84,11 +85,24 @@ export class StatsService {
       throw new Error('Impossible de charger les statistiques de la plateforme.');
     }
     const result = asRecord(data);
+
+    // Répartition voitures / motos (route réservée à l'administration, client serveur uniquement)
+    let totalMotorcycles: number | undefined;
+    const admin = await createAdminClient();
+    if (admin) {
+      const { count, error: motoError } = await admin
+        .from('vehicles')
+        .select('id', { count: 'exact', head: true })
+        .in('category', [...MOTORCYCLE_CATEGORIES]);
+      if (!motoError) totalMotorcycles = count ?? 0;
+    }
+
     return {
       totalAgencies: numeric(result.totalAgencies),
       verifiedAgencies: numeric(result.verifiedAgencies),
       pendingAgencies: numeric(result.pendingAgencies),
       totalVehicles: numeric(result.totalVehicles),
+      totalMotorcycles,
       totalBookings: numeric(result.totalBookings),
       totalVolume: numeric(result.totalVolume),
       platformCommission: numeric(result.platformCommission),

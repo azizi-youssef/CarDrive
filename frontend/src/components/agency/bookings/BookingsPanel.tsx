@@ -1,7 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { FileText, Loader2 } from 'lucide-react';
+import { FileText, Loader2, Motorbike } from 'lucide-react';
+import { isMotorcycle } from '@/lib/vehicles/kind';
 import { cn, formatPrice } from '@/lib/utils';
 import { Pagination, SearchField, SelectField, Th } from '@/components/agency/shell/Controls';
 import { EmptyState, ErrorBanner, TableSkeleton } from '@/components/agency/shell/Feedback';
@@ -35,7 +36,14 @@ export type BookingsPage = {
   meta: { page: number; pageSize: number; total: number; totalPages: number };
 };
 
-export type BookingQuery = { q: string; status: string; sort: string };
+/** type : '' (tous), 'CAR' (voitures) ou 'MOTORCYCLE' (motos) */
+export type BookingQuery = { q: string; status: string; sort: string; type?: string };
+
+const TYPE_FILTERS = [
+  { value: '', label: 'Voitures et motos' },
+  { value: 'CAR', label: 'Voitures' },
+  { value: 'MOTORCYCLE', label: 'Motos' },
+] as const;
 
 export const STATUS_FILTERS = [
   { value: '', label: 'Tous les statuts' },
@@ -100,6 +108,7 @@ export function BookingsPanel({
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('');
   const [sort, setSort] = useState<string>('created_at');
+  const [type, setType] = useState('');
   const debounce = useRef<number | undefined>(undefined);
 
   useEffect(() => () => window.clearTimeout(debounce.current), []);
@@ -109,17 +118,22 @@ export function BookingsPanel({
   const onSearchChange = (value: string) => {
     setSearch(value);
     window.clearTimeout(debounce.current);
-    debounce.current = window.setTimeout(() => emit({ q: value, status, sort }), 300);
+    debounce.current = window.setTimeout(() => emit({ q: value, status, sort, type }), 300);
   };
 
   const onStatusChange = (value: string) => {
     setStatus(value);
-    emit({ q: search, status: value, sort });
+    emit({ q: search, status: value, sort, type });
   };
 
   const onSortChange = (value: string) => {
     setSort(value);
-    emit({ q: search, status, sort: value });
+    emit({ q: search, status, sort: value, type });
+  };
+
+  const onTypeChange = (value: string) => {
+    setType(value);
+    emit({ q: search, status, sort, type: value });
   };
 
   const rows = page?.data ?? [];
@@ -137,6 +151,13 @@ export function BookingsPanel({
           />
           <SelectField value={status} onChange={onStatusChange} label="Filtrer par statut">
             {STATUS_FILTERS.map((filter) => (
+              <option key={filter.value} value={filter.value}>
+                {filter.label}
+              </option>
+            ))}
+          </SelectField>
+          <SelectField value={type} onChange={onTypeChange} label="Voitures ou motos">
+            {TYPE_FILTERS.map((filter) => (
               <option key={filter.value} value={filter.value}>
                 {filter.label}
               </option>
@@ -196,7 +217,16 @@ export function BookingsPanel({
                       {booking.customer_name}
                     </td>
                     <td className="px-5 py-4 text-slate-600">
-                      {booking.vehicle ? `${booking.vehicle.brand} ${booking.vehicle.model}` : '-'}
+                      {booking.vehicle ? (
+                        <span className="inline-flex items-center gap-1.5">
+                          {isMotorcycle(booking.vehicle) && (
+                            <Motorbike className="h-4 w-4 shrink-0 text-slate-500" aria-label="Moto" />
+                          )}
+                          {booking.vehicle.brand} {booking.vehicle.model}
+                        </span>
+                      ) : (
+                        '-'
+                      )}
                     </td>
                     <td className="whitespace-nowrap px-5 py-4 tabular-nums text-slate-600">
                       {booking.start_date} {'->'} {booking.end_date}

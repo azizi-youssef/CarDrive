@@ -25,9 +25,11 @@ import {
   Fuel,
   Gauge,
   Heart,
+  IdCard,
   Info,
   Link2,
   MessageCircle,
+  Motorbike,
   Gauge as Odometer,
   Share2,
   ShieldCheck,
@@ -40,6 +42,7 @@ import {
   Users,
   Wallet,
 } from 'lucide-react';
+import { formatEngineCc, isMotorcycle, motorcycleLicenseLabel } from '@/lib/vehicles/kind';
 
 interface CarDetailsPageProps {
   params: Promise<{ slug: string }>;
@@ -120,6 +123,10 @@ export default function CarDetailsPage({ params }: CarDetailsPageProps) {
   }).slice(0, 6);
 
   const title = `${vehicle.brand} ${vehicle.model} ${vehicle.year}`;
+  const isMoto = isMotorcycle(vehicle);
+  const engineCc = formatEngineCc(vehicle.engine_cc);
+  const licenseLabel = motorcycleLicenseLabel(vehicle.license_required);
+  const vehicleNoun = isMoto ? 'la moto' : 'le véhicule';
   const isFleetListed = vehicle.status === 'AVAILABLE';
   // Un véhicule en flotte n'est « disponible » que si les dates choisies le sont aussi.
   const isAvailableForDates = isFleetListed && dateAvailability !== 'unavailable';
@@ -140,7 +147,7 @@ export default function CarDetailsPage({ params }: CarDetailsPageProps) {
   const agency = vehicle.agency;
   const agencyPhone = agency?.phone?.replace(/[^0-9]/g, '') || '212661987654';
   const whatsappLink = `https://wa.me/${agencyPhone}?text=${encodeURIComponent(
-    `Bonjour ${agency?.name || 'CarDrive'}, j'ai une question sur le véhicule ${vehicle.brand} ${vehicle.model} (${vehicle.daily_price} DH/j) avant d'envoyer ma demande.`
+    `Bonjour ${agency?.name || 'CarDrive'}, j'ai une question sur ${vehicleNoun} ${vehicle.brand} ${vehicle.model} (${vehicle.daily_price} DH/j) avant d'envoyer ma demande.`
   )}`;
 
   const handleShare = async () => {
@@ -160,21 +167,30 @@ export default function CarDetailsPage({ params }: CarDetailsPageProps) {
 
   // Caractéristiques : seules les données présentes sont affichées
   const specs: { icon: React.ElementType; label: string; value: string }[] = [
-    { icon: Car, label: 'Marque & modèle', value: `${vehicle.brand} ${vehicle.model}` },
+    { icon: isMoto ? Motorbike : Car, label: 'Marque & modèle', value: `${vehicle.brand} ${vehicle.model}` },
     { icon: CalendarDays, label: 'Année', value: String(vehicle.year) },
-    { icon: Tag, label: 'Catégorie', value: vehicle.category },
-    { icon: Gauge, label: 'Transmission', value: vehicle.transmission === 'AUTOMATIC' ? 'Automatique' : 'Manuelle' },
+    { icon: Tag, label: 'Catégorie', value: isMoto ? `Moto · ${vehicle.category}` : vehicle.category },
+    { icon: Gauge, label: isMoto ? 'Boîte' : 'Transmission', value: vehicle.transmission === 'AUTOMATIC' ? 'Automatique' : 'Manuelle' },
     { icon: Fuel, label: 'Carburant', value: FUEL_LABELS[vehicle.fuel] ?? vehicle.fuel },
   ];
-  if (vehicle.seats > 0) specs.push({ icon: Users, label: 'Places', value: `${vehicle.seats} places` });
-  if (vehicle.doors > 0) specs.push({ icon: DoorOpen, label: 'Portes', value: `${vehicle.doors} portes` });
-  if (typeof vehicle.air_conditioning === 'boolean') {
+  if (isMoto && engineCc) specs.push({ icon: Motorbike, label: 'Cylindrée', value: engineCc });
+  if (isMoto && licenseLabel) specs.push({ icon: IdCard, label: 'Permis exigé', value: licenseLabel });
+  if (vehicle.seats > 0) specs.push({ icon: Users, label: 'Places', value: `${vehicle.seats} place${vehicle.seats > 1 ? 's' : ''}` });
+  if (!isMoto && vehicle.doors > 0) specs.push({ icon: DoorOpen, label: 'Portes', value: `${vehicle.doors} portes` });
+  if (!isMoto && typeof vehicle.air_conditioning === 'boolean') {
     specs.push({ icon: Snowflake, label: 'Climatisation', value: vehicle.air_conditioning ? 'Oui' : 'Non' });
   }
   if (vehicle.mileage > 0) specs.push({ icon: Odometer, label: 'Kilométrage compteur', value: `${formatNumber(vehicle.mileage)} km` });
 
   // Conditions : uniquement celles fournies par les données du véhicule et du parcours de réservation
   const conditions: { icon: React.ElementType; label: string; value: string; note?: string }[] = [];
+  if (isMoto) {
+    conditions.push(
+      licenseLabel
+        ? { icon: IdCard, label: 'Permis exigé', value: licenseLabel, note: 'À présenter en original à la remise de la moto.' }
+        : { icon: IdCard, label: 'Permis exigé', value: 'À confirmer', note: 'L’agence précise le permis nécessaire en réponse à votre demande.' }
+    );
+  }
   if ((vehicle.deposit ?? 0) > 0) {
     conditions.push({ icon: ShieldCheck, label: 'Caution', value: `${formatNumber(vehicle.deposit)} MAD`, note: 'Remboursable selon le contrat de l’agence.' });
   }
@@ -211,7 +227,12 @@ export default function CarDetailsPage({ params }: CarDetailsPageProps) {
         >
           <Link href="/" className="inline-flex h-11 shrink-0 items-center transition-colors hover:text-[#0B1220]">Accueil</Link>
           <ChevronRight className="h-3.5 w-3.5 shrink-0 text-slate-300 rtl:rotate-180" aria-hidden="true" />
-          <Link href="/search" className="inline-flex h-11 shrink-0 items-center transition-colors hover:text-[#0B1220]">Véhicules</Link>
+          <Link
+            href={isMoto ? '/motos' : '/search'}
+            className="inline-flex h-11 shrink-0 items-center transition-colors hover:text-[#0B1220]"
+          >
+            {isMoto ? 'Motos' : 'Voitures'}
+          </Link>
           <ChevronRight className="h-3.5 w-3.5 shrink-0 text-slate-300 rtl:rotate-180" aria-hidden="true" />
           <span aria-current="page" className="truncate font-semibold text-[#0B1220]">
             {vehicle.brand} {vehicle.model}
@@ -224,8 +245,9 @@ export default function CarDetailsPage({ params }: CarDetailsPageProps) {
         <header className="mb-5 flex flex-col gap-4 sm:mb-6 md:flex-row md:items-end md:justify-between">
           <div className="min-w-0">
             <div className="mb-2.5 flex flex-wrap items-center gap-2">
-              <span className="rounded-md bg-[#0B1220] px-2 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-white">
-                {vehicle.category}
+              <span className="inline-flex items-center gap-1 rounded-md bg-[#0B1220] px-2 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-white">
+                {isMoto && <Motorbike className="h-3.5 w-3.5" aria-hidden="true" />}
+                {isMoto ? `Moto · ${vehicle.category}` : vehicle.category}
               </span>
               <span
                 className={cn(
@@ -291,7 +313,13 @@ export default function CarDetailsPage({ params }: CarDetailsPageProps) {
             <button
               type="button"
               onClick={() => void handleShare()}
-              aria-label={shareState === 'copied' ? 'Lien du véhicule copié' : 'Partager ce véhicule'}
+              aria-label={
+                shareState === 'copied'
+                  ? `Lien de ${vehicleNoun} copié`
+                  : isMoto
+                    ? 'Partager cette moto'
+                    : 'Partager ce véhicule'
+              }
               className="inline-flex h-11 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 text-sm font-semibold text-slate-600 transition-colors hover:border-slate-300 hover:text-[#0B1220] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#E63946]"
             >
               {shareState === 'copied' ? (
@@ -313,8 +341,12 @@ export default function CarDetailsPage({ params }: CarDetailsPageProps) {
             <ul className="grid grid-cols-3 gap-2 sm:gap-3" aria-label="Informations essentielles">
               {[
                 { icon: Gauge, value: vehicle.transmission === 'AUTOMATIC' ? 'Automatique' : 'Manuelle' },
-                { icon: Fuel, value: FUEL_LABELS[vehicle.fuel] ?? vehicle.fuel },
-                { icon: Users, value: `${vehicle.seats} places` },
+                isMoto && engineCc
+                  ? { icon: Motorbike, value: engineCc }
+                  : { icon: Fuel, value: FUEL_LABELS[vehicle.fuel] ?? vehicle.fuel },
+                isMoto && vehicle.license_required
+                  ? { icon: IdCard, value: `Permis ${vehicle.license_required}` }
+                  : { icon: Users, value: `${vehicle.seats} place${vehicle.seats > 1 ? 's' : ''}` },
               ].map(({ icon: Icon, value }) => (
                 <li key={value} className="flex flex-col items-center gap-1.5 rounded-xl border border-slate-200/80 bg-white px-2 py-3 text-center sm:flex-row sm:justify-center sm:gap-2.5">
                   <Icon className="h-5 w-5 text-accent-text" aria-hidden="true" />
@@ -334,7 +366,7 @@ export default function CarDetailsPage({ params }: CarDetailsPageProps) {
                   <MessageCircle className="h-5 w-5" aria-hidden="true" />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-bold text-[#0B1220]">Une question sur ce véhicule ?</p>
+                  <p className="text-sm font-bold text-[#0B1220]">{isMoto ? 'Une question sur cette moto ?' : 'Une question sur ce véhicule ?'}</p>
                   <p className="truncate text-xs text-slate-500">Écrivez à {agency?.name ?? 'l’agence'} sur WhatsApp.</p>
                 </div>
                 <a

@@ -11,12 +11,14 @@ import { AgencyCard } from '@/components/agencies/AgencyCard';
 import { loginUrl } from '@/lib/auth/login-portals';
 import { useRealtimeRefresh } from '@/lib/supabase/realtime';
 import type { Vehicle, Agency } from '@/types';
+import { isMotorcycle } from '@/lib/vehicles/kind';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
 import { GsapReveal } from '@/components/ui/react-bits';
 
 import {
   AlertCircle,
   ArrowRight,
+  Motorbike,
   ArrowUpRight,
   Building2,
   Car,
@@ -160,15 +162,21 @@ export function HomeClient({
     pollingIntervalMs: 60_000,
   });
 
+  // Voitures et motos présentées séparément
+  const carVehicles = vehicles.filter((v) => !isMotorcycle(v));
+  const motoVehicles = vehicles.filter((v) => isMotorcycle(v));
+
   // Tri : disponibles d'abord, puis prix croissant
-  const sortedVehicles = [...vehicles].sort((a, b) => {
+  const byAvailabilityThenPrice = (a: Vehicle, b: Vehicle) => {
     const aAvail = a.status === 'AVAILABLE' ? 0 : 1;
     const bAvail = b.status === 'AVAILABLE' ? 0 : 1;
     if (aAvail !== bAvail) return aAvail - bAvail;
     return a.daily_price - b.daily_price;
-  });
+  };
+  const sortedVehicles = [...carVehicles].sort(byAvailabilityThenPrice);
+  const featuredMotos = [...motoVehicles].sort(byAvailabilityThenPrice).slice(0, 3);
 
-  // Filtre catégorie + budget
+  // Filtre catégorie + budget (voitures)
   const featuredVehicles = sortedVehicles.filter((v) => {
     const categoryMatch =
       vehicleFilter === 'Tous'
@@ -220,15 +228,15 @@ export function HomeClient({
   // Filtres pratiques (chips — cumulables avec catégorie)
   // N'apparaissent que si le catalogue contient au moins un véhicule correspondant
   const practicalFilters = [
-    vehicles.some((v) => v.transmission === 'AUTOMATIC') && { label: 'Automatique', key: 'automatic', active: vehicleFilter === 'Automatique' },
-    vehicles.some((v) => (v.seats ?? 0) >= 7) && { label: '7 places', key: '7places', active: vehicleFilter === '7 places' },
+    carVehicles.some((v) => v.transmission === 'AUTOMATIC') && { label: 'Automatique', key: 'automatic', active: vehicleFilter === 'Automatique' },
+    carVehicles.some((v) => (v.seats ?? 0) >= 7) && { label: '7 places', key: '7places', active: vehicleFilter === '7 places' },
   ].filter(Boolean) as { label: string; key: string; active: boolean }[];
 
   // Puces de catégories : uniquement celles présentes, de la plus fournie à la moins fournie
   const categoryChips = [
     'Tous',
-    ...[...new Set(vehicles.map((v) => v.category).filter(Boolean) as string[])].sort(
-      (a, b) => vehicles.filter((v) => v.category === b).length - vehicles.filter((v) => v.category === a).length
+    ...[...new Set(carVehicles.map((v) => v.category).filter(Boolean) as string[])].sort(
+      (a, b) => carVehicles.filter((v) => v.category === b).length - carVehicles.filter((v) => v.category === a).length
     ),
   ];
 
@@ -564,7 +572,7 @@ export function HomeClient({
                 Sélection CarDrive
               </p>
               <h2 className="text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">
-                Les véhicules populaires
+                Les voitures populaires
               </h2>
               <p className="mt-2 text-sm text-slate-500">
                 Consultez les caractéristiques et envoyez votre demande pour vos dates.
@@ -652,7 +660,7 @@ export function HomeClient({
                 {filter}
                 {filter !== 'Tous' && (
                   <span className="ml-1.5 opacity-60">
-                    ({vehicles.filter((v) => v.category === filter).length})
+                    ({carVehicles.filter((v) => v.category === filter).length})
                   </span>
                 )}
               </button>
@@ -734,11 +742,55 @@ export function HomeClient({
 
           <div className="mt-8 flex justify-center sm:hidden">
             <Link href="/search" className="btn-primary px-5 py-3 text-sm">
-              Voir tous les véhicules <ArrowRight className="h-4 w-4" />
+              Voir toutes les voitures <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
         </div>
       </section>
+
+      {/* ================================================================
+          MOTOS — Section distincte, affichée seulement si des motos sont publiées
+      ================================================================= */}
+      {dataLoaded && !hasError && featuredMotos.length > 0 && (
+        <section aria-labelledby="home-motos-title" className="border-t border-slate-200 bg-[#F5F6F8] py-16 sm:py-20">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="mb-6 flex items-end justify-between gap-4">
+              <div>
+                <p className="section-header-eyebrow">
+                  <Motorbike className="h-3.5 w-3.5" aria-hidden="true" />
+                  Deux-roues
+                </p>
+                <h2 id="home-motos-title" className="text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">
+                  Motos et scooters
+                </h2>
+                <p className="mt-2 text-sm text-slate-500">
+                  {motoVehicles.length} moto{motoVehicles.length > 1 ? 's' : ''} proposée{motoVehicles.length > 1 ? 's' : ''} par les agences partenaires, avec cylindrée et permis exigé.
+                </p>
+              </div>
+              <Link
+                href="/motos"
+                className="hidden items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 shadow-sm transition hover:border-[#E63946]/30 hover:text-accent-text hover:shadow-md sm:flex"
+              >
+                Toutes les motos <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {featuredMotos.map((vehicle) => (
+                <VehicleCard
+                  key={vehicle.id}
+                  vehicle={vehicle}
+                  selectedDays={selectedDays > 0 ? selectedDays : undefined}
+                />
+              ))}
+            </div>
+            <div className="mt-8 flex justify-center sm:hidden">
+              <Link href="/motos" className="btn-primary px-5 py-3 text-sm">
+                Voir toutes les motos <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ================================================================
           CARDRIVE DIFFERENTIATOR — Exemple explicite et non ambigu

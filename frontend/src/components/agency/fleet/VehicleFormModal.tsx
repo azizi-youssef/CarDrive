@@ -14,17 +14,22 @@ import {
   DollarSign,
   Camera,
   Layers,
+  Motorbike,
 } from 'lucide-react';
 import {
-  VEHICLE_CATEGORIES,
-  TRANSMISSION_TYPES,
-  FUEL_TYPES,
-  type VehicleCreateInput,
-} from '@/lib/validations/vehicle';
+  COMMON_FEATURES_BY_TYPE,
+  MOTORCYCLE_LICENSES,
+  MOTORCYCLE_LICENSE_LABELS,
+  VEHICLE_TYPE_LABELS,
+  categoriesForType,
+  type MotorcycleLicense,
+  type VehicleType,
+} from '@/lib/vehicles/kind';
 import { cn } from '@/lib/utils';
 
 export type EditableVehicle = {
   id?: string;
+  vehicle_type: VehicleType;
   brand: string;
   model: string;
   year: number;
@@ -34,6 +39,10 @@ export type EditableVehicle = {
   seats: number;
   doors: number;
   air_conditioning: boolean;
+  /** Motos : cylindrée (cm³) */
+  engine_cc?: number | null;
+  /** Motos : permis exigé */
+  license_required?: MotorcycleLicense | null;
   mileage: number;
   daily_price: number;
   weekly_price?: number | null;
@@ -48,28 +57,45 @@ export type EditableVehicle = {
   features: string[];
 };
 
-const COMMON_FEATURES = [
-  'GPS / Navigation',
-  'Bluetooth & USB',
-  'Caméra de recul',
-  'Régulateur de vitesse',
-  'Apple CarPlay / Android Auto',
-  'Radars de stationnement',
-  'Sièges chauffants',
-  'Toit ouvrant / Panoramique',
-  'Démarrage sans clé',
-  'Phares LED',
-  'Fixation Isofix',
-];
+/** Valeurs de départ propres à chaque type (l'agence les ajuste) */
+const TYPE_DEFAULTS: Record<VehicleType, Partial<EditableVehicle>> = {
+  CAR: {
+    category: 'Économique',
+    transmission: 'MANUAL',
+    fuel: 'DIESEL',
+    seats: 5,
+    doors: 5,
+    air_conditioning: true,
+    engine_cc: null,
+    license_required: null,
+  },
+  // Aucune valeur pré-remplie pour les caractéristiques propres à la moto :
+  // l'agence choisit la catégorie et saisit la cylindrée (évite d'enregistrer un « Scooter 125 cm³ » par défaut)
+  MOTORCYCLE: {
+    category: '',
+    transmission: 'MANUAL',
+    fuel: 'GASOLINE',
+    seats: 2,
+    doors: 0,
+    air_conditioning: false,
+    engine_cc: null,
+    license_required: null,
+  },
+};
+
+const labelClass = 'mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-600';
 
 export function VehicleFormModal({
   agencyId,
   initialVehicle,
+  initialType = 'CAR',
   onClose,
   onSuccess,
 }: {
   agencyId: string;
   initialVehicle?: EditableVehicle | null;
+  /** Type proposé pour un nouvel ajout (liste Voitures ou Motos d'où l'ajout est lancé) */
+  initialType?: VehicleType;
   onClose: () => void;
   onSuccess: () => void;
 }) {
@@ -83,6 +109,7 @@ export function VehicleFormModal({
       return { ...initialVehicle };
     }
     return {
+      vehicle_type: 'CAR',
       brand: '',
       model: '',
       year: new Date().getFullYear(),
@@ -101,7 +128,9 @@ export function VehicleFormModal({
       license_plate: '',
       unit_number: '',
       images: [],
-      features: ['Bluetooth & USB', 'Climatisation'],
+      features: initialType === 'MOTORCYCLE' ? [] : ['Bluetooth & USB', 'Climatisation'],
+      // Ajout lancé depuis la liste Motos : valeurs de départ d'une moto
+      ...(initialType === 'MOTORCYCLE' ? { ...TYPE_DEFAULTS.MOTORCYCLE, vehicle_type: 'MOTORCYCLE' as const } : {}),
     };
   });
 
@@ -112,6 +141,22 @@ export function VehicleFormModal({
   }, [initialVehicle]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const isMoto = form.vehicle_type === 'MOTORCYCLE';
+  const typeLabel = VEHICLE_TYPE_LABELS[form.vehicle_type];
+  const categories = categoriesForType(form.vehicle_type);
+  const commonFeatures = COMMON_FEATURES_BY_TYPE[form.vehicle_type];
+
+  /** Changement voiture / moto : catégorie et caractéristiques remises aux valeurs du type choisi */
+  const changeType = (type: VehicleType) => {
+    if (type === form.vehicle_type) return;
+    setForm((prev) => ({
+      ...prev,
+      ...TYPE_DEFAULTS[type],
+      vehicle_type: type,
+      // Les équipements propres à l'autre type n'ont plus de sens
+      features: prev.features.filter((feature) => COMMON_FEATURES_BY_TYPE[type].includes(feature)),
+    }));
+  };
 
   const toggleFeature = (feat: string) => {
     setForm((prev) => {
@@ -194,6 +239,16 @@ export function VehicleFormModal({
       setStep(1);
       return;
     }
+    if (isMoto && !form.category) {
+      setError('Choisissez la catégorie de la moto (Scooter, Roadster, Trail, Sportive ou Custom).');
+      setStep(1);
+      return;
+    }
+    if (isMoto && form.fuel !== 'ELECTRIC' && !form.engine_cc) {
+      setError('Indiquez la cylindrée de la moto (en cm³).');
+      setStep(1);
+      return;
+    }
     if (form.daily_price <= 0) {
       setError('Le tarif journalier doit être supérieur à 0.');
       setStep(2);
@@ -250,11 +305,15 @@ export function VehicleFormModal({
         <div className="flex items-center justify-between border-b border-slate-100 bg-[#0B1220] px-6 py-4 text-white">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-action text-white">
-              <Car className="h-5 w-5" />
+              {isMoto ? <Motorbike className="h-5 w-5" aria-hidden="true" /> : <Car className="h-5 w-5" aria-hidden="true" />}
             </div>
             <div>
               <h2 className="text-lg font-bold">
-                {form.id ? `Modifier : ${form.brand} ${form.model}` : 'Ajouter un nouveau véhicule'}
+                {form.id
+                  ? `Modifier : ${form.brand} ${form.model}`
+                  : isMoto
+                    ? 'Ajouter une nouvelle moto'
+                    : 'Ajouter un nouveau véhicule'}
               </h2>
               <p className="text-xs text-slate-300">
                 Flotte CarDrive — Tarification certifiée & disponibilité
@@ -347,6 +406,41 @@ export function VehicleFormModal({
           {/* STEP 1: Specs */}
           {step === 1 && (
             <div className="space-y-4">
+              <fieldset>
+                <legend className={labelClass}>Type de véhicule</legend>
+                {form.id ? (
+                  <p className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-800">
+                    {isMoto ? <Motorbike className="h-4 w-4" aria-hidden="true" /> : <Car className="h-4 w-4" aria-hidden="true" />}
+                    {typeLabel.singular}
+                  </p>
+                ) : (
+                  <div className="grid grid-cols-2 gap-2 sm:max-w-sm" role="radiogroup" aria-label="Type de véhicule">
+                    {(['CAR', 'MOTORCYCLE'] as const).map((type) => {
+                      const active = form.vehicle_type === type;
+                      const Icon = type === 'MOTORCYCLE' ? Motorbike : Car;
+                      return (
+                        <button
+                          key={type}
+                          type="button"
+                          role="radio"
+                          aria-checked={active}
+                          onClick={() => changeType(type)}
+                          className={cn(
+                            'flex min-h-11 items-center justify-center gap-2 rounded-xl border px-3 text-sm font-semibold transition-colors',
+                            active
+                              ? 'border-[#0B1220] bg-[#0B1220] text-white'
+                              : 'border-slate-300 bg-white text-slate-700 hover:border-slate-400'
+                          )}
+                        >
+                          <Icon className="h-4 w-4" aria-hidden="true" />
+                          {VEHICLE_TYPE_LABELS[type].singular}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </fieldset>
+
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-600">
@@ -355,7 +449,7 @@ export function VehicleFormModal({
                   <input
                     type="text"
                     required
-                    placeholder="Ex: Dacia, Renault, Peugeot..."
+                    placeholder={isMoto ? 'Ex: Yamaha, Honda, SYM...' : 'Ex: Dacia, Renault, Peugeot...'}
                     value={form.brand}
                     onChange={(e) => setForm({ ...form, brand: e.target.value })}
                     className="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm focus:border-[#E63946] focus:outline-none focus:ring-1 focus:ring-[#E63946]"
@@ -368,7 +462,7 @@ export function VehicleFormModal({
                   <input
                     type="text"
                     required
-                    placeholder="Ex: Duster, Clio 5, 208..."
+                    placeholder={isMoto ? 'Ex: NMAX 125, Forza 350, MT-07...' : 'Ex: Duster, Clio 5, 208...'}
                     value={form.model}
                     onChange={(e) => setForm({ ...form, model: e.target.value })}
                     className="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm focus:border-[#E63946] focus:outline-none focus:ring-1 focus:ring-[#E63946]"
@@ -396,10 +490,24 @@ export function VehicleFormModal({
                   </label>
                   <select
                     value={form.category}
-                    onChange={(e) => setForm({ ...form, category: e.target.value })}
+                    onChange={(e) => {
+                      const nextCategory = e.target.value;
+                      setForm({
+                        ...form,
+                        category: nextCategory,
+                        // Moto : boîte proposée selon la catégorie (modifiable ensuite)
+                        ...(isMoto ? { transmission: nextCategory === 'Scooter' ? ('AUTOMATIC' as const) : ('MANUAL' as const) } : {}),
+                      });
+                    }}
+                    required
                     className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-[#E63946] focus:outline-none"
                   >
-                    {VEHICLE_CATEGORIES.map((c) => (
+                    {isMoto && (
+                      <option value="" disabled>
+                        Choisir…
+                      </option>
+                    )}
+                    {categories.map((c) => (
                       <option key={c} value={c}>
                         {c}
                       </option>
@@ -408,7 +516,7 @@ export function VehicleFormModal({
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-600">
-                    Transmission
+                    {isMoto ? 'Boîte' : 'Transmission'}
                   </label>
                   <select
                     value={form.transmission}
@@ -417,8 +525,8 @@ export function VehicleFormModal({
                     }
                     className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-[#E63946] focus:outline-none"
                   >
-                    <option value="MANUAL">Manuelle</option>
-                    <option value="AUTOMATIC">Automatique</option>
+                    <option value="MANUAL">{isMoto ? 'Manuelle (embrayage)' : 'Manuelle'}</option>
+                    <option value="AUTOMATIC">{isMoto ? 'Automatique (scooter)' : 'Automatique'}</option>
                   </select>
                 </div>
                 <div>
@@ -435,9 +543,9 @@ export function VehicleFormModal({
                     }
                     className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-[#E63946] focus:outline-none"
                   >
-                    <option value="DIESEL">Diesel</option>
+                    {!isMoto && <option value="DIESEL">Diesel</option>}
                     <option value="GASOLINE">Essence</option>
-                    <option value="HYBRID">Hybride</option>
+                    {!isMoto && <option value="HYBRID">Hybride</option>}
                     <option value="ELECTRIC">Électrique</option>
                   </select>
                 </div>
@@ -450,26 +558,44 @@ export function VehicleFormModal({
                   </label>
                   <input
                     type="number"
-                    min="2"
-                    max="9"
+                    min={isMoto ? 1 : 2}
+                    max={isMoto ? 2 : 9}
                     value={form.seats}
                     onChange={(e) => setForm({ ...form, seats: Number(e.target.value) })}
                     className="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm"
                   />
                 </div>
-                <div>
-                  <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-600">
-                    Portes
-                  </label>
-                  <input
-                    type="number"
-                    min="2"
-                    max="5"
-                    value={form.doors}
-                    onChange={(e) => setForm({ ...form, doors: Number(e.target.value) })}
-                    className="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm"
-                  />
-                </div>
+                {isMoto ? (
+                  <div>
+                    <label htmlFor="vehicle-engine-cc" className={labelClass}>
+                      Cylindrée (cm³) *
+                    </label>
+                    <input
+                      id="vehicle-engine-cc"
+                      type="number"
+                      min="49"
+                      max="2500"
+                      placeholder="Ex: 125"
+                      value={form.engine_cc ?? ''}
+                      onChange={(e) => setForm({ ...form, engine_cc: e.target.value ? Number(e.target.value) : null })}
+                      className="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm"
+                    />
+                  </div>
+                ) : (
+                  <div>
+                    <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-600">
+                      Portes
+                    </label>
+                    <input
+                      type="number"
+                      min="2"
+                      max="5"
+                      value={form.doors}
+                      onChange={(e) => setForm({ ...form, doors: Number(e.target.value) })}
+                      className="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm"
+                    />
+                  </div>
+                )}
                 <div>
                   <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-600">
                     Kilométrage actuel
@@ -496,12 +622,40 @@ export function VehicleFormModal({
                 </div>
               </div>
 
+              {isMoto && (
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div>
+                    <label htmlFor="vehicle-license" className={labelClass}>
+                      Permis exigé
+                    </label>
+                    <select
+                      id="vehicle-license"
+                      value={form.license_required ?? ''}
+                      onChange={(e) =>
+                        setForm({ ...form, license_required: (e.target.value || null) as MotorcycleLicense | null })
+                      }
+                      className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-[#E63946] focus:outline-none"
+                    >
+                      <option value="">À préciser au client</option>
+                      {MOTORCYCLE_LICENSES.map((license) => (
+                        <option key={license} value={license}>
+                          {MOTORCYCLE_LICENSE_LABELS[license]}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <p className="self-end text-xs leading-5 text-slate-500">
+                    Affiché au client avant sa demande. Indiquez le permis que votre agence exige réellement pour cette moto.
+                  </p>
+                </div>
+              )}
+
               <div>
                 <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-600">
                   Équipements & Options
                 </label>
                 <div className="flex flex-wrap gap-2">
-                  {COMMON_FEATURES.map((feat) => {
+                  {commonFeatures.map((feat) => {
                     const active = form.features.includes(feat);
                     return (
                       <button
@@ -634,7 +788,7 @@ export function VehicleFormModal({
               {/* Image Uploader */}
               <div>
                 <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-600">
-                  Photos du véhicule (Supabase Storage)
+                  {isMoto ? 'Photos de la moto' : 'Photos du véhicule'}
                 </label>
                 <input
                   type="file"
@@ -679,7 +833,7 @@ export function VehicleFormModal({
                   <div>
                     <p className="font-semibold text-amber-900">Aucune photo ajoutée pour l&apos;instant</p>
                     <p className="mt-0.5 text-amber-700">
-                      Ajoutez au moins 1 photo pour que votre véhicule soit présenté avec son visuel réel sur la marketplace CarDrive.
+                      Ajoutez au moins 1 photo pour que {isMoto ? 'votre moto soit présentée' : 'votre véhicule soit présenté'} avec son visuel réel sur la marketplace CarDrive.
                     </p>
                   </div>
                 </div>

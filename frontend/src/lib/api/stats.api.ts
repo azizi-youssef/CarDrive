@@ -5,6 +5,8 @@ export interface AdminStats {
   verifiedAgencies: number;
   pendingAgencies: number;
   totalVehicles: number;
+  /** Dont motos (absent si le décompte n'a pas pu être fait) */
+  totalMotorcycles?: number;
   totalBookings: number;
   totalVolume: number;
   platformCommission: number;

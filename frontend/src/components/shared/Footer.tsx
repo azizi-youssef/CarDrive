@@ -18,6 +18,7 @@ import {
   Compass,
   Car,
   Gauge,
+  Motorbike,
   ChevronDown,
   ChevronRight,
   ArrowUpRight,
@@ -56,6 +57,7 @@ interface FooterStrings {
   premium: string;
   automatic: string;
   allVehicles: string;
+  motorbikes: string;
   colServices: string;
   agencies: string;
   agencyPortal: string;
@@ -98,7 +100,8 @@ const STRINGS: Record<string, FooterStrings> = {
     sedan: 'Berlines Confort',
     premium: 'Luxe & Prestige',
     automatic: 'Boîte Automatique',
-    allVehicles: 'Tous les véhicules',
+    allVehicles: 'Toutes les voitures',
+    motorbikes: 'Motos & scooters',
     colServices: 'Services & Partenaires',
     agencies: 'Agences partenaires',
     agencyPortal: 'Espace agence',
@@ -140,6 +143,7 @@ const STRINGS: Record<string, FooterStrings> = {
     premium: 'سيارات برستيج وفاخرة',
     automatic: 'ناقل حركة أوتوماتيكي',
     allVehicles: 'عرض جميع السيارات',
+    motorbikes: 'الدراجات النارية والسكوتر',
     colServices: 'الخدمات والشركاء',
     agencies: 'الوكالات الشريكة',
     agencyPortal: 'بوابة الوكالة',
@@ -180,7 +184,8 @@ const STRINGS: Record<string, FooterStrings> = {
     sedan: 'Comfort Sedans',
     premium: 'Luxury & Prestige',
     automatic: 'Automatic Transmission',
-    allVehicles: 'All Available Vehicles',
+    allVehicles: 'All Available Cars',
+    motorbikes: 'Motorbikes & scooters',
     colServices: 'Services & Partners',
     agencies: 'Partner Agencies',
     agencyPortal: 'Agency Portal',
@@ -221,7 +226,8 @@ const STRINGS: Record<string, FooterStrings> = {
     sedan: 'Komfort-Limousinen',
     premium: 'Luxus & Prestige',
     automatic: 'Automatikgetriebe',
-    allVehicles: 'Alle Fahrzeuge',
+    allVehicles: 'Alle Autos',
+    motorbikes: 'Motorräder & Roller',
     colServices: 'Service & Partner',
     agencies: 'Partneragenturen',
     agencyPortal: 'Agenturbereich',
@@ -262,7 +268,8 @@ const STRINGS: Record<string, FooterStrings> = {
     sedan: 'Berlinas confort',
     premium: 'Lujo y prestigio',
     automatic: 'Cambio automático',
-    allVehicles: 'Todos los vehículos',
+    allVehicles: 'Todos los coches',
+    motorbikes: 'Motos y scooters',
     colServices: 'Servicios y socios',
     agencies: 'Agencias asociadas',
     agencyPortal: 'Espacio agencia',
@@ -303,7 +310,8 @@ const STRINGS: Record<string, FooterStrings> = {
     sedan: 'Comfortabele sedans',
     premium: 'Luxe & prestige',
     automatic: 'Automaat',
-    allVehicles: 'Alle voertuigen',
+    allVehicles: 'Alle auto’s',
+    motorbikes: 'Motoren & scooters',
     colServices: 'Diensten & partners',
     agencies: 'Partnerbureaus',
     agencyPortal: 'Bureauportaal',
@@ -611,6 +619,9 @@ export function Footer() {
             </NavItem>
             <NavItem href="/location-voiture-nador-automatique" isRTL={isRTL} icon={<Gauge className="h-4 w-4" aria-hidden="true" />}>
               {strings.automatic}
+            </NavItem>
+            <NavItem href="/motos" isRTL={isRTL} icon={<Motorbike className="h-4 w-4" aria-hidden="true" />}>
+              {strings.motorbikes}
             </NavItem>
             <NavItem href="/search" isRTL={isRTL} highlight>
               {strings.allVehicles}
