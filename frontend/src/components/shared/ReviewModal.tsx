@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useId, useState } from 'react';
+import { useModalDialog } from '@/lib/a11y/useModalDialog';
 import { Star, X, Send, CheckCircle2, AlertCircle, MessageSquare } from 'lucide-react';
 import Image from 'next/image';
 
@@ -77,6 +78,8 @@ export function ReviewModal({
   const [comment, setComment] = useState('');
   const [state, setState] = useState<FormState>('idle');
   const [error, setError] = useState<string | null>(null);
+  const titleId = useId();
+  const dialogRef = useModalDialog<HTMLDivElement>(true, { onClose, closeDisabled: state === 'sending' });
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -111,7 +114,14 @@ export function ReviewModal({
       className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        tabIndex={-1}
+        className="relative w-full max-w-md overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl outline-none"
+      >
 
         {/* Header */}
         <div className="relative bg-[#0B1220] px-6 py-5">
@@ -126,7 +136,7 @@ export function ReviewModal({
             <MessageSquare className="h-5 w-5 text-amber-400" />
             <div>
               <p className="text-xs font-semibold text-white/60">Avis vérifié</p>
-              <p className="text-sm font-bold text-white">Évaluez votre expérience</p>
+              <h2 id={titleId} className="text-sm font-bold text-white">Évaluez votre expérience</h2>
             </div>
           </div>
         </div>

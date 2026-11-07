@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useId, useRef, useState, useSyncExternal
 import Link from 'next/link';
 import { ArrowRight, ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react';
 import { BRAND_LOGO_PATHS } from '@/lib/constants/brand-logos';
+import { CATALOG_PATHS } from '@/lib/vehicles/kind';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
 import { cn } from '@/lib/utils';
 
@@ -25,9 +26,38 @@ export const FEATURED_BRANDS = [
   'Land Rover',
 ] as const;
 
+/*
+ * Motos et scooters, même logique : d'abord les marques les plus louées au Maroc (scooters et roadsters
+ * japonais, SYM, Peugeot), puis les marques plus rares en location (trail et sportives européennes).
+ */
+export const FEATURED_MOTORCYCLE_BRANDS = [
+  'Yamaha',
+  'Honda',
+  'Suzuki',
+  'SYM',
+  'Peugeot',
+  'Vespa',
+  'Kawasaki',
+  'BMW',
+  'KTM',
+  'Ducati',
+] as const;
+
+export type BrandMarqueeKind = 'cars' | 'motorcycles';
+
 /* Libellés d'affichage : la valeur filtrée reste celle du catalogue */
 const DISPLAY_NAMES: Record<string, string> = {
   Citroen: 'Citroën',
+};
+
+/*
+ * Marques sans tracé libre de droits : badge typographique (nom de la marque dans un cartouche),
+ * jamais une imitation de leur logo.
+ */
+const WORDMARK_BADGES: Record<string, { text: string; viewWidth: number; fontSize: number; textLength: number }> = {
+  // Cartouche adapté à la longueur du nom, pour un poids visuel proche des autres logos
+  Kawasaki: { text: 'KAWASAKI', viewWidth: 44, fontSize: 8.5, textLength: 36 },
+  SYM: { text: 'SYM', viewWidth: 30, fontSize: 11, textLength: 20 },
 };
 
 /*
@@ -45,6 +75,16 @@ const LOGO_SCALE: Record<string, number> = {
   Citroen: 0.95,
   'Mercedes-Benz': 0.9,
   'Land Rover': 1,
+  // Motos
+  Yamaha: 0.95,
+  Honda: 1,
+  Suzuki: 0.9,
+  SYM: 1,
+  Vespa: 1.4,
+  Kawasaki: 1.4,
+  BMW: 0.9,
+  KTM: 1.25,
+  Ducati: 0.95,
 };
 
 /*
@@ -91,6 +131,27 @@ export function BrandLogo({ brand, className }: { brand: string; className?: str
       </svg>
     );
   }
+  const badge = WORDMARK_BADGES[brand];
+  if (badge) {
+    return (
+      <svg viewBox={`0 0 ${badge.viewWidth} 24`} aria-hidden="true" className={className} style={scale}>
+        <rect x="0.5" y="3" width={badge.viewWidth - 1} height="18" rx="3.5" fill="currentColor" />
+        <text
+          x={badge.viewWidth / 2}
+          y={12 + badge.fontSize * 0.36}
+          textAnchor="middle"
+          fill="#fff"
+          fontSize={badge.fontSize}
+          fontWeight="800"
+          textLength={badge.textLength}
+          lengthAdjust="spacingAndGlyphs"
+          fontFamily="Arial, Helvetica, sans-serif"
+        >
+          {badge.text}
+        </text>
+      </svg>
+    );
+  }
   const path = BRAND_LOGO_PATHS[brand];
   if (!path) return null;
   return (
@@ -105,26 +166,33 @@ function BrandCard({
   brand,
   count,
   loading,
+  kind,
+  onSelect,
 }: {
   brand: string;
   count: number | undefined;
   loading: boolean;
+  kind: BrandMarqueeKind;
+  onSelect?: (brand: string) => void;
 }) {
   const { t } = useTranslation();
   const name = DISPLAY_NAMES[brand] ?? brand;
+  const moto = kind === 'motorcycles';
+  const [one, many] = moto ? [t.brands.motoOne, t.brands.motoMany] : [t.brands.vehicleOne, t.brands.vehicleMany];
   const countLabel =
-    count === undefined || count === 0
-      ? t.brands.soon
-      : (count === 1 ? t.brands.vehicleOne : t.brands.vehicleMany).replace('{count}', String(count));
+    count === undefined || count === 0 ? t.brands.soon : (count === 1 ? one : many).replace('{count}', String(count));
+  const cardLabel = (moto ? t.brands.motoCardLabel : t.brands.cardLabel).replace('{brand}', name);
 
   return (
     <Link
-      href={`/search?brand=${encodeURIComponent(brand)}`}
-      aria-label={
-        loading
-          ? t.brands.cardLabel.replace('{brand}', name)
-          : `${t.brands.cardLabel.replace('{brand}', name)} — ${countLabel}`
-      }
+      href={`${CATALOG_PATHS[moto ? 'MOTORCYCLE' : 'CAR']}?brand=${encodeURIComponent(brand)}`}
+      aria-label={loading ? cardLabel : `${cardLabel} — ${countLabel}`}
+      onClick={(event) => {
+        // Sur la page du catalogue : filtre appliqué sur place (le lien reste utilisable en nouvel onglet)
+        if (!onSelect || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
+        event.preventDefault();
+        onSelect(brand);
+      }}
       className="group/card flex h-31 w-[clamp(132px,36vw,168px)] flex-col items-center justify-center gap-2 rounded-[22px] border border-slate-200 bg-white px-3 shadow-[0_1px_2px_rgba(11,18,32,0.04),0_8px_20px_-16px_rgba(11,18,32,0.2)] outline-none transition-[translate,scale,box-shadow,border-color] duration-200 hover:-translate-y-1 hover:border-[#E63946] hover:shadow-[0_2px_4px_rgba(11,18,32,0.05),0_18px_32px_-18px_rgba(11,18,32,0.35)] focus-visible:-translate-y-1 focus-visible:border-[#E63946] focus-visible:ring-2 focus-visible:ring-[#E63946]/35 active:translate-y-0 active:scale-[0.98] sm:h-33 sm:rounded-[24px] motion-reduce:transition-none motion-reduce:hover:translate-y-0 motion-reduce:focus-visible:translate-y-0"
     >
       {/* Boîte 40×40 : même surface visuelle pour tous les logos */}
@@ -180,18 +248,36 @@ function measureSetWidth(el: HTMLUListElement, count: number): number {
  * - pause au survol, au focus, au toucher, hors écran et onglet masqué, bouton pause/lecture (WCAG 2.2.2) ;
  * - apparition en cascade des cartes à l'entrée dans l'écran ;
  * - aucune animation si l'utilisateur a demandé à réduire les mouvements (liste simple, sans copie).
+ *
+ * `kind` choisit le catalogue (voitures → /search, motos → /motos) et les libellés ;
+ * `reverse` fait défiler vers la droite (deux barres consécutives se croisent au lieu de se suivre).
  */
 export function BrandMarquee({
-  brands = FEATURED_BRANDS,
+  kind = 'cars',
+  brands = kind === 'motorcycles' ? FEATURED_MOTORCYCLE_BRANDS : FEATURED_BRANDS,
   vehicleCounts,
   countsLoading = false,
+  reverse = false,
+  className,
+  onBrandSelect,
 }: {
+  kind?: BrandMarqueeKind;
   brands?: readonly string[];
   /** Nombre de véhicules par marque, clés issues de normalizeBrandKey() */
   vehicleCounts?: Record<string, number>;
   countsLoading?: boolean;
+  reverse?: boolean;
+  className?: string;
+  /** Sur la page du catalogue lui-même : applique le filtre sans quitter la page */
+  onBrandSelect?: (brand: string) => void;
 }) {
   const { t } = useTranslation();
+  const moto = kind === 'motorcycles';
+  const texts = moto
+    ? { eyebrow: t.brands.motoEyebrow, title: t.brands.motoTitle, catalog: t.brands.motoCatalog, region: t.brands.motoRegionLabel }
+    : { eyebrow: t.brands.eyebrow, title: t.brands.title, catalog: t.brands.catalog, region: t.brands.regionLabel };
+  const catalogPath = CATALOG_PATHS[moto ? 'MOTORCYCLE' : 'CAR'];
+  const titleId = useId();
   const scrollerId = useId();
   const sectionRef = useRef<HTMLElement>(null);
   const scrollerRef = useRef<HTMLUListElement>(null);
@@ -319,15 +405,17 @@ export function BrandMarquee({
       } else {
         // L'utilisateur a bougé la liste entre-temps : on repart de sa position
         if (Math.abs(el.scrollLeft - Math.round(position.current)) > 2) position.current = el.scrollLeft;
-        position.current += (CYCLE_SPEED_PX_PER_S * elapsed) / 1000;
+        position.current += ((reverse ? -1 : 1) * CYCLE_SPEED_PX_PER_S * elapsed) / 1000;
         const series = setWidth.current;
+        // Recalage d'une série dans les deux sens : la copie identique rend le saut invisible
         if (series > 0 && position.current >= series) position.current -= series;
+        if (series > 0 && position.current < 0) position.current += series;
         el.scrollLeft = Math.round(position.current);
       }
       frame = requestAnimationFrame(tick);
     });
     return () => cancelAnimationFrame(frame);
-  }, [autoplayActive]);
+  }, [autoplayActive, reverse]);
 
   /** Toute action manuelle suspend le défilement automatique quelques secondes */
   const holdAutoplay = () => {
@@ -368,25 +456,28 @@ export function BrandMarquee({
   return (
     <section
       ref={sectionRef}
-      aria-labelledby="brand-marquee-title"
+      aria-labelledby={titleId}
       // Marge de départ commune au titre et aux cartes (mêmes valeurs que le conteneur max-w-7xl)
-      className="bg-white py-12 [--edge:1rem] sm:py-16 sm:[--edge:1.5rem] lg:[--edge:max(2rem,calc((100%-80rem)/2+2rem))]"
+      className={cn(
+        'bg-white py-12 [--edge:1rem] sm:py-16 sm:[--edge:1.5rem] lg:[--edge:max(2rem,calc((100%-80rem)/2+2rem))]',
+        className
+      )}
     >
       <div className="mx-auto flex max-w-7xl items-end justify-between gap-4 px-4 sm:px-6 lg:px-8">
         <div className="min-w-0">
           <p className="text-[11px] font-bold uppercase tracking-[0.2em]" style={{ color: COLORS.accentText }}>
-            {t.brands.eyebrow}
+            {texts.eyebrow}
           </p>
-          <h2 id="brand-marquee-title" className="mt-1.5 text-2xl font-extrabold tracking-tight text-[#0B1220] sm:text-[28px]">
-            {t.brands.title}
+          <h2 id={titleId} className="mt-1.5 text-2xl font-extrabold tracking-tight text-[#0B1220] sm:text-[28px]">
+            {texts.title}
           </h2>
         </div>
         <div className="flex shrink-0 items-center gap-3">
           <Link
-            href="/search"
+            href={catalogPath}
             className="group/link inline-flex min-h-11 items-center gap-1.5 rounded-lg text-sm font-bold text-[#0B1220] outline-none transition-colors hover:text-[#C92F3B] focus-visible:ring-2 focus-visible:ring-[#E63946]/40"
           >
-            {t.brands.catalog}
+            {texts.catalog}
             <ArrowRight
               className="h-4 w-4 transition-transform group-hover/link:translate-x-0.5 motion-reduce:transition-none rtl:rotate-180"
               aria-hidden="true"
@@ -424,7 +515,7 @@ export function BrandMarquee({
       <div
         dir="ltr"
         role="region"
-        aria-label={t.brands.regionLabel}
+        aria-label={texts.region}
         className="relative mt-5"
         onPointerEnter={(e) => e.pointerType === 'mouse' && setHovered(true)}
         onPointerLeave={() => setHovered(false)}
@@ -462,6 +553,8 @@ export function BrandMarquee({
                   brand={brand}
                   count={vehicleCounts?.[normalizeBrandKey(brand)]}
                   loading={countsLoading}
+                  kind={kind}
+                  onSelect={onBrandSelect}
                 />
               </li>
             ))

@@ -8,17 +8,10 @@ import {
   Percent,
   CheckCircle2,
   AlertCircle,
-  ShieldCheck,
   Save,
-  HelpCircle,
-  RefreshCw,
-  Coins,
   Sparkles,
   TrendingUp,
-  Layers,
-  Car,
   Check,
-  Zap,
 } from 'lucide-react';
 import type { SubscriptionPlan } from '@/types';
 
@@ -26,7 +19,6 @@ export default function CommissionSettingsPage() {
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [currentRate, setCurrentRate] = useState<number>(0.0);
   const [newRateInput, setNewRateInput] = useState<string>('0.0');
-  const [loading, setLoading] = useState<boolean>(true);
   const [saving, setSaving] = useState<boolean>(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
@@ -53,8 +45,6 @@ export default function CommissionSettingsPage() {
       }
     } catch (err) {
       console.warn('Could not fetch settings:', err);
-    } finally {
-      setLoading(false);
     }
   }, []);
 

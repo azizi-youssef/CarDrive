@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { serverError } from '@/lib/api/server-error';
 import { vehiclesService } from '@/lib/services/vehicles.service';
 import { requireAgencyPermissionApi } from '@/lib/auth/access-api';
+import { toPublicVehicle } from '@/lib/vehicles/public';
 
 type Ctx = { params: Promise<{ ref: string }> };
 
@@ -24,7 +25,7 @@ export async function GET(_req: NextRequest, context: Ctx) {
       return NextResponse.json({ success: false, error: 'Véhicule introuvable' }, { status: 404 });
     }
     return NextResponse.json(
-      { success: true, data: vehicle },
+      { success: true, data: toPublicVehicle(vehicle) },
       { headers: { 'Cache-Control': 'no-store' } }
     );
   } catch (error: unknown) {

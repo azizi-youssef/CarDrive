@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { CheckCircle2, FileText, Loader2, XCircle } from 'lucide-react';
 import { canPerformAgencyBookingAction } from '@klickdrive/shared';
 import { cn } from '@/lib/utils';
@@ -82,11 +82,14 @@ export function BookingDetailModal({
   onDownloadPdf: () => void;
 }) {
   const [reason, setReason] = useState('');
+  const [reasonError, setReasonError] = useState<string | null>(null);
   const [alternativeId, setAlternativeId] = useState('');
   const [pending, setPending] = useState<BookingAction | null>(null);
+  const reasonRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     setReason('');
+    setReasonError(null);
     setAlternativeId('');
     setPending(null);
   }, [booking.id]);
@@ -96,6 +99,14 @@ export function BookingDetailModal({
   const events = detail?.events ?? [];
 
   const submit = (action: BookingAction) => {
+    // Motif obligatoire : le bouton reste actif et conduit au champ manquant,
+    // au lieu d'être grisé sans explication (le champ est plus haut dans le dossier).
+    if (action === 'reject' && !reason.trim()) {
+      setReasonError('Indiquez le motif du refus : il sera transmis au client.');
+      reasonRef.current?.scrollIntoView({ block: 'center' });
+      reasonRef.current?.focus({ preventScroll: true });
+      return;
+    }
     setPending(action);
     onAction(action, {
       reason: action === 'reject' ? reason : undefined,
@@ -123,7 +134,7 @@ export function BookingDetailModal({
               type="button"
               className={button.danger}
               onClick={() => submit('reject')}
-              disabled={busy || !reason.trim()}
+              disabled={busy}
             >
               {busy && pending === 'reject' ? (
                 <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" />
@@ -211,13 +222,27 @@ export function BookingDetailModal({
               Motif du refus <span className="font-normal text-accent-text">(obligatoire)</span>
             </label>
             <textarea
+              ref={reasonRef}
               id="reject-reason"
               rows={3}
               value={reason}
-              onChange={(event) => setReason(event.target.value)}
+              onChange={(event) => {
+                setReason(event.target.value);
+                if (event.target.value.trim()) setReasonError(null);
+              }}
+              aria-invalid={reasonError ? true : undefined}
+              aria-describedby={reasonError ? 'reject-reason-error' : undefined}
               placeholder="Expliquez au client pourquoi la demande ne peut pas être acceptée."
-              className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none transition-colors focus:border-[#E63946] focus:ring-2 focus:ring-[#E63946]/25"
+              className={cn(
+                'w-full rounded-xl border bg-white px-3 py-2.5 text-sm outline-none transition-colors focus:border-[#E63946] focus:ring-2 focus:ring-[#E63946]/25',
+                reasonError ? 'border-[#E63946] bg-[#FFF6F7]' : 'border-slate-300'
+              )}
             />
+            {reasonError && (
+              <p id="reject-reason-error" role="alert" className="mt-1.5 text-sm font-medium text-red-700">
+                {reasonError}
+              </p>
+            )}
           </section>
         )}
 

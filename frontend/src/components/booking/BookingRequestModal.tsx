@@ -13,6 +13,7 @@ import { MeetingPointBadge } from './MeetingPointBadge';
 import { addDateDays, formatLocalDate, isValidDateOnly } from '@/lib/utils/date-only';
 import { notifyRealtimeChange } from '@/lib/supabase/realtime';
 import { isMotorcycle, motorcycleLicenseLabel } from '@/lib/vehicles/kind';
+import { useModalDialog } from '@/lib/a11y/useModalDialog';
 import {
   AlertCircle,
   Anchor,
@@ -246,34 +247,18 @@ export function BookingRequestModal({
   const totalDays = calculateRentalDays(startDate, endDate);
   const pricing = calculateBookingPrice(vehicle.daily_price, totalDays, 15.00);
 
-  const dialogRef = useRef<HTMLDivElement>(null);
+  // Dialogue modal : focus initial (premier champ), piège Tab, Échap (sauf pendant l'envoi),
+  // page en arrière-plan inerte, défilement bloqué, focus rendu au bouton d'ouverture
+  const dialogRef = useModalDialog<HTMLDivElement>(isOpen, { onClose, closeDisabled: isSubmitting });
   const bodyRef = useRef<HTMLDivElement>(null);
-  const openerRef = useRef<Element | null>(null);
-  const firstStepRender = useRef(true);
+  const renderedStep = useRef(currentStep);
 
-  // Montage côté client : portail, défilement bloqué, focus initial puis restauré à la fermeture
+  // Changement d'étape : retour en haut du contenu et focus sur le titre de l'étape.
+  // À l'ouverture, le focus va au premier champ : on ne réagit qu'à un vrai changement d'étape
+  // (robuste au double appel des effets du mode strict de React en développement).
   useEffect(() => {
-    if (!isOpen) return;
-    openerRef.current = document.activeElement;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    const timer = window.setTimeout(() => {
-      dialogRef.current?.querySelector<HTMLElement>('[data-autofocus]')?.focus();
-    }, 30);
-    return () => {
-      window.clearTimeout(timer);
-      document.body.style.overflow = previousOverflow;
-      (openerRef.current as HTMLElement | null)?.focus?.();
-    };
-  }, [isOpen]);
-
-  // Changement d'étape : retour en haut du contenu et focus sur le titre de l'étape
-  // (à l'ouverture, le focus va au premier champ)
-  useEffect(() => {
-    if (firstStepRender.current) {
-      firstStepRender.current = false;
-      return;
-    }
+    if (renderedStep.current === currentStep) return;
+    renderedStep.current = currentStep;
     bodyRef.current?.scrollTo({ top: 0 });
     const heading = dialogRef.current?.querySelector<HTMLElement>('[data-step-heading]');
     heading?.focus({ preventScroll: true });
@@ -285,31 +270,6 @@ export function BookingRequestModal({
   const requestClose = () => {
     if (isSubmitting) return;
     onClose();
-  };
-
-  // Piège à focus + Échap
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === 'Escape') {
-      e.stopPropagation();
-      requestClose();
-      return;
-    }
-    if (e.key !== 'Tab' || !dialogRef.current) return;
-    const focusables = Array.from(
-      dialogRef.current.querySelectorAll<HTMLElement>(
-        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
-      )
-    ).filter((el) => el.offsetParent !== null);
-    if (focusables.length === 0) return;
-    const first = focusables[0];
-    const last = focusables[focusables.length - 1];
-    if (e.shiftKey && document.activeElement === first) {
-      e.preventDefault();
-      last.focus();
-    } else if (!e.shiftKey && document.activeElement === last) {
-      e.preventDefault();
-      first.focus();
-    }
   };
 
   const clearError = (key: keyof FieldErrors) =>
@@ -470,6 +430,7 @@ export function BookingRequestModal({
     <div className="fixed inset-0 z-90 flex items-end justify-center sm:items-center sm:p-4">
       <motion.div
         aria-hidden="true"
+        data-modal-backdrop
         className="absolute inset-0 bg-ink/65 backdrop-blur-[3px]"
         initial={reduceMotion ? false : { opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -481,11 +442,11 @@ export function BookingRequestModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby={`${uid}-title`}
-        onKeyDown={handleKeyDown}
+        tabIndex={-1}
         initial={reduceMotion ? false : { opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.25, ease: [0.33, 1, 0.68, 1] }}
-        className="relative flex h-dvh w-full flex-col overflow-hidden bg-white shadow-2xl sm:h-auto sm:max-h-[min(92dvh,880px)] sm:max-w-190 sm:rounded-3xl"
+        className="relative flex h-dvh w-full flex-col overflow-hidden bg-white shadow-2xl outline-none sm:h-auto sm:max-h-[min(92dvh,880px)] sm:max-w-190 sm:rounded-3xl"
       >
         {/* ── En-tête ───────────────────────────────────────────── */}
         <header className="shrink-0 bg-ink px-4 pb-4 pt-[max(1rem,env(safe-area-inset-top))] text-white sm:px-6 sm:pt-5">

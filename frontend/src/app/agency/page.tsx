@@ -1,6 +1,11 @@
+import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { AgencyWorkspace } from '@/components/agency/AgencyWorkspace';
 import { canAccessAgencyArea, getServerAuth } from '@/lib/auth/server';
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 export default async function AgencyPage() {
   // L'identité et l'appartenance viennent de la session serveur validée.

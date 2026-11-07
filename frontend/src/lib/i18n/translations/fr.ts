@@ -122,6 +122,13 @@ export const fr = {
     cardLabel: 'Voir les véhicules {brand}',
     pause: 'Mettre en pause le défilement',
     play: 'Reprendre le défilement',
+    motoEyebrow: 'Deux-roues',
+    motoTitle: 'Les marques de motos',
+    motoCatalog: 'Toutes les motos',
+    motoRegionLabel: 'Marques de motos disponibles, défilement horizontal',
+    motoOne: '{count} moto',
+    motoMany: '{count} motos',
+    motoCardLabel: 'Voir les motos {brand}',
   },
   cookie: {
     title: 'Paramètres des cookies',

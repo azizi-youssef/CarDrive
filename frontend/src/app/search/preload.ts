@@ -1,6 +1,7 @@
 import type { SearchPreload } from './SearchClient';
 import { agenciesService } from '@/lib/services/agencies.service';
 import { vehiclesService } from '@/lib/services/vehicles.service';
+import { toPublicVehicles } from '@/lib/vehicles/public';
 import { formatLocalDate, getEffectiveRentalDates, isValidDateOnly } from '@/lib/utils/date-only';
 
 export type CatalogSearchParams = Record<string, string | string[] | undefined>;
@@ -24,7 +25,9 @@ export async function loadCatalogPreload(params: CatalogSearchParams, logLabel: 
       vehiclesService.getVehicles(hasPeriod ? { startDate: period.startDate, endDate: period.endDate } : undefined),
       agenciesService.getAgencies(true),
     ]);
-    return JSON.parse(JSON.stringify({ vehicles, agencies, period: hasPeriod ? period : { startDate: '', endDate: '' } }));
+    return JSON.parse(
+      JSON.stringify({ vehicles: toPublicVehicles(vehicles), agencies, period: hasPeriod ? period : { startDate: '', endDate: '' } })
+    );
   } catch (error) {
     console.error(`[${logLabel}] Préchargement impossible :`, error instanceof Error ? error.message : error);
     return null;

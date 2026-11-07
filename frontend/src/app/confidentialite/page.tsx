@@ -4,6 +4,7 @@ import { ChevronRight, Shield } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Politique de Confidentialité',
+  alternates: { canonical: '/confidentialite' },
   description:
     'Politique de confidentialité de KlickDrive : comment nous collectons, utilisons et protégeons vos données personnelles. Conforme à la loi 09-08 (CNDP) et au RGPD.',
   robots: { index: true, follow: true },

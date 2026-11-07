@@ -79,6 +79,8 @@ export async function GET(request: NextRequest, context: RouteContext) {
         grossRevenue,
         platformCommission,
         agencyNet,
+        settledGross,
+        settledCommission,
         settledNet,
         pendingNet,
         totalBookingsCount: revenueEligible.length,

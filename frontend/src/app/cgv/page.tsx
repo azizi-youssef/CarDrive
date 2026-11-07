@@ -4,6 +4,7 @@ import { ChevronRight, FileText } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Conditions Générales de Vente',
+  alternates: { canonical: '/cgv' },
   description:
     'Conditions Générales de Vente (CGV) de KlickDrive, plateforme de location de voitures à Nador. Modalités de réservation, annulation, tarification et responsabilités.',
   robots: { index: true, follow: true },

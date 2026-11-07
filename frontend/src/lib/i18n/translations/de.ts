@@ -124,6 +124,13 @@ export const de: Translations = {
     cardLabel: '{brand}-Fahrzeuge ansehen',
     pause: 'Automatisches Scrollen pausieren',
     play: 'Automatisches Scrollen fortsetzen',
+    motoEyebrow: 'Zweiräder',
+    motoTitle: 'Motorradmarken',
+    motoCatalog: 'Alle Motorräder',
+    motoRegionLabel: 'Verfügbare Motorradmarken, horizontal scrollbar',
+    motoOne: '{count} Motorrad',
+    motoMany: '{count} Motorräder',
+    motoCardLabel: '{brand}-Motorräder ansehen',
   },
   cookie: {
     title: 'Cookie-Einstellungen',

@@ -29,6 +29,7 @@ import {
   ErrorBanner,
   StatusBadge,
 } from '@/components/admin/AdminUI';
+import { useModalDialog } from '@/lib/a11y/useModalDialog';
 
 export type AuditLogItem = {
   id: string;
@@ -72,6 +73,7 @@ export function AdminAuditClient() {
   const [actionFilter, setActionFilter] = useState('ALL');
   const [page, setPage] = useState(0);
   const [selectedLog, setSelectedLog] = useState<AuditLogItem | null>(null);
+  const auditDialogRef = useModalDialog<HTMLDivElement>(Boolean(selectedLog), { onClose: () => setSelectedLog(null) });
 
   const abortRef = useRef<AbortController | null>(null);
 
@@ -315,21 +317,25 @@ export function AdminAuditClient() {
       {/* JSON Metadata Inspector Modal */}
       {selectedLog && (
         <div
+          ref={auditDialogRef}
           role="dialog"
           aria-modal="true"
+          aria-labelledby="audit-log-title"
+          tabIndex={-1}
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in"
         >
           <div className="relative w-full max-w-xl rounded-2xl bg-white shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[85vh]">
             <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4 bg-slate-50">
               <div className="flex items-center gap-2">
                 <Code className="h-5 w-5 text-indigo-600" />
-                <h3 className="font-semibold text-slate-900">
+                <h3 id="audit-log-title" className="font-semibold text-slate-900">
                   Détails de l'événement #{selectedLog.id.slice(0, 8)}
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setSelectedLog(null)}
+                aria-label="Fermer"
                 className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-200 hover:text-slate-700 transition"
               >
                 <X className="h-5 w-5" />

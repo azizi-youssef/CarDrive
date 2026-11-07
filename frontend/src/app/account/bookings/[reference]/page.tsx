@@ -2,26 +2,16 @@
 
 import React, { use, useEffect, useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
-import { Booking, BookingEvent } from '@/types';
+import { Booking } from '@/types';
 import { formatPrice } from '@/lib/utils';
 import {
   Calendar,
-  Clock,
-  MapPin,
-  CarFront,
   Download,
   Building2,
-  CheckCircle2,
   AlertCircle,
-  Clock3,
-  Phone,
   MessageSquare,
   ArrowLeft,
   ShieldCheck,
-  FileText,
-  HelpCircle,
-  ExternalLink,
   Check,
   X,
 } from 'lucide-react';

@@ -11,9 +11,9 @@ import {
   Share2,
   Lock,
   Mail,
-  Building2,
 } from 'lucide-react';
 import { Btn } from '@/components/admin/AdminUI';
+import { useModalDialog } from '@/lib/a11y/useModalDialog';
 
 interface AgencyCredentialsSuccessModalProps {
   isOpen: boolean;
@@ -35,6 +35,8 @@ export function AgencyCredentialsSuccessModal({
   const [copiedEmail, setCopiedEmail] = useState(false);
   const [copiedPassword, setCopiedPassword] = useState(false);
   const [copiedAll, setCopiedAll] = useState(false);
+
+  const dialogRef = useModalDialog<HTMLDivElement>(Boolean(isOpen && credentials), { onClose });
 
   if (!isOpen || !credentials) return null;
 
@@ -67,8 +69,11 @@ Pour votre sécurité, nous vous invitons à modifier votre mot de passe dès vo
 
   return (
     <div
+      ref={dialogRef}
       role="dialog"
       aria-modal="true"
+      aria-labelledby="agency-credentials-title"
+      tabIndex={-1}
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in"
     >
       <div className="relative w-full max-w-lg rounded-2xl bg-white shadow-2xl border border-slate-200 overflow-hidden flex flex-col">
@@ -79,7 +84,7 @@ Pour votre sécurité, nous vous invitons à modifier votre mot de passe dès vo
               <CheckCircle className="h-6 w-6" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-slate-900">
+              <h3 id="agency-credentials-title" className="text-base font-bold text-slate-900">
                 Compte agence opérationnel !
               </h3>
               <p className="text-xs text-slate-600">
@@ -90,9 +95,10 @@ Pour votre sécurité, nous vous invitons à modifier votre mot de passe dès vo
           <button
             type="button"
             onClick={onClose}
+            aria-label="Fermer"
             className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-200 hover:text-slate-700 transition"
           >
-            <X className="h-5 w-5" />
+            <X className="h-5 w-5" aria-hidden="true" />
           </button>
         </div>
 

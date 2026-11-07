@@ -4,6 +4,18 @@ import { vehiclesService } from '@/lib/services/vehicles.service';
 import { requireAgencyPermissionApi } from '@/lib/auth/access-api';
 import type { SearchFilters } from '@/types';
 import { isValidDateOnly } from '@/lib/utils/date-only';
+import { getServerAuth } from '@/lib/auth/server';
+import { isPlatformAdminRole } from '@klickdrive/shared';
+import { toPublicVehicles } from '@/lib/vehicles/public';
+
+/** Taille maximale d'une page de résultats (aucune requête non bornée) */
+const MAX_LIMIT = 500;
+
+function boundedInt(value: string | null, fallback: number, min: number, max: number): number {
+  const parsed = Number(value);
+  if (value === null || !Number.isFinite(parsed)) return fallback;
+  return Math.min(Math.max(Math.trunc(parsed), min), max);
+}
 
 export async function GET(req: NextRequest) {
   try {
@@ -37,9 +49,12 @@ export async function GET(req: NextRequest) {
     };
 
     const vehicles = await vehiclesService.getVehicles(filters);
-    const offset = searchParams.get('offset') ? Number(searchParams.get('offset')) : 0;
-    const limit = searchParams.get('limit') ? Number(searchParams.get('limit')) : vehicles.length;
-    const paginated = vehicles.slice(offset, offset + limit);
+    const offset = boundedInt(searchParams.get('offset'), 0, 0, Number.MAX_SAFE_INTEGER);
+    const limit = boundedInt(searchParams.get('limit'), MAX_LIMIT, 1, MAX_LIMIT);
+    // Champs internes (plaque, documents…) réservés au SUPER_ADMIN ; projection publique pour tous les autres
+    const auth = await getServerAuth();
+    const visible = auth && isPlatformAdminRole(auth.role) ? vehicles : toPublicVehicles(vehicles);
+    const paginated = visible.slice(offset, offset + limit);
 
     return NextResponse.json(
       {

@@ -15,7 +15,7 @@ import { AdminShell } from '@/components/admin/AdminShell';
 import { AccountProfileSettings } from '@/components/shared/AccountProfileSettings';
 
 export const metadata: Metadata = {
-  title: 'Paramètres | KlickDrive Admin',
+  title: 'Paramètres',
   description: 'Configurez les paramètres et les règles de fonctionnement de la plateforme KlickDrive.',
 };
 

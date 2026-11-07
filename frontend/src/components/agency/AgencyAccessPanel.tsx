@@ -5,6 +5,7 @@ import type { AgencyMemberRole } from '@klickdrive/shared';
 import { AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, Loader2, RefreshCw, Search, Shield, UserPlus, Users, X } from 'lucide-react';
 import type { ClientAuthProfile } from '@/lib/auth/client';
 import { ConfirmDialog } from '@/components/agency/shell/Dialog';
+import { useModalDialog } from '@/lib/a11y/useModalDialog';
 
 type Member = {
   id: string;
@@ -128,6 +129,12 @@ export default function AgencyAccessPanel({
   const [dossier, setDossier] = useState<CustomerDossier | null>(null);
   const [dossierLoading, setDossierLoading] = useState(false);
   const [dossierError, setDossierError] = useState<string | null>(null);
+  const dossierDialogRef = useModalDialog<HTMLElement>(Boolean(dossier || dossierLoading || dossierError), {
+    onClose: () => {
+      setDossier(null);
+      setDossierError(null);
+    },
+  });
 
   const memberRole = useMemo(
     () => profile?.agencyMemberships?.find((membership) => membership.agencyId === agencyId)?.role,
@@ -372,7 +379,7 @@ export default function AgencyAccessPanel({
 
       {(dossier || dossierLoading || dossierError) && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/50 p-0 sm:items-center sm:p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) { setDossier(null); setDossierError(null); } }}>
-          <section role="dialog" aria-modal="true" aria-labelledby="customer-dossier-title" className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-t-3xl bg-white p-5 shadow-2xl sm:rounded-3xl">
+          <section ref={dossierDialogRef} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="customer-dossier-title" className="max-h-[90vh] outline-none w-full max-w-3xl overflow-y-auto rounded-t-3xl bg-white p-5 shadow-2xl sm:rounded-3xl">
             <div className="flex items-start justify-between gap-3"><div><h3 id="customer-dossier-title" className="text-lg font-bold">Dossier locataire</h3><p className="text-sm text-slate-500">Consultation limitée à l’agence autorisée.</p></div><button type="button" aria-label="Fermer" className="rounded-lg p-2 hover:bg-slate-100" onClick={() => { setDossier(null); setDossierError(null); }}><X className="h-5 w-5" /></button></div>
             {dossierLoading && <p className="flex items-center gap-2 py-8 text-sm text-slate-500"><Loader2 className="h-4 w-4 animate-spin" />Chargement…</p>}
             {dossierError && <p role="alert" className="py-5 text-sm text-red-700">{dossierError}</p>}

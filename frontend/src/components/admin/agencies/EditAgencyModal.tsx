@@ -13,6 +13,7 @@ import {
   ShieldAlert,
 } from 'lucide-react';
 import { Btn } from '@/components/admin/AdminUI';
+import { useModalDialog } from '@/lib/a11y/useModalDialog';
 import type { Agency } from '@/types';
 import { updateAdminAgency } from '@/lib/api/admin-dashboard.api';
 import { AgencyLogoUploader } from '@/components/agency/settings/AgencyLogoUploader';
@@ -78,6 +79,8 @@ export function EditAgencyModal({
     }
   }, [agency]);
 
+  const dialogRef = useModalDialog<HTMLDivElement>(Boolean(isOpen && agency), { onClose, closeDisabled: loading });
+
   if (!isOpen || !agency) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -127,8 +130,11 @@ export function EditAgencyModal({
 
   return (
     <div
+      ref={dialogRef}
       role="dialog"
       aria-modal="true"
+      aria-labelledby="edit-agency-title"
+      tabIndex={-1}
       className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-900/60 backdrop-blur-sm overflow-y-auto animate-fade-in"
     >
       <div className="relative w-full max-w-2xl rounded-2xl bg-white shadow-2xl border border-slate-200 overflow-hidden my-auto max-h-[90vh] flex flex-col">
@@ -139,16 +145,17 @@ export function EditAgencyModal({
               <Building2 className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-slate-900">Modifier l'agence</h2>
+              <h2 id="edit-agency-title" className="text-lg font-bold text-slate-900">Modifier l'agence</h2>
               <p className="text-xs text-slate-500">{agency.name}</p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
+            aria-label="Fermer"
             className="rounded-lg p-2 text-slate-400 hover:bg-slate-200 hover:text-slate-700 transition"
           >
-            <X className="h-5 w-5" />
+            <X className="h-5 w-5" aria-hidden="true" />
           </button>
         </div>
 

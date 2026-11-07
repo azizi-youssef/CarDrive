@@ -124,6 +124,13 @@ export const ar: Translations = {
     cardLabel: 'عرض سيارات {brand}',
     pause: 'إيقاف التمرير التلقائي',
     play: 'استئناف التمرير التلقائي',
+    motoEyebrow: 'الدراجات النارية',
+    motoTitle: 'علامات الدراجات النارية',
+    motoCatalog: 'كل الدراجات النارية',
+    motoRegionLabel: 'علامات الدراجات النارية المتوفرة، تمرير أفقي',
+    motoOne: 'دراجة نارية واحدة',
+    motoMany: '{count} دراجات نارية',
+    motoCardLabel: 'عرض دراجات {brand} النارية',
   },
   cookie: {
     title: 'إعدادات ملفات تعريف الارتباط',

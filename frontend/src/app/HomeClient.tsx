@@ -4,10 +4,8 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { SearchBar } from '@/components/search/SearchBar';
-import { BrandMarquee, normalizeBrandKey } from '@/components/shared/BrandMarquee';
 import { SUPPORT_HOURS_SUMMARY } from '@/lib/constants/contact';
 import { VehicleCard } from '@/components/cars/VehicleCard';
-import { loginUrl } from '@/lib/auth/login-portals';
 import { useRealtimeRefresh } from '@/lib/supabase/realtime';
 import type { Vehicle, Agency } from '@/types';
 import { isMotorcycle } from '@/lib/vehicles/kind';
@@ -20,9 +18,7 @@ import {
   Motorbike,
   ArrowUpRight,
   Car,
-  Check,
   CheckCircle2,
-  ChevronDown,
   Clock3,
   FileText,
   MapPin,
@@ -30,7 +26,6 @@ import {
   RefreshCw,
   Search,
   ShieldCheck,
-  Sparkles,
 } from 'lucide-react';
 
 
@@ -87,16 +82,6 @@ export function HomeClient({
     if (!preloaded) void load();
   }, [load, preloaded]);
 
-  // Nombre de véhicules du catalogue par marque (cartes « Les grandes marques »)
-  const vehicleCountsByBrand = useMemo(() => {
-    const counts: Record<string, number> = {};
-    for (const vehicle of vehicles) {
-      if (!vehicle.brand) continue;
-      const key = normalizeBrandKey(vehicle.brand);
-      counts[key] = (counts[key] ?? 0) + 1;
-    }
-    return counts;
-  }, [vehicles]);
 
   // Catégories réellement présentes, proposées dans la recherche du hero
   const heroCategories = useMemo(
@@ -138,7 +123,6 @@ export function HomeClient({
     return categoryMatch && budgetMatch;
   });
 
-  const totalVehicles = vehicles.length;
   const totalAgencies = agencies.length;
 
   // ── Helpers catégories ──────────────────────────────────────────
@@ -265,13 +249,13 @@ export function HomeClient({
               ))}
             </ul>
             <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-              <a
+              <Link
                 href="/about"
                 className="inline-flex min-h-6 items-center gap-1 font-semibold text-white/85 underline-offset-4 transition-colors hover:text-white hover:underline"
               >
                 {t.hero.howItWorks}
                 <ArrowRight className="h-3.5 w-3.5 rtl:rotate-180" aria-hidden="true" />
-              </a>
+              </Link>
               <Link
                 href="/agency/join"
                 className="inline-flex min-h-6 items-center gap-1 font-semibold text-white/60 underline-offset-4 transition-colors hover:text-white hover:underline"
@@ -764,9 +748,7 @@ export function HomeClient({
           })}
         </div>
       </section>
-
-      {/* Carrousel des grandes marques — dernière section, juste avant le footer */}
-      <BrandMarquee vehicleCounts={vehicleCountsByBrand} countsLoading={!dataLoaded} />
+      {/* Les carrousels des marques sont en bas des catalogues : voitures sur /search, motos sur /motos */}
     </div>
   );
 }

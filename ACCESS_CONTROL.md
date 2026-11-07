@@ -12,7 +12,7 @@
 ### Écarts relevés avant changement
 
 1. Les rôles existants sont historiques et en majuscules (`SUPER_ADMIN`, `ADMIN`, `AGENCY_OWNER`, etc.) ; les membres ne possèdent pas de statut d’invitation/révocation.
-2. Les anciens contrôles donnent des droits globaux à `ADMIN`, et certains endpoints sont permissifs lorsque Supabase n’est pas configuré. Le nouveau module ne réutilise pas ces chemins : il refuse l’accès si Supabase ou sa vérification de permission est indisponible.
+2. Les anciens contrôles donnent des droits globaux à `ADMIN` (corrigé le 7 novembre 2026 : seul `SUPER_ADMIN` en a désormais), et certains endpoints sont permissifs lorsque Supabase n’est pas configuré. Le nouveau module ne réutilise pas ces chemins : il refuse l’accès si Supabase ou sa vérification de permission est indisponible.
 3. `handle_new_user()` acceptait le rôle des métadonnées d’inscription. La migration remplace ce comportement par `CUSTOMER`; la modification directe du rôle d’un profil est interdite aux sessions utilisateur.
 4. Les anciennes policies RLS accordaient un accès trop large aux réservations et aux véhicules. Les nouvelles policies se fondent sur le membre actif et la permission de l’agence ; la lecture SQL directe des colonnes d’identité des clients est retirée aux rôles `anon` et `authenticated`.
 5. Les services historiques de réservation et les pages client n’étaient pas conçus pour le nouveau niveau de confidentialité. Les nouvelles listes/dossiers locataires passent par un endpoint dédié, une permission `customers.read` et une requête serveur avec clé service-role. Les autres parcours historiques de réservation sont à auditer séparément avant d’en faire un accès invité aux données personnelles.
@@ -29,7 +29,7 @@ Cet audit porte sur les fichiers suivis du dépôt, pas sur une inspection d’u
 | P1 | Liste admin paginée, recherche, filtres, tri, création, modification, suspension/réactivation, archivage et détail | Endpoints et interface ajoutés |
 | P1 | Inviter un nouveau compte, accepter l’invitation, changer de rôle, révoquer, audit des accès | Endpoints et interface ajoutés |
 | P1 | Liste serveur paginée des locataires, filtres, historique et dossier protégé | Endpoints et interface ajoutés |
-| P2 | Tests automatisés multi-utilisateur RLS sur une instance Supabase locale/staging | Script pgTAP fourni ; non exécuté faute de base de test dans cet environnement |
+| P2 | Tests automatisés multi-utilisateur RLS | Exécutés depuis le 7 novembre 2026 sur PostgreSQL embarqué (`npm run test:db`, voir « Validation ») ; reste à rejouer sur staging |
 | P2 | Étendre l’authentification de capacité pour les clients invités aux anciens endpoints/PDF réservation | Décision à prendre avant ouverture d’un parcours invité avec données personnelles |
 
 ## Matrice des rôles
@@ -83,7 +83,28 @@ Les entrées sont validées par Zod. Les opérations de rôle, révocation et ac
 
 ## Validation
 
-Les validations Zod du module sont exécutées par `npm run test`. Le script RLS `backend/supabase/tests/agency_access_control.sql` doit être exécuté sur Supabase local/staging après application de la migration. Il crée ses fixtures dans une transaction puis les annule ; ce script n’a pas pu être lancé ici faute d’instance PostgreSQL de test.
+Les validations Zod du module sont exécutées par `npm run test`.
+
+**Tests RLS automatisés (`npm run test:db -w frontend`).** `frontend/src/tests/db/harness.ts` applique `schema.sql` puis
+toutes les migrations, dans l’ordre, sur un vrai PostgreSQL embarqué (PGlite) qui reproduit les rôles Supabase
+(`anon`, `authenticated`, `service_role` avec `BYPASSRLS`), `auth.uid()` / `auth.jwt()` et les privilèges par défaut.
+Chaque test s’exécute dans une transaction annulée, sous le rôle et l’identité voulus. `rls.spec.ts` couvre :
+
+- deux clients : chacun ne voit que ses réservations, ni par identifiant ni par référence celles de l’autre ;
+- colonnes sensibles (`cin`, `license_number`, `birth_date`, `customer_notes`, `flight_number`, `customer_phone`, `customer_email`) refusées aux clients comme aux membres d’agence ;
+- trois agences (dont une suspendue) : isolation, membre révoqué ou agence suspendue sans aucun accès, pas d’élévation de rôle, agent sans droit sur la flotte ;
+- `SUPER_ADMIN` voit tout ; `ADMIN` historique ne voit rien ;
+- fonctions sensibles refusées sans session ; aucune politique d’écriture `WITH CHECK (true)` ;
+- contrainte d’exclusion : deux réservations confirmées qui se chevauchent sont refusées.
+
+Résultat au 7 novembre 2026 : 39 tests sur 39 (migrations + RLS). Ces tests prouvent le comportement **des migrations du dépôt** ;
+l’état de la base Supabase déployée doit être vérifié séparément (rejouer `backend/supabase/tests/*.sql` sur staging).
+
+**Migration `20261107000100_security_hardening.sql` (additive) :** suppression des politiques d’insertion permissives
+sur `bookings` et `booking_events` (inertes car les privilèges étaient déjà retirés), retrait de `EXECUTE` à `anon`
+sur les fonctions d’invitation, de rôle, de révocation, de statistiques et sur `expire_completed_bookings()`,
+et `is_admin()` aligné sur `SUPER_ADMIN`. Côté application, `isPlatformAdminRole` ne reconnaît plus `ADMIN`
+(`@klickdrive/shared`), et le middleware protège désormais aussi `/account/*`.
 
 ## Remédiations de sécurité additionnelles
 

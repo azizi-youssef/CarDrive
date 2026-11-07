@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useEffect, useCallback, useRef, Suspense } from 'react';
+import React, { useState, useMemo, useEffect, useCallback, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { VehicleCard, VehicleCardSkeleton } from '@/components/cars/VehicleCard';
@@ -22,6 +22,8 @@ import { formatNumber } from '@/lib/utils';
 import type { Vehicle, Agency } from '@/types';
 import { catalogFacets, sortByRelevance, RELEVANCE_EXPLANATION } from '@/lib/catalog/discovery';
 import { CATALOG_PATHS, VEHICLE_TYPE_LABELS, vehicleTypeOf, type VehicleType } from '@/lib/vehicles/kind';
+import { useModalDialog } from '@/lib/a11y/useModalDialog';
+import { BrandMarquee, normalizeBrandKey } from '@/components/shared/BrandMarquee';
 import {
   AlertTriangle,
   ArrowUpDown,
@@ -224,6 +226,39 @@ function SearchPageContent({ preload, vehicleType }: { preload: SearchPreload | 
     setSortBy('featured');
   }, []);
 
+  // Carrousel des marques : nombre réel de véhicules du catalogue affiché par marque, sur la période recherchée
+  const brandCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const vehicle of typeScopedVehicles) {
+      if (!vehicle.brand) continue;
+      const key = normalizeBrandKey(vehicle.brand);
+      counts[key] = (counts[key] ?? 0) + 1;
+    }
+    return counts;
+  }, [typeScopedVehicles]);
+
+  /**
+   * Clic sur une marque du carrousel, sur la page même : filtre appliqué sans rechargement,
+   * URL mise à jour (lien partageable), retour aux résultats avec le focus sur leur titre.
+   */
+  const selectBrandFromMarquee = useCallback(
+    (brand: string) => {
+      // Orthographe du catalogue si la marque y figure (« SUZUKI » pour « Suzuki »)
+      const catalogBrand = brands.find((value) => normalizeBrandKey(value) === normalizeBrandKey(brand)) ?? brand;
+      updateFilters({ brand: catalogBrand });
+      const query = new URLSearchParams(window.location.search);
+      query.set('brand', catalogBrand);
+      window.history.replaceState(null, '', `${window.location.pathname}?${query.toString()}`);
+      const heading = document.getElementById('results-heading');
+      if (heading) {
+        const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        heading.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+        heading.focus({ preventScroll: true });
+      }
+    },
+    [brands, updateFilters]
+  );
+
   const activeFilterCount = countActiveFilters(filters);
   const agencyName = agencies.find((agency) => agency.id === filters.agency)?.name;
 
@@ -267,6 +302,7 @@ function SearchPageContent({ preload, vehicleType }: { preload: SearchPreload | 
   })();
 
   return (
+    <>
     <div className="min-h-screen bg-[#F5F6F8] pb-20">
       {/* ── En-tête graphite + recherche ─────────────────────────────── */}
       <section className="relative overflow-hidden bg-[#0B1220] text-white">
@@ -370,7 +406,11 @@ function SearchPageContent({ preload, vehicleType }: { preload: SearchPreload | 
           <section aria-labelledby="results-heading" className="min-w-0">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="min-w-0">
-                <h2 id="results-heading" className="text-lg font-extrabold text-[#0B1220] sm:text-xl">
+                <h2
+                  id="results-heading"
+                  tabIndex={-1}
+                  className="scroll-mt-32 text-lg font-extrabold text-[#0B1220] outline-none sm:text-xl"
+                >
                   {vehiclesLoading ? (
                     `Recherche des ${resultNoun}s…`
                   ) : vehiclesError ? (
@@ -567,6 +607,15 @@ function SearchPageContent({ preload, vehicleType }: { preload: SearchPreload | 
         />
       </MobileFilterDrawer>
     </div>
+
+    {/* Carrousel animé des marques du catalogue affiché (voitures ou motos) — dernière section, juste avant le footer */}
+    <BrandMarquee
+      kind={isMotoView ? 'motorcycles' : 'cars'}
+      vehicleCounts={brandCounts}
+      countsLoading={vehiclesLoading}
+      onBrandSelect={selectBrandFromMarquee}
+    />
+    </>
   );
 }
 
@@ -587,22 +636,8 @@ function MobileFilterDrawer({
   onReset: () => void;
   children: React.ReactNode;
 }) {
-  const closeRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    closeRef.current?.focus();
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', onKeyDown);
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      document.removeEventListener('keydown', onKeyDown);
-    };
-  }, [open, onClose]);
+  // Panneau modal : focus sur « Fermer », Tab piégé, Échap, page inerte, focus rendu au bouton « Filtres »
+  const dialogRef = useModalDialog<HTMLDivElement>(open, { onClose });
 
   if (!open) return null;
 
@@ -612,14 +647,17 @@ function MobileFilterDrawer({
         type="button"
         aria-label="Fermer les filtres"
         tabIndex={-1}
+        data-modal-backdrop
         onClick={onClose}
         className="absolute inset-0 bg-[#0B1220]/55 backdrop-blur-[2px] motion-safe:animate-[cd-fade-in_150ms_ease-out]"
       />
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="mobile-filters-title"
-        className="absolute inset-x-0 bottom-0 flex max-h-[88dvh] flex-col rounded-t-3xl bg-white shadow-2xl sm:inset-y-0 sm:end-0 sm:start-auto sm:max-h-none sm:w-[400px] sm:rounded-none"
+        tabIndex={-1}
+        className="absolute inset-x-0 bottom-0 flex outline-none max-h-[88dvh] flex-col rounded-t-3xl bg-white shadow-2xl sm:inset-y-0 sm:end-0 sm:start-auto sm:max-h-none sm:w-[400px] sm:rounded-none"
       >
         <div className="mx-auto mt-2.5 h-1 w-10 rounded-full bg-slate-200 sm:hidden" aria-hidden="true" />
         <div className="flex items-center justify-between border-b border-slate-100 px-5 py-3.5">
@@ -627,7 +665,7 @@ function MobileFilterDrawer({
             Filtres
           </h2>
           <button
-            ref={closeRef}
+            data-autofocus
             type="button"
             onClick={onClose}
             className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100"

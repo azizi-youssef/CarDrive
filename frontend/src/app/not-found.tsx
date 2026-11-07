@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { Home, Search } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Page introuvable | KlickDrive',
+  title: 'Page introuvable',
   description:
     "Cette page n'existe pas ou a été déplacée. Retrouvez nos véhicules en location à Nador.",
   robots: { index: false, follow: true },

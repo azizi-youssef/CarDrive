@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import localFont from 'next/font/local';
 import Script from 'next/script';
+import { getServerLocale } from '@/lib/i18n/server';
 
 import './globals.css';
 import { AppShell } from '@/components/layout/AppShell';
@@ -53,11 +54,6 @@ export const metadata: Metadata = {
   publisher: SITE_NAME,
   category: 'travel',
 
-  alternates: {
-    canonical: '/',
-    languages: { 'fr-MA': '/' },
-  },
-
   robots: {
     index: true,
     follow: true,
@@ -70,14 +66,6 @@ export const metadata: Metadata = {
     },
   },
 
-  icons: {
-    icon: [
-      { url: '/icon_klickdrive.ico', sizes: 'any' },
-    ],
-    shortcut: '/icon_klickdrive.ico',
-    apple: [{ url: '/icon_klickdrive.ico' }],
-  },
-
   manifest: '/manifest.webmanifest',
 
   openGraph: {
@@ -88,15 +76,6 @@ export const metadata: Metadata = {
     title: SITE_TITLE,
     description:
       "Comparez les voitures disponibles à Nador et réservez auprès d'agences locales.",
-    images: [
-      {
-        // Image dédiée au partage, au format 1200×630
-        url: '/og-klickdrive.png',
-        width: 1200,
-        height: 630,
-        alt: SITE_TITLE,
-      },
-    ],
   },
 
   twitter: {
@@ -104,7 +83,6 @@ export const metadata: Metadata = {
     title: SITE_TITLE,
     description:
       "Trouvez et comparez votre voiture de location à Nador auprès d'agences locales.",
-    images: ['/og-klickdrive.png'],
   },
 
   formatDetection: {
@@ -132,7 +110,7 @@ const jsonLd = {
         width: 512,
         height: 512,
       },
-      image: `${SITE_URL}/og-klickdrive.png`,
+      image: `${SITE_URL}/opengraph-image`,
       description: SITE_DESCRIPTION,
       address: {
         '@type': 'PostalAddress',
@@ -198,16 +176,19 @@ const jsonLd = {
 /* ROOT LAYOUT                                                                */
 /* -------------------------------------------------------------------------- */
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Langue et sens d'écriture connus côté serveur : pas de bascule LTR → RTL après hydratation
+  const { locale, dir } = await getServerLocale();
   return (
     <html
-      lang="fr"
+      lang={locale}
+      dir={dir}
       data-scroll-behavior="smooth"
-      className={`h-full scroll-smooth ${plusJakartaSans.variable}`}
+      className={`h-full scroll-smooth ${plusJakartaSans.variable}${dir === 'rtl' ? ' is-rtl' : ''}`}
       suppressHydrationWarning
     >
       <head>
@@ -240,7 +221,7 @@ export default function RootLayout({
         className="flex min-h-full flex-col bg-canvas font-sans text-ink antialiased selection:bg-action selection:text-white"
         suppressHydrationWarning
       >
-        <AppShell>{children}</AppShell>
+        <AppShell initialLocale={locale}>{children}</AppShell>
 
         <script
           type="application/ld+json"

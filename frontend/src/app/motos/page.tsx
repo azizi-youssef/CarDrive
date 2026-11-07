@@ -8,7 +8,7 @@ import { CATALOG_PATHS, typeOfCategory } from '@/lib/vehicles/kind';
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: 'Location de moto et scooter à Nador | KlickDrive',
+  title: 'Location de moto et scooter à Nador',
   description:
     'Comparez les motos et scooters proposés par les agences partenaires vérifiées à Nador : tarifs, cylindrée, permis exigé. Demande de réservation sans paiement en ligne.',
   alternates: { canonical: '/motos' },

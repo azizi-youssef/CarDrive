@@ -84,8 +84,10 @@ export function BookingCard({ vehicle, onAvailabilityChange }: BookingCardProps)
   useEffect(() => {
     if (datesError) return;
     let active = true;
-    const check = async () => {
-      setAvailability('checking');
+    // `background` : rafraîchissement (retour sur l'onglet, minuterie). L'état connu reste affiché
+    // pendant la vérification, pour ne pas désactiver « Réserver » au moment où l'utilisateur clique.
+    const check = async (background = false) => {
+      if (!background) setAvailability('checking');
       try {
         const query = new URLSearchParams({ startDate, endDate });
         const response = await fetch(
@@ -105,10 +107,10 @@ export function BookingCard({ vehicle, onAvailabilityChange }: BookingCardProps)
 
     void check();
     const refreshOnFocus = () => {
-      if (document.visibilityState === 'visible') void check();
+      if (document.visibilityState === 'visible') void check(true);
     };
     const timer = setInterval(() => {
-      if (document.visibilityState === 'visible') void check();
+      if (document.visibilityState === 'visible') void check(true);
     }, 30_000);
     window.addEventListener('focus', refreshOnFocus);
     return () => {

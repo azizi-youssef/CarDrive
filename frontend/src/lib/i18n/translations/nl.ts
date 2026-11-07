@@ -124,6 +124,13 @@ export const nl: Translations = {
     cardLabel: '{brand}-voertuigen bekijken',
     pause: 'Automatisch scrollen pauzeren',
     play: 'Automatisch scrollen hervatten',
+    motoEyebrow: 'Tweewielers',
+    motoTitle: 'Motormerken',
+    motoCatalog: 'Alle motoren',
+    motoRegionLabel: 'Beschikbare motormerken, horizontaal scrollen',
+    motoOne: '{count} motor',
+    motoMany: '{count} motoren',
+    motoCardLabel: '{brand}-motoren bekijken',
   },
   cookie: {
     title: 'Cookie-instellingen',

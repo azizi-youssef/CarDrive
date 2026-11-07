@@ -10,15 +10,10 @@ import { AgencyCard } from '@/components/agencies/AgencyCard';
 import {
   ShieldCheck,
   CheckCircle2,
-  MapPin,
-  Calendar,
   Sparkles,
   HelpCircle,
-  Car,
   ChevronRight,
   ArrowRight,
-  Plane,
-  Anchor,
   Clock,
 } from 'lucide-react';
 

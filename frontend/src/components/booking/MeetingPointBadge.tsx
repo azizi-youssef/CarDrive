@@ -1,6 +1,6 @@
 import React from 'react';
 import { Plane, Anchor, Building2, MapPin, Sparkles, Train } from 'lucide-react';
-import { getMeetingPoint, MeetingPoint } from '@/lib/constants/meetingPoints';
+import { getMeetingPoint } from '@/lib/constants/meetingPoints';
 
 interface MeetingPointBadgeProps {
   location: string;

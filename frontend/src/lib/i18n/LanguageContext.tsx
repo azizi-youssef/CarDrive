@@ -23,46 +23,36 @@ interface LanguageContextType {
 
 const LanguageContext = createContext<LanguageContextType | null>(null);
 
-function detectInitialLocale(): Locale {
-  if (typeof window === 'undefined') return DEFAULT_LOCALE;
-
+/** Langue demandée explicitement dans l'URL (?lang=xx), sinon null */
+function queryLocale(): Locale | null {
   try {
-    // 1. Check URL query param ?lang=xx
-    const urlParams = new URLSearchParams(window.location.search);
-    const queryLang = urlParams.get('lang') as Locale;
-    if (queryLang && SUPPORTED_LOCALES.some((l) => l.code === queryLang)) {
-      return queryLang;
-    }
-
-    // 2. Check localStorage
-    const saved = localStorage.getItem(LOCALE_STORAGE_KEY) as Locale;
-    if (saved && SUPPORTED_LOCALES.some((l) => l.code === saved)) {
-      return saved;
-    }
-
-    // 3. Check Cookie
-    const match = document.cookie.match(new RegExp(`(?:^|; )${LOCALE_COOKIE_KEY}=([^;]*)`));
-    if (match && match[1]) {
-      const cookieLang = decodeURIComponent(match[1]) as Locale;
-      if (SUPPORTED_LOCALES.some((l) => l.code === cookieLang)) {
-        return cookieLang;
-      }
-    }
-
-    // 4. Check Browser navigator.language
-    const browserLang = (navigator.language || '').slice(0, 2).toLowerCase() as Locale;
-    if (browserLang && SUPPORTED_LOCALES.some((l) => l.code === browserLang)) {
-      return browserLang;
-    }
-  } catch (err) {
-    console.warn('[i18n] Erreur détection locale initiale:', err);
+    const queryLang = new URLSearchParams(window.location.search).get('lang');
+    return queryLang && SUPPORTED_LOCALES.some((l) => l.code === queryLang) ? (queryLang as Locale) : null;
+  } catch {
+    return null;
   }
-
-  return DEFAULT_LOCALE;
 }
 
-export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>(() => detectInitialLocale());
+/**
+ * La langue initiale vient du serveur (cookie lu par le layout racine) : le premier rendu client est
+ * identique au HTML serveur, sans erreur d'hydratation ni bascule de direction (RTL) après coup.
+ */
+export function LanguageProvider({
+  children,
+  initialLocale,
+}: {
+  children: React.ReactNode;
+  initialLocale?: Locale;
+}) {
+  const [locale, setLocaleState] = useState<Locale>(initialLocale ?? DEFAULT_LOCALE);
+
+  // Après le montage : un ?lang= explicite l'emporte (lien partagé dans une langue donnée)
+  useEffect(() => {
+    const requested = queryLocale();
+    if (requested && requested !== locale) setLocaleState(requested);
+    // Exécuté une seule fois au montage
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     try {

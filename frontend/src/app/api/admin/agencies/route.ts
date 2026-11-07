@@ -6,7 +6,6 @@ import { createAgencyWithAuthSchema } from '@/lib/validations/agency-access';
 import {
   generateTemporaryPassword,
   normalizeAgencySlug,
-  resolveUniqueAgencyEmail,
 } from '@/lib/utils/agency-credentials';
 
 const AGENCY_SORT_COLUMNS = {

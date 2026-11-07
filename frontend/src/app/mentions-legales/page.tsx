@@ -4,6 +4,7 @@ import { ChevronRight, Scale } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Mentions Légales',
+  alternates: { canonical: '/mentions-legales' },
   description:
     "Informations légales relatives à la plateforme KlickDrive, éditeur, hébergeur et conditions d'utilisation du site de location de voitures à Nador.",
   robots: { index: true, follow: true },

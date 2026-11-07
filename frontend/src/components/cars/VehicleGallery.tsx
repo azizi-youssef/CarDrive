@@ -6,6 +6,7 @@ import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { CarFront, ChevronLeft, ChevronRight, Expand, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { isOptimizableImage } from '@/lib/utils/images';
+import { useModalDialog } from '@/lib/a11y/useModalDialog';
 
 interface VehicleGalleryProps {
   images: string[];
@@ -37,7 +38,6 @@ export function VehicleGallery({ images, title, overlay }: VehicleGalleryProps) 
   const [direction, setDirection] = useState(0);
   const [failed, setFailed] = useState<Set<number>>(() => new Set());
   const [lightboxOpen, setLightboxOpen] = useState(false);
-  const closeRef = useRef<HTMLButtonElement>(null);
   const openerRef = useRef<HTMLButtonElement>(null);
 
   const count = images.length;
@@ -56,24 +56,21 @@ export function VehicleGallery({ images, title, overlay }: VehicleGalleryProps) 
 
   const markFailed = (i: number) => setFailed((current) => new Set(current).add(i));
 
-  // Visionneuse : Échap, flèches, scroll bloqué, focus restauré à la fermeture
+  // Visionneuse : Échap, focus piégé, page inerte, scroll bloqué, focus rendu à la photo d'ouverture
+  const lightboxRef = useModalDialog<HTMLDivElement>(lightboxOpen && Boolean(src), {
+    onClose: () => setLightboxOpen(false),
+    returnFocusRef: openerRef,
+  });
+
+  // Flèches gauche / droite : photo précédente / suivante
   useEffect(() => {
     if (!lightboxOpen) return;
-    const opener = openerRef.current;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    closeRef.current?.focus();
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setLightboxOpen(false);
       if (e.key === 'ArrowRight') go(1);
       if (e.key === 'ArrowLeft') go(-1);
     };
     document.addEventListener('keydown', onKey);
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      document.removeEventListener('keydown', onKey);
-      opener?.focus();
-    };
+    return () => document.removeEventListener('keydown', onKey);
   }, [lightboxOpen, go]);
 
   const slide = reduceMotion
@@ -188,10 +185,12 @@ export function VehicleGallery({ images, title, overlay }: VehicleGalleryProps) 
       {/* ── Visionneuse plein écran ─────────────────────────────── */}
       {lightboxOpen && src && (
         <div
+          ref={lightboxRef}
           role="dialog"
           aria-modal="true"
           aria-label={`${title} — visionneuse`}
-          className="fixed inset-0 z-[70] flex flex-col bg-[#0B1220]/95 backdrop-blur-sm"
+          tabIndex={-1}
+          className="fixed inset-0 z-[70] flex flex-col bg-[#0B1220]/95 outline-none backdrop-blur-sm"
         >
           <div className="flex items-center justify-between px-4 py-3 text-white sm:px-6">
             <p className="text-sm font-bold">
@@ -201,7 +200,7 @@ export function VehicleGallery({ images, title, overlay }: VehicleGalleryProps) 
               </span>
             </p>
             <button
-              ref={closeRef}
+              data-autofocus
               type="button"
               onClick={() => setLightboxOpen(false)}
               className="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 transition hover:bg-white/20 focus-visible:outline-2 focus-visible:outline-white"

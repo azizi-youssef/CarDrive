@@ -6,8 +6,9 @@ import { Navbar } from '@/components/shared/Navbar';
 import { Footer } from '@/components/shared/Footer';
 import { CookieBanner } from '@/components/shared/CookieBanner';
 import { LanguageProvider } from '@/lib/i18n/LanguageContext';
+import type { Locale } from '@/lib/i18n/config';
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+export function AppShell({ children, initialLocale }: { children: React.ReactNode; initialLocale?: Locale }) {
   const pathname = usePathname();
 
   // Les routes d'administration et agence ont leurs propres interfaces et layouts
@@ -20,7 +21,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const isFocusedAuth = pathname === '/login';
 
   return (
-    <LanguageProvider>
+    <LanguageProvider initialLocale={initialLocale}>
       {isAdminOrAgency ? (
         children
       ) : isFocusedAuth ? (

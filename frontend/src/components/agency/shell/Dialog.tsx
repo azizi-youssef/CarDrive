@@ -1,68 +1,35 @@
 'use client';
 
-import { useEffect, useId, useRef, type ReactNode } from 'react';
+import { useId, type ReactNode } from 'react';
 import { AlertTriangle, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { button } from '@/lib/design/tokens';
+import { useModalDialog } from '@/lib/a11y/useModalDialog';
 
 /**
- * Comportements communs aux boîtes de dialogue :
- * verrouillage du défilement, fermeture par Échap et piège à focus.
+ * Boîtes de dialogue de l'espace agence et de l'administration.
+ * Focus, Échap, page inerte et restauration du focus : voir `useModalDialog`.
  */
-function useDialogBehaviour(open: boolean, onClose: () => void) {
-  const panelRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        onClose();
-        return;
-      }
-      if (event.key !== 'Tab' || !panelRef.current) return;
-      const focusable = panelRef.current.querySelectorAll<HTMLElement>(
-        'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
-      );
-      if (focusable.length === 0) return;
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-      if (!first || !last) return;
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault();
-        first.focus();
-      }
-    };
-
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    document.addEventListener('keydown', onKeyDown);
-
-    const timer = window.setTimeout(() => {
-      panelRef.current
-        ?.querySelector<HTMLElement>(
-          'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled])'
-        )
-        ?.focus();
-    }, 0);
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      document.removeEventListener('keydown', onKeyDown);
-      window.clearTimeout(timer);
-    };
-  }, [open, onClose]);
-
-  return panelRef;
-}
-
-function Backdrop({ children, labelledBy }: { children: ReactNode; labelledBy: string }) {
+function Backdrop({
+  children,
+  labelledBy,
+  describedBy,
+  alert = false,
+}: {
+  children: ReactNode;
+  labelledBy: string;
+  describedBy?: string;
+  alert?: boolean;
+}) {
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto bg-slate-900/50 p-0 backdrop-blur-sm sm:items-center sm:p-6">
-      <div role="dialog" aria-modal="true" aria-labelledby={labelledBy} className="w-full">
+      <div
+        role={alert ? 'alertdialog' : 'dialog'}
+        aria-modal="true"
+        aria-labelledby={labelledBy}
+        aria-describedby={describedBy}
+        className="w-full"
+      >
         {children}
       </div>
     </div>
@@ -86,14 +53,15 @@ export function Modal({
   wide?: boolean;
 }) {
   const titleId = useId();
-  const panelRef = useDialogBehaviour(true, onClose);
+  const panelRef = useModalDialog<HTMLDivElement>(true, { onClose });
 
   return (
-    <Backdrop labelledBy={titleId}>
+    <Backdrop labelledBy={titleId} describedBy={description ? `${titleId}-description` : undefined}>
       <div
         ref={panelRef}
+        tabIndex={-1}
         className={cn(
-          'mx-auto max-h-[92vh] overflow-y-auto rounded-t-2xl border border-slate-200 bg-white shadow-2xl sm:rounded-2xl',
+          'mx-auto max-h-[92vh] overflow-y-auto rounded-t-2xl border border-slate-200 bg-white shadow-2xl outline-none sm:rounded-2xl',
           wide ? 'sm:max-w-3xl' : 'sm:max-w-xl'
         )}
       >
@@ -102,7 +70,11 @@ export function Modal({
             <h2 id={titleId} className="text-lg font-bold tracking-tight text-[#0F172A]">
               {title}
             </h2>
-            {description && <p className="mt-1 text-sm text-[#64748B]">{description}</p>}
+            {description && (
+              <p id={`${titleId}-description`} className="mt-1 text-sm text-[#64748B]">
+                {description}
+              </p>
+            )}
           </div>
           <button
             type="button"
@@ -149,15 +121,17 @@ export function ConfirmDialog({
   onCancel: () => void;
 }) {
   const titleId = useId();
-  const panelRef = useDialogBehaviour(true, onCancel);
+  // Pas de fermeture par Échap pendant le traitement (l'action est en cours côté serveur)
+  const panelRef = useModalDialog<HTMLDivElement>(true, { onClose: onCancel, closeDisabled: busy });
   const requiresReason = Boolean(onReasonChange);
   const blocked = busy || (requiresReason && !reason?.trim());
 
   return (
-    <Backdrop labelledBy={titleId}>
+    <Backdrop labelledBy={titleId} describedBy={`${titleId}-message`} alert={destructive}>
       <div
         ref={panelRef}
-        className="mx-auto max-w-md rounded-t-2xl border border-slate-200 bg-white p-5 shadow-2xl sm:rounded-2xl sm:p-6"
+        tabIndex={-1}
+        className="mx-auto max-w-md rounded-t-2xl border border-slate-200 bg-white p-5 shadow-2xl outline-none sm:rounded-2xl sm:p-6"
       >
         <div className="flex items-start gap-3">
           {destructive && (
@@ -172,7 +146,9 @@ export function ConfirmDialog({
             <h2 id={titleId} className="text-base font-bold text-[#0F172A]">
               {title}
             </h2>
-            <p className="mt-1.5 text-sm text-[#64748B]">{message}</p>
+            <p id={`${titleId}-message`} className="mt-1.5 text-sm text-[#64748B]">
+              {message}
+            </p>
           </div>
         </div>
 

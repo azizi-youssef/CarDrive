@@ -7,7 +7,6 @@ import {
   ArrowRight,
   ArrowLeft,
   Building2,
-  Check,
   CheckCircle2,
   ShieldCheck,
   Users,
@@ -228,7 +227,7 @@ export default function AgencyJoinPage() {
               </div>
 
               <div className="space-y-3">
-                {benefits.map((benefit, index) => {
+                {benefits.map((benefit) => {
                   const Icon = benefit.icon;
 
                   return (

@@ -125,6 +125,13 @@ export const en: Translations = {
     cardLabel: 'See {brand} vehicles',
     pause: 'Pause scrolling',
     play: 'Resume scrolling',
+    motoEyebrow: 'Two-wheelers',
+    motoTitle: 'Motorcycle brands',
+    motoCatalog: 'All motorcycles',
+    motoRegionLabel: 'Available motorcycle brands, horizontal scrolling',
+    motoOne: '{count} motorcycle',
+    motoMany: '{count} motorcycles',
+    motoCardLabel: 'See {brand} motorcycles',
   },
   cookie: {
     title: 'Cookie settings',

@@ -43,7 +43,9 @@ export function CookieBanner() {
     <section
       aria-label={t.cookie.title}
       dir={isRTL ? 'rtl' : 'ltr'}
-      className="fixed inset-x-0 bottom-0 z-100 border-t border-slate-200 bg-white/95 shadow-[0_-12px_32px_-16px_rgba(11,18,32,0.25)] backdrop-blur-md pb-[env(safe-area-inset-bottom)]"
+      // z-45 : au-dessus des barres fixes (z-40), sous les dialogues modaux (z-50 et plus),
+      // qui rendent la page inerte — la bannière ne doit pas rester visible mais inutilisable par-dessus
+      className="fixed inset-x-0 bottom-0 z-45 border-t border-slate-200 bg-white/95 shadow-[0_-12px_32px_-16px_rgba(11,18,32,0.25)] backdrop-blur-md pb-[env(safe-area-inset-bottom)]"
     >
       <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-2.5 sm:flex-row sm:py-3 sm:items-center sm:gap-5 sm:px-6 lg:px-8">
         <p className="flex min-w-0 flex-1 items-start gap-2.5 text-xs leading-snug text-slate-600 sm:text-[13px] sm:items-center">

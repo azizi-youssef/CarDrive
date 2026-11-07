@@ -1,27 +1,43 @@
 import type { Metadata } from 'next';
 import React from 'react';
+import { getPublicVehicleBySlug } from '@/lib/vehicles/public-queries';
+import { formatEngineCc, isMotorcycle } from '@/lib/vehicles/kind';
+import { SITE_URL } from '@/lib/seo/structured-data';
 
 type Props = {
   params: Promise<{ slug: string }>;
   children: React.ReactNode;
 };
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+/** Métadonnées issues des vraies données du véhicule (même lecture mise en cache que la page) */
+export async function generateMetadata({ params }: Omit<Props, 'children'>): Promise<Metadata> {
   const { slug } = await params;
-  // « hyundai-tucson-2026-w7lry » → « Hyundai Tucson 2026 » (le suffixe aléatoire après l'année est retiré)
-  const decoded = decodeURIComponent(slug)
-    .replace(/-((?:19|20)\d{2})-[a-z0-9]{3,8}$/i, '-$1')
-    .replace(/-/g, ' ');
-  const formattedName = decoded.replace(/\b\p{L}/gu, (letter) => letter.toUpperCase());
+  const vehicle = await getPublicVehicleBySlug(slug).catch(() => null);
+  if (!vehicle) {
+    return { title: 'Véhicule introuvable', robots: { index: false, follow: true } };
+  }
+
+  const moto = isMotorcycle(vehicle);
+  const name = `${vehicle.brand} ${vehicle.model} ${vehicle.year}`;
+  const agency = vehicle.agency?.name;
+  const specs = [
+    moto ? formatEngineCc(vehicle.engine_cc) : `${vehicle.seats} places`,
+    vehicle.transmission === 'AUTOMATIC' ? 'boîte automatique' : 'boîte manuelle',
+  ]
+    .filter(Boolean)
+    .join(', ');
+  const description = `Louez ${moto ? 'la moto' : 'la voiture'} ${name} à Nador${agency ? ` chez ${agency}` : ''} : ${vehicle.daily_price} DH par jour, ${specs}. Demande de réservation sans paiement en ligne.`;
+  const image = vehicle.images?.[0];
 
   return {
-    title: `Louer ${formattedName} à Nador | KlickDrive`,
-    description: `Réservez ${formattedName} auprès d'agences vérifiées à Nador, Aéroport Nador-Al Aroui et Port Beni Ansar. Conditions transparentes et demande sans paiement immédiat.`,
-    alternates: { canonical: `/cars/${slug}` },
+    title: `Louer ${name} à Nador`,
+    description,
+    alternates: { canonical: `/cars/${vehicle.slug}` },
     openGraph: {
-      title: `${formattedName} en location à Nador — KlickDrive`,
-      description: `Consultez les caractéristiques, tarifs et avis pour ${formattedName} à Nador.`,
-      url: `https://klickdrive.ma/cars/${slug}`,
+      title: `${name} en location à Nador — KlickDrive`,
+      description,
+      url: `${SITE_URL}/cars/${vehicle.slug}`,
+      ...(image ? { images: [{ url: image, alt: name }] } : {}),
     },
   };
 }

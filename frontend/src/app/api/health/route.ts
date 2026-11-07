@@ -17,7 +17,7 @@ export async function GET() {
       checks.supabase = 'misconfigured';
       checks.database = 'skipped';
     }
-  } catch (err) {
+  } catch {
     checks.database = 'error';
     checks.supabase = 'error';
   }

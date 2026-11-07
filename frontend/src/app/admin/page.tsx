@@ -4,7 +4,6 @@ import { AdminShell } from '@/components/admin/AdminShell';
 import { AdminOverviewClient } from '@/components/admin/overview/AdminOverviewClient';
 import { statsService } from '@/lib/services/stats.service';
 import { commissionService } from '@/lib/services/commission.service';
-import { AdminCard } from '@/components/admin/AdminUI';
 import { Loader2 } from 'lucide-react';
 
 export const metadata: Metadata = {

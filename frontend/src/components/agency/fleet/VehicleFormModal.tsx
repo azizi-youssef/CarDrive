@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useRef, useEffect, type FormEvent } from 'react';
+import { useState, useRef, useEffect, useId, type FormEvent } from 'react';
+import { useModalDialog } from '@/lib/a11y/useModalDialog';
 import Image from 'next/image';
 import {
   X,
@@ -141,6 +142,8 @@ export function VehicleFormModal({
   }, [initialVehicle]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const titleId = useId();
+  const dialogRef = useModalDialog<HTMLDivElement>(true, { onClose, closeDisabled: busy || uploading });
   const isMoto = form.vehicle_type === 'MOTORCYCLE';
   const typeLabel = VEHICLE_TYPE_LABELS[form.vehicle_type];
   const categories = categoriesForType(form.vehicle_type);
@@ -300,7 +303,14 @@ export function VehicleFormModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-900/60 p-4 backdrop-blur-sm">
-      <div className="relative w-full max-w-3xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        tabIndex={-1}
+        className="relative w-full max-w-3xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl outline-none"
+      >
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-100 bg-ink px-6 py-4 text-white">
           <div className="flex items-center gap-3">
@@ -308,7 +318,7 @@ export function VehicleFormModal({
               {isMoto ? <Motorbike className="h-5 w-5" aria-hidden="true" /> : <Car className="h-5 w-5" aria-hidden="true" />}
             </div>
             <div>
-              <h2 className="text-lg font-bold">
+              <h2 id={titleId} className="text-lg font-bold">
                 {form.id
                   ? `Modifier : ${form.brand} ${form.model}`
                   : isMoto
@@ -323,9 +333,10 @@ export function VehicleFormModal({
           <button
             type="button"
             onClick={onClose}
+            aria-label="Fermer"
             className="rounded-lg p-1 text-slate-400 hover:bg-white/10 hover:text-white"
           >
-            <X className="h-5 w-5" />
+            <X className="h-5 w-5" aria-hidden="true" />
           </button>
         </div>
 
@@ -334,6 +345,7 @@ export function VehicleFormModal({
           <button
             type="button"
             onClick={() => setStep(1)}
+            aria-current={step === 1 ? 'step' : undefined}
             className={cn(
               'flex items-center gap-2 border-b-2 px-4 pb-3 transition-colors',
               step === 1
@@ -354,6 +366,7 @@ export function VehicleFormModal({
           <button
             type="button"
             onClick={() => setStep(2)}
+            aria-current={step === 2 ? 'step' : undefined}
             className={cn(
               'flex items-center gap-2 border-b-2 px-4 pb-3 transition-colors',
               step === 2
@@ -374,6 +387,7 @@ export function VehicleFormModal({
           <button
             type="button"
             onClick={() => setStep(3)}
+            aria-current={step === 3 ? 'step' : undefined}
             className={cn(
               'flex items-center gap-2 border-b-2 px-4 pb-3 transition-colors',
               step === 3
@@ -395,8 +409,8 @@ export function VehicleFormModal({
 
         {/* Error Alert */}
         {error && (
-          <div className="mx-6 mt-4 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-            <AlertCircle className="h-4 w-4 shrink-0" />
+          <div role="alert" className="mx-6 mt-4 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+            <AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
             <span>{error}</span>
           </div>
         )}
@@ -443,10 +457,11 @@ export function VehicleFormModal({
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
-                  <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-600">
+                  <label htmlFor="vehicle-field-1" className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-600">
                     Marque *
                   </label>
                   <input
+                    id="vehicle-field-1"
                     type="text"
                     required
                     placeholder={isMoto ? 'Ex: Yamaha, Honda, SYM...' : 'Ex: Dacia, Renault, Peugeot...'}
@@ -456,10 +471,11 @@ export function VehicleFormModal({
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-600">
+                  <label htmlFor="vehicle-field-2" className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-600">
                     Modèle *
                   </label>
                   <input
+                    id="vehicle-field-2"
                     type="text"
                     required
                     placeholder={isMoto ? 'Ex: NMAX 125, Forza 350, MT-07...' : 'Ex: Duster, Clio 5, 208...'}
@@ -472,10 +488,11 @@ export function VehicleFormModal({
 
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
                 <div>
-                  <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-600">
+                  <label htmlFor="vehicle-field-3" className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-600">
                     Année *
                   </label>
                   <input
+                    id="vehicle-field-3"
                     type="number"
                     min="2000"
                     max={new Date().getFullYear() + 1}
@@ -485,10 +502,11 @@ export function VehicleFormModal({
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-600">
+                  <label htmlFor="vehicle-field-4" className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-600">
                     Catégorie
                   </label>
                   <select
+                    id="vehicle-field-4"
                     value={form.category}
                     onChange={(e) => {
                       const nextCategory = e.target.value;
@@ -515,10 +533,11 @@ export function VehicleFormModal({
                   </select>
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-600">
+                  <label htmlFor="vehicle-field-5" className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-600">
                     {isMoto ? 'Boîte' : 'Transmission'}
                   </label>
                   <select
+                    id="vehicle-field-5"
                     value={form.transmission}
                     onChange={(e) =>
                       setForm({ ...form, transmission: e.target.value as 'MANUAL' | 'AUTOMATIC' })
@@ -530,10 +549,11 @@ export function VehicleFormModal({
                   </select>
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-600">
+                  <label htmlFor="vehicle-field-6" className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-600">
                     Carburant
                   </label>
                   <select
+                    id="vehicle-field-6"
                     value={form.fuel}
                     onChange={(e) =>
                       setForm({
@@ -553,10 +573,11 @@ export function VehicleFormModal({
 
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
                 <div>
-                  <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-600">
+                  <label htmlFor="vehicle-field-7" className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-600">
                     Places
                   </label>
                   <input
+                    id="vehicle-field-7"
                     type="number"
                     min={isMoto ? 1 : 2}
                     max={isMoto ? 2 : 9}
@@ -583,10 +604,11 @@ export function VehicleFormModal({
                   </div>
                 ) : (
                   <div>
-                    <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-600">
+                    <label htmlFor="vehicle-field-8" className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-600">
                       Portes
                     </label>
                     <input
+                    id="vehicle-field-8"
                       type="number"
                       min="2"
                       max="5"
@@ -597,10 +619,11 @@ export function VehicleFormModal({
                   </div>
                 )}
                 <div>
-                  <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-600">
+                  <label htmlFor="vehicle-field-9" className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-600">
                     Kilométrage actuel
                   </label>
                   <input
+                    id="vehicle-field-9"
                     type="number"
                     min="0"
                     value={form.mileage}
@@ -609,10 +632,11 @@ export function VehicleFormModal({
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-600">
+                  <label htmlFor="vehicle-field-10" className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-600">
                     Immatriculation
                   </label>
                   <input
+                    id="vehicle-field-10"
                     type="text"
                     placeholder="Ex: 54321-A-50"
                     value={form.license_plate ?? ''}
@@ -651,10 +675,10 @@ export function VehicleFormModal({
               )}
 
               <div>
-                <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-600">
+                <p id="vehicle-features-label" className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-600">
                   Équipements & Options
-                </label>
-                <div className="flex flex-wrap gap-2">
+                </p>
+                <div className="flex flex-wrap gap-2" role="group" aria-labelledby="vehicle-features-label">
                   {commonFeatures.map((feat) => {
                     const active = form.features.includes(feat);
                     return (
@@ -662,6 +686,7 @@ export function VehicleFormModal({
                         type="button"
                         key={feat}
                         onClick={() => toggleFeature(feat)}
+                        aria-pressed={active}
                         className={cn(
                           'flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-all',
                           active
@@ -684,11 +709,12 @@ export function VehicleFormModal({
             <div className="space-y-4">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4">
-                  <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-700">
+                  <label htmlFor="vehicle-daily-price" className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-700">
                     Prix par jour (MAD) *
                   </label>
                   <div className="relative mt-1">
                     <input
+                      id="vehicle-daily-price"
                       type="number"
                       required
                       min="50"
@@ -706,11 +732,12 @@ export function VehicleFormModal({
                 </div>
 
                 <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4">
-                  <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-700">
+                  <label htmlFor="vehicle-deposit" className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-700">
                     Caution exigée (MAD) *
                   </label>
                   <div className="relative mt-1">
                     <input
+                      id="vehicle-deposit"
                       type="number"
                       min="0"
                       value={form.deposit}
@@ -730,10 +757,11 @@ export function VehicleFormModal({
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <div>
-                  <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-600">
+                  <label htmlFor="vehicle-field-11" className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-600">
                     Durée minimale (jours)
                   </label>
                   <input
+                    id="vehicle-field-11"
                     type="number"
                     min="1"
                     max="30"
@@ -743,10 +771,11 @@ export function VehicleFormModal({
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-600">
+                  <label htmlFor="vehicle-field-12" className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-600">
                     Prix semaine (Optionnel)
                   </label>
                   <input
+                    id="vehicle-field-12"
                     type="number"
                     min="0"
                     placeholder="Auto calculé si vide"
@@ -761,10 +790,11 @@ export function VehicleFormModal({
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-600">
+                  <label htmlFor="vehicle-field-13" className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-600">
                     Prix mensuel (Optionnel)
                   </label>
                   <input
+                    id="vehicle-field-13"
                     type="number"
                     min="0"
                     placeholder="Auto calculé si vide"
@@ -787,9 +817,9 @@ export function VehicleFormModal({
             <div className="space-y-5">
               {/* Image Uploader */}
               <div>
-                <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-600">
+                <p id="vehicle-photos-label" className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-600">
                   {isMoto ? 'Photos de la moto' : 'Photos du véhicule'}
-                </label>
+                </p>
                 <input
                   type="file"
                   multiple
@@ -800,8 +830,19 @@ export function VehicleFormModal({
                 />
 
                 <div
+                  role="button"
+                  tabIndex={uploading ? -1 : 0}
+                  aria-labelledby="vehicle-photos-label"
+                  aria-disabled={uploading || undefined}
                   onClick={() => fileInputRef.current?.click()}
-                  className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50/70 p-6 transition-colors hover:border-brand hover:bg-red-50/20"
+                  onKeyDown={(event) => {
+                    // Activation clavier de la zone de dépôt (Entrée / Espace)
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      fileInputRef.current?.click();
+                    }
+                  }}
+                  className="flex cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50/70 p-6 transition-colors hover:border-brand hover:bg-red-50/20"
                 >
                   {uploading ? (
                     <div className="flex flex-col items-center gap-2">
@@ -896,16 +937,19 @@ export function VehicleFormModal({
               <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-sm font-semibold text-slate-900">
+                    <h3 id="vehicle-publish-label" className="text-sm font-semibold text-slate-900">
                       Publier immédiatement sur la marketplace
                     </h3>
-                    <p className="text-xs text-slate-500">
+                    <p id="vehicle-publish-hint" className="text-xs text-slate-500">
                       Rend le véhicule visible par les clients lors des recherches sur KlickDrive.
                     </p>
                   </div>
                   <label className="relative inline-flex cursor-pointer items-center">
                     <input
                       type="checkbox"
+                      role="switch"
+                      aria-labelledby="vehicle-publish-label"
+                      aria-describedby="vehicle-publish-hint"
                       checked={form.published}
                       onChange={(e) => setForm({ ...form, published: e.target.checked })}
                       className="peer sr-only"

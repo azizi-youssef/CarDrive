@@ -13,6 +13,7 @@ import {
   CheckCircle,
 } from 'lucide-react';
 import { Btn } from '@/components/admin/AdminUI';
+import { useModalDialog } from '@/lib/a11y/useModalDialog';
 import type { AdminAgency } from '@/lib/api/admin-dashboard.api';
 import { deleteAdminAgency } from '@/lib/api/admin-dashboard.api';
 
@@ -39,6 +40,8 @@ export function DeleteAgencyModal({
       setError(null);
     }
   }, [isOpen, agency?.id]);
+
+  const dialogRef = useModalDialog<HTMLDivElement>(Boolean(isOpen && agency), { onClose, closeDisabled: loading });
 
   if (!isOpen || !agency) return null;
 
@@ -68,8 +71,11 @@ export function DeleteAgencyModal({
 
   return (
     <div
-      role="dialog"
+      ref={dialogRef}
+      role="alertdialog"
       aria-modal="true"
+      aria-labelledby="delete-agency-title"
+      tabIndex={-1}
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in"
     >
       <div className="relative w-full max-w-lg rounded-2xl bg-white shadow-2xl border border-slate-200 overflow-hidden flex flex-col">
@@ -80,7 +86,7 @@ export function DeleteAgencyModal({
               {hasBookings ? <Archive className="h-5 w-5" /> : <Trash2 className="h-5 w-5" />}
             </div>
             <div>
-              <h2 className="text-base font-bold text-red-900">
+              <h2 id="delete-agency-title" className="text-base font-bold text-red-900">
                 {hasBookings ? 'Archivage de l’agence' : 'Suppression définitive de l’agence'}
               </h2>
               <p className="text-xs text-red-700 font-medium">{agency.name}</p>
@@ -89,9 +95,10 @@ export function DeleteAgencyModal({
           <button
             type="button"
             onClick={onClose}
+            aria-label="Fermer"
             className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-200 hover:text-slate-700 transition"
           >
-            <X className="h-5 w-5" />
+            <X className="h-5 w-5" aria-hidden="true" />
           </button>
         </div>
 

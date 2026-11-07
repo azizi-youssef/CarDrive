@@ -9,9 +9,9 @@ import {
   EyeOff,
   Sparkles,
   AlertTriangle,
-  Lock,
 } from 'lucide-react';
 import { Btn } from '@/components/admin/AdminUI';
+import { useModalDialog } from '@/lib/a11y/useModalDialog';
 import type { Agency } from '@/types';
 import { resetAgencyPassword } from '@/lib/api/admin-dashboard.api';
 import { generateTemporaryPassword } from '@/lib/utils/agency-credentials';
@@ -33,6 +33,8 @@ export function ResetPasswordModal({
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const dialogRef = useModalDialog<HTMLDivElement>(Boolean(isOpen && agency), { onClose, closeDisabled: loading });
 
   if (!isOpen || !agency) return null;
 
@@ -58,8 +60,11 @@ export function ResetPasswordModal({
 
   return (
     <div
+      ref={dialogRef}
       role="dialog"
       aria-modal="true"
+      aria-labelledby="reset-password-title"
+      tabIndex={-1}
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in"
     >
       <div className="relative w-full max-w-md rounded-2xl bg-white shadow-2xl border border-slate-200 overflow-hidden flex flex-col">
@@ -70,16 +75,17 @@ export function ResetPasswordModal({
               <KeyRound className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-slate-900">Réinitialiser le mot de passe</h2>
+              <h2 id="reset-password-title" className="text-base font-bold text-slate-900">Réinitialiser le mot de passe</h2>
               <p className="text-xs text-slate-500">{agency.name}</p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
+            aria-label="Fermer"
             className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-200 hover:text-slate-700 transition"
           >
-            <X className="h-5 w-5" />
+            <X className="h-5 w-5" aria-hidden="true" />
           </button>
         </div>
 

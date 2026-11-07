@@ -25,7 +25,8 @@ import {
 import { LOCATIONS_NADOR } from '@/lib/constants/catalog';
 
 export const metadata: Metadata = {
-  title: 'Comment ça marche — KlickDrive',
+  title: 'Comment ça marche',
+  alternates: { canonical: '/about' },
   description:
     'KlickDrive rassemble les voitures des agences de location de Nador au même endroit : cherchez le modèle dont vous avez besoin, pas une agence.',
 };

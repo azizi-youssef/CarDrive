@@ -13,9 +13,7 @@ import { klickdriveWhatsAppUrl } from '@/lib/constants/contact';
 import { isMotorcycle } from '@/lib/vehicles/kind';
 import {
   MapPin,
-  Phone,
   MessageSquare,
-  Mail,
   Star,
   ShieldCheck,
   Car,

@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { ContactClient } from './ContactClient';
 
 export const metadata: Metadata = {
-  title: 'Nous contacter — KlickDrive Nador',
+  title: 'Nous contacter',
   description:
     "Contactez l’équipe KlickDrive pour toute question sur la location de voitures à Nador : demande d’information, question technique ou partenariat agence.",
   alternates: { canonical: '/contact' },

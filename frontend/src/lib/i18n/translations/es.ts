@@ -124,6 +124,13 @@ export const es: Translations = {
     cardLabel: 'Ver los vehículos {brand}',
     pause: 'Pausar el desplazamiento',
     play: 'Reanudar el desplazamiento',
+    motoEyebrow: 'Dos ruedas',
+    motoTitle: 'Las marcas de motos',
+    motoCatalog: 'Todas las motocicletas',
+    motoRegionLabel: 'Marcas de motos disponibles, desplazamiento horizontal',
+    motoOne: '{count} motocicleta',
+    motoMany: '{count} motocicletas',
+    motoCardLabel: 'Ver las motocicletas {brand}',
   },
   cookie: {
     title: 'Configuración de cookies',

@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { AgenciesClient } from './AgenciesClient';
 
 export const metadata: Metadata = {
-  title: 'Agences de location de voitures à Nador | KlickDrive',
+  title: 'Agences de location de voitures à Nador',
   description:
     'Découvrez les agences partenaires vérifiées sur KlickDrive à Nador, l’aéroport Nador-Al Aroui et Beni Ansar. Consultez leurs parcs, conditions et tarifs.',
   alternates: { canonical: '/agencies' },
