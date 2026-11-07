@@ -27,7 +27,6 @@ export default function CommissionSettingsPage() {
 
   const fetchSettings = useCallback(async () => {
     try {
-      setLoading(true);
       const [commRes, plansRes] = await Promise.all([
         fetch('/api/settings/commission'),
         fetch('/api/subscriptions/plans'),

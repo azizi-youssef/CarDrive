@@ -94,9 +94,10 @@ appliquée au 6 novembre (recherche par dates en erreur 500).
 | Unitaires + composants Vitest (dont 29 tests de composants en jsdom) | `npm run test:unit -w frontend` | **104 / 104** |
 | Migrations + RLS (PostgreSQL réel, PGlite) | `npm run test:db -w frontend` | **39 / 39** |
 | Suites historiques `node:test` (16 fichiers) | `npm run test:legacy -w frontend` | **0 échec** (code de sortie 0) |
-| TypeScript | `npm run typecheck` | 0 erreur hors `app/admin/settings/commission/page.tsx` (modification en cours du propriétaire : `setLoading` sans état) |
+| TypeScript | `npm run typecheck` | **0 erreur** (l’appel `setLoading` resté sans état dans `admin/settings/commission/page.tsx`, qui faisait échouer la CI GitHub, est supprimé) |
 | ESLint | `npm run lint` | 0 erreur, 228 avertissements (nettoyage en cours par le propriétaire) |
-| Build de production | `npm run build -w frontend` | **NON VÉRIFIÉ** dans cet état : bloqué par l’erreur TypeScript ci-dessus |
+| Build de production | `npm run build -w frontend` | **Réussi** (Next.js 16.4.5, aucun avertissement), après correction de l’erreur TypeScript |
+| Étapes du job CI `quality`, rejouées en local dans l’ordre | `npm ls`, `build:shared`, lint, typecheck, unitaires, base, historiques, couverture, build | **Toutes en succès** ; exécution sur GitHub Actions à confirmer après le push |
 | E2E Playwright publics (bureau + mobile) | `npm run test:e2e:public -w frontend` | **NON EXÉCUTÉS ici** : le bac à sable de l’agent interdit le lancement de Chromium. Seuls les 8 tests HTTP sans navigateur ont tourné (8/8 : redirections des espaces privés + `noindex`, 404, rendu serveur de la fiche) |
 | E2E Playwright authentifiés (parcours 1, 5 à 10) | `npm run test:e2e -w frontend` + variables `E2E_*` | **NON EXÉCUTÉS** : exigent un staging avec comptes de test (jamais la production) |
 | Contrôle WCAG automatique (axe-core, 6 pages) | inclus dans les E2E publics | **NON EXÉCUTÉ** (même raison) |
