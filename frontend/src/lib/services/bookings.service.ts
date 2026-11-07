@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { canPerformAgencyBookingAction } from '@cardrive/shared';
+import { canPerformAgencyBookingAction } from '@klickdrive/shared';
 import { Booking, BookingStatus, BookingEvent, BookingEventType } from '@/types';
 import { createClient, createAdminClient } from '@/lib/supabase/server';
 import { bookingRequestSchema, BookingRequestInput } from '@/lib/validations/booking';
@@ -7,6 +7,7 @@ import { calculateBookingPrice, calculateRentalDays } from '@/lib/utils/pricing'
 import { generateBookingReference, isValidBookingReference } from '@/lib/utils/reference';
 import { commissionService } from './commission.service';
 import { vehiclesService } from './vehicles.service';
+import type { AvailabilityStatus } from '@/lib/availability/status';
 
 /* -------------------------------------------------------------------------- */
 /* Colonnes sélectionnées                                                     */
@@ -121,15 +122,16 @@ function bookingWithoutIdempotencyFields(data: IdempotentBookingRecord): Booking
 
 export class BookingsService {
   /**
-   * Vérifie la disponibilité d'un véhicule pour une plage de dates
+   * Disponibilité d'un véhicule pour une plage de dates (AVAILABLE / UNAVAILABLE / UNKNOWN).
+   * UNKNOWN n'est jamais traité comme une disponibilité.
    */
-  async checkAvailability(
+  async getAvailabilityStatus(
     vehicleId: string,
     startDate: string,
     endDate: string
-  ): Promise<boolean> {
+  ): Promise<AvailabilityStatus> {
     requireSupabase();
-    return vehiclesService.checkAvailability(vehicleId, startDate, endDate);
+    return vehiclesService.getAvailabilityStatus(vehicleId, startDate, endDate);
   }
 
   /**
@@ -322,9 +324,17 @@ export class BookingsService {
       };
     }
 
-    // 3. Vérification réelle; l'approbation est ensuite arbitrée par la contrainte SQL.
-    const isAvailable = await this.checkAvailability(input.vehicleId, input.startDate, input.endDate);
-    if (!isAvailable) {
+    // 3. Vérification réelle (fail-closed) ; l'approbation est ensuite arbitrée par la contrainte SQL
+    //    no_overlapping_confirmed_bookings. Une disponibilité non vérifiable bloque la demande.
+    const availability = await this.getAvailabilityStatus(input.vehicleId, input.startDate, input.endDate);
+    if (availability === 'UNKNOWN') {
+      return {
+        success: false,
+        error: 'La disponibilité de ce véhicule ne peut pas être vérifiée pour le moment. Votre demande n\'a pas été envoyée : réessayez dans quelques instants.',
+        serviceUnavailable: true,
+      };
+    }
+    if (availability === 'UNAVAILABLE') {
       return {
         success: false,
         error: 'Ce véhicule n\'est plus disponible pour les dates sélectionnées. Veuillez choisir d\'autres dates ou explorer les véhicules équivalents.',
@@ -357,7 +367,7 @@ export class BookingsService {
           last_name: input.lastName,
           customer_name: fullName,
           cin: input.cin,
-          customer_email: input.email || `${input.phone.replace(/[^0-9]/g, '')}@cardrive.ma`,
+          customer_email: input.email || `${input.phone.replace(/[^0-9]/g, '')}@klickdrive.ma`,
           customer_phone: input.phone,
           customer_country: input.country,
           birth_date: input.birthDate,

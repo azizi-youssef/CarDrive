@@ -119,7 +119,7 @@ BEGIN
         BEGIN
             CREATE EXTENSION IF NOT EXISTS pg_cron;
             PERFORM cron.schedule(
-                'cardrive-expire-completed-bookings',
+                'klickdrive-expire-completed-bookings',
                 '5 0 * * *',
                 'SELECT public.expire_completed_bookings()'
             );

@@ -25,9 +25,9 @@ import {
 import { LOCATIONS_NADOR } from '@/lib/constants/catalog';
 
 export const metadata: Metadata = {
-  title: 'Comment ça marche — CarDrive',
+  title: 'Comment ça marche — KlickDrive',
   description:
-    'CarDrive rassemble les voitures des agences de location de Nador au même endroit : cherchez le modèle dont vous avez besoin, pas une agence.',
+    'KlickDrive rassemble les voitures des agences de location de Nador au même endroit : cherchez le modèle dont vous avez besoin, pas une agence.',
 };
 
 const focusRing =
@@ -50,7 +50,7 @@ const benefits = [
     icon: Shuffle,
     title: 'Une alternative si votre modèle est indisponible',
     description:
-      'Quand la voiture voulue est prise, CarDrive propose des véhicules équivalents chez d’autres partenaires.',
+      'Quand la voiture voulue est prise, KlickDrive propose des véhicules équivalents chez d’autres partenaires.',
   },
   {
     icon: Compass,
@@ -250,7 +250,7 @@ export default function AboutPage() {
             </h1>
 
             <p className="mt-6 text-pretty text-base leading-7 text-slate-300 sm:text-lg sm:leading-8">
-              CarDrive rassemble les véhicules des agences de location de Nador. Voyageurs et résidents trouvent le
+              KlickDrive rassemble les véhicules des agences de location de Nador. Voyageurs et résidents trouvent le
               modèle dont ils ont besoin, puis contactent directement l’agence qui le propose.
             </p>
 
@@ -306,7 +306,7 @@ export default function AboutPage() {
                 une.
               </p>
               <p>
-                CarDrive inverse la démarche :{' '}
+                KlickDrive inverse la démarche :{' '}
                 <strong className="font-bold text-[#0B1220]">
                   on commence par la voiture recherchée, pas par le nom de l’agence.
                 </strong>{' '}
@@ -316,12 +316,12 @@ export default function AboutPage() {
             </div>
           </div>
 
-          {/* Explication visuelle : avant / avec CarDrive */}
+          {/* Explication visuelle : avant / avec KlickDrive */}
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="rounded-3xl border border-slate-200 bg-white p-6">
-              <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-500">Sans CarDrive</p>
+              <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-500">Sans KlickDrive</p>
               <p className="mt-2 text-lg font-extrabold">Une agence après l’autre</p>
-              <ol className="mt-5 space-y-2.5" aria-label="Démarche sans CarDrive">
+              <ol className="mt-5 space-y-2.5" aria-label="Démarche sans KlickDrive">
                 {['Appeler une première agence', 'Modèle indisponible, rappeler ailleurs', 'Comparer de mémoire', 'Recommencer…'].map(
                   (item, index) => (
                     <li key={item} className="flex items-center gap-3 text-sm text-slate-500">
@@ -340,9 +340,9 @@ export default function AboutPage() {
                 aria-hidden="true"
                 className="pointer-events-none absolute -end-16 -top-16 h-48 w-48 rounded-full bg-[#E63946]/30 blur-3xl"
               />
-              <p className="relative text-[11px] font-bold uppercase tracking-[0.16em] text-[#FF6B76]">Avec CarDrive</p>
+              <p className="relative text-[11px] font-bold uppercase tracking-[0.16em] text-[#FF6B76]">Avec KlickDrive</p>
               <p className="relative mt-2 text-lg font-extrabold">Une seule recherche</p>
-              <ol className="relative mt-5 space-y-2.5" aria-label="Démarche avec CarDrive">
+              <ol className="relative mt-5 space-y-2.5" aria-label="Démarche avec KlickDrive">
                 {['Une recherche pour toutes les agences', 'Les véhicules comparés côte à côte', 'Une alternative si le modèle est pris', 'Le contact direct de l’agence'].map(
                   (item) => (
                     <li key={item} className="flex items-center gap-3 text-sm text-slate-200">
@@ -364,7 +364,7 @@ export default function AboutPage() {
         <div className="mx-auto max-w-[1240px] px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div className="max-w-2xl">
-              <SectionEyebrow>Pourquoi CarDrive</SectionEyebrow>
+              <SectionEyebrow>Pourquoi KlickDrive</SectionEyebrow>
               <h2
                 id="benefits-title"
                 className="mt-4 text-balance text-[30px] font-extrabold leading-[1.08] tracking-[-0.02em] sm:text-[42px]"
@@ -407,7 +407,7 @@ export default function AboutPage() {
             id="steps-title"
             className="mt-4 text-balance text-[30px] font-extrabold leading-[1.08] tracking-[-0.02em] sm:text-[42px]"
           >
-            Comment fonctionne CarDrive ?
+            Comment fonctionne KlickDrive ?
           </h2>
         </div>
 
@@ -473,7 +473,7 @@ export default function AboutPage() {
                 Conçu pour les déplacements autour de Nador.
               </h2>
               <p className="mt-5 text-base leading-8 text-slate-300">
-                CarDrive couvre les principaux points de mobilité de la région, pour récupérer une voiture là où le
+                KlickDrive couvre les principaux points de mobilité de la région, pour récupérer une voiture là où le
                 trajet commence.
               </p>
             </div>
@@ -536,7 +536,7 @@ export default function AboutPage() {
       {/* ═══ CTA FINAL : voyageurs et agences ══════════════════════════════ */}
       <section aria-labelledby="cta-title" className="mx-auto max-w-[1240px] px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
         <h2 id="cta-title" className="sr-only">
-          Commencer avec CarDrive
+          Commencer avec KlickDrive
         </h2>
 
         <div className="grid gap-5 md:grid-cols-[1.3fr_1fr]">

@@ -1,4 +1,4 @@
-# CarDrive — Architecture (cible production)
+# KlickDrive — Architecture (cible production)
 
 ## Vue d’ensemble
 
@@ -39,7 +39,7 @@ Les services serveur n’appellent plus Express en premier ; fallback **store m�
 
 ## Package partagé
 
-`packages/shared` (`@cardrive/shared`) :
+`packages/shared` (`@klickdrive/shared`) :
 
 - Enums / types : statuts réservation, rôles
 - Schémas Zod : `bookingRequestSchema`, actions agence

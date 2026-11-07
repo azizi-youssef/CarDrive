@@ -52,18 +52,18 @@ export function AgencyCredentialsSuccessModal({
     }
   };
 
-  const fullMessage = `🚗 Accès Partenaire CarDrive — ${credentials.agencyName}
+  const fullMessage = `🚗 Accès Partenaire KlickDrive — ${credentials.agencyName}
 
 Bonjour ${credentials.manager_name || 'Monsieur/Madame'},
-Votre agence a été configurée avec succès sur la marketplace CarDrive.
+Votre agence a été configurée avec succès sur la marketplace KlickDrive.
 
 Voici vos identifiants de connexion officiels :
 • E-mail : ${credentials.email}
 • Mot de passe temporaire : ${credentials.temporaryPassword}
-• Portail de connexion : https://cardrive.ma/login?portal=agency
+• Portail de connexion : https://klickdrive.ma/login?portal=agency
 
 Pour votre sécurité, nous vous invitons à modifier votre mot de passe dès votre première connexion.
-Équipe CarDrive — Nador & Oriental`;
+Équipe KlickDrive — Nador & Oriental`;
 
   return (
     <div

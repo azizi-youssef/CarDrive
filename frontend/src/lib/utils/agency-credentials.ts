@@ -1,9 +1,9 @@
 /**
- * Utilitaires pour la génération et la normalisation des identifiants agences CarDrive.
+ * Utilitaires pour la génération et la normalisation des identifiants agences KlickDrive.
  * Respecte les exigences strictes de normalisation, unicité et sécurité.
  */
 
-const CARDRIVE_EMAIL_DOMAIN = 'cardrive.ma';
+const KLICKDRIVE_EMAIL_DOMAIN = 'klickdrive.ma';
 
 /**
  * Normalise un nom d'agence en composante email locale :
@@ -36,23 +36,23 @@ export function normalizeAgencyLocalPart(agencyName: string): string {
 }
 
 /**
- * Génère l'adresse email de base au format `nom.agence@cardrive.ma`.
+ * Génère l'adresse email de base au format `nom.agence@klickdrive.ma`.
  */
 export function generateBaseAgencyEmail(agencyName: string): string {
   const localPart = normalizeAgencyLocalPart(agencyName);
-  return `${localPart}@${CARDRIVE_EMAIL_DOMAIN}`;
+  return `${localPart}@${KLICKDRIVE_EMAIL_DOMAIN}`;
 }
 
 /**
  * Génère une liste de candidats d'adresses email avec suffixes numériques si collision.
- * Exemple : ['nom.agence@cardrive.ma', 'nom.agence2@cardrive.ma', 'nom.agence3@cardrive.ma', ...]
+ * Exemple : ['nom.agence@klickdrive.ma', 'nom.agence2@klickdrive.ma', 'nom.agence3@klickdrive.ma', ...]
  */
 export function generateCandidateAgencyEmails(agencyName: string, maxCandidates = 10): string[] {
   const localPart = normalizeAgencyLocalPart(agencyName);
-  const candidates: string[] = [`${localPart}@${CARDRIVE_EMAIL_DOMAIN}`];
+  const candidates: string[] = [`${localPart}@${KLICKDRIVE_EMAIL_DOMAIN}`];
 
   for (let i = 2; i <= maxCandidates; i++) {
-    candidates.push(`${localPart}${i}@${CARDRIVE_EMAIL_DOMAIN}`);
+    candidates.push(`${localPart}${i}@${KLICKDRIVE_EMAIL_DOMAIN}`);
   }
 
   return candidates;
@@ -76,7 +76,7 @@ export async function resolveUniqueAgencyEmail(
 
   // Fallback si 20 collisions : timestamp suffix
   const localPart = normalizeAgencyLocalPart(agencyName);
-  return `${localPart}.${Date.now().toString().slice(-4)}@${CARDRIVE_EMAIL_DOMAIN}`;
+  return `${localPart}.${Date.now().toString().slice(-4)}@${KLICKDRIVE_EMAIL_DOMAIN}`;
 }
 
 /**

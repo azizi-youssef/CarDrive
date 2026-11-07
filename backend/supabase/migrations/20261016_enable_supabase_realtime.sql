@@ -1,5 +1,5 @@
 -- ========================================================================
--- CarDrive: Enable Supabase Realtime Publication
+-- KlickDrive: Enable Supabase Realtime Publication
 -- Enables live WebSocket event broadcast for vehicles, bookings, agencies,
 -- unavailabilities and reviews.
 -- ========================================================================
@@ -14,7 +14,7 @@ BEGIN
   END IF;
 END $$;
 
--- 2. Ajouter les tables principales de CarDrive à la publication Realtime
+-- 2. Ajouter les tables principales de KlickDrive à la publication Realtime
 DO $$
 BEGIN
   BEGIN

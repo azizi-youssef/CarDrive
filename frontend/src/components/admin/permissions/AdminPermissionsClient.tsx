@@ -28,7 +28,7 @@ import {
   StatusBadge,
   ErrorBanner,
 } from '@/components/admin/AdminUI';
-import { USER_ROLES, type UserRole } from '@cardrive/shared';
+import { USER_ROLES, type UserRole } from '@klickdrive/shared';
 import { useRealtimeRefresh } from '@/lib/supabase/realtime';
 
 interface PermUser {
@@ -390,7 +390,7 @@ export function AdminPermissionsClient() {
                               {u.agency.name}
                             </span>
                           ) : (
-                            <span className="text-xs text-slate-400">Siège CarDrive</span>
+                            <span className="text-xs text-slate-400">Siège KlickDrive</span>
                           )}
                         </Td>
                         <Td>
@@ -436,7 +436,7 @@ export function AdminPermissionsClient() {
           <AdminCard title="Row-Level Security (RLS) PostgreSQL">
             <div className="mt-3 space-y-3 text-xs text-slate-600">
               <p>
-                CarDrive applique le principe du moindre privilège grâce aux règles RLS de PostgreSQL et Supabase :
+                KlickDrive applique le principe du moindre privilège grâce aux règles RLS de PostgreSQL et Supabase :
               </p>
               <ul className="space-y-2">
                 <li className="flex items-start gap-2">

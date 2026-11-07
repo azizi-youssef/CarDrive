@@ -61,6 +61,8 @@ export function BookingCard({ vehicle, onAvailabilityChange }: BookingCardProps)
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [availability, setAvailability] = useState<BookingAvailability>('checking');
+  // Relance manuelle de la vérification après un échec
+  const [checkNonce, setCheckNonce] = useState(0);
 
   // Période valide : départ dès aujourd'hui, retour au moins le lendemain
   const datesError = !isValidDateOnly(startDate) || startDate < today
@@ -94,13 +96,10 @@ export function BookingCard({ vehicle, onAvailabilityChange }: BookingCardProps)
         if (!response.ok || !result.success) {
           throw new Error(result.error || 'Échec de la vérification.');
         }
-        if (active) setAvailability(result.data.available ? 'available' : 'unavailable');
+        if (active) setAvailability(result.data.status === 'AVAILABLE' ? 'available' : 'unavailable');
       } catch {
-        if (active) {
-          // Si le service de vérification distante est temporairement indisponible,
-          // on utilise le statut natif de la flotte au lieu de bloquer l'utilisateur
-          setAvailability(vehicle.status === 'AVAILABLE' ? 'available' : 'unavailable');
-        }
+        // Vérification impossible : état « non vérifié », jamais « disponible » (fail-closed)
+        if (active) setAvailability('error');
       }
     };
 
@@ -117,16 +116,22 @@ export function BookingCard({ vehicle, onAvailabilityChange }: BookingCardProps)
       clearInterval(timer);
       window.removeEventListener('focus', refreshOnFocus);
     };
-  }, [endDate, startDate, vehicle.id, vehicle.status, datesError]);
+  }, [endDate, startDate, vehicle.id, datesError, checkNonce]);
 
   // Même moteur de calcul que le serveur (durée et montant)
   const totalDays = calculateRentalDays(startDate, endDate);
   const pricing = calculateBookingPrice(vehicle.daily_price, totalDays);
 
-  const canBook = !datesError && availability !== 'unavailable' && availability !== 'checking';
+  // Une demande n'est possible que sur une disponibilité vérifiée
+  const canBook = !datesError && availability === 'available';
+  const retryCheck = () => setCheckNonce((value) => value + 1);
   const resolvedDropoff = dropoffLocation || location;
 
   const openBooking = () => {
+    if (availability === 'error' && !datesError) {
+      retryCheck();
+      return;
+    }
     if (!canBook) {
       focusDates();
       return;
@@ -144,6 +149,11 @@ export function BookingCard({ vehicle, onAvailabilityChange }: BookingCardProps)
       <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FFF1F2] px-2.5 py-1 text-xs font-bold text-[#B4232F]">
         <XCircle className="h-3.5 w-3.5" aria-hidden="true" />
         Indisponible pour ces dates
+      </span>
+    ) : availability === 'error' ? (
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-800">
+        <AlertCircle className="h-3.5 w-3.5" aria-hidden="true" />
+        Disponibilité non vérifiée
       </span>
     ) : (
       <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700">
@@ -261,6 +271,20 @@ export function BookingCard({ vehicle, onAvailabilityChange }: BookingCardProps)
             <p className="mt-2 text-[13px] text-[#B4232F]">
               Ce véhicule est déjà réservé sur cette période. Essayez d’autres dates.
             </p>
+          ) : availability === 'error' ? (
+            <div role="alert" className="mt-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-[13px] text-amber-900">
+              <p>
+                La disponibilité ne peut pas être vérifiée pour le moment. Aucune demande ne peut être envoyée tant que la
+                vérification n’a pas abouti.
+              </p>
+              <button
+                type="button"
+                onClick={retryCheck}
+                className="mt-2 inline-flex min-h-9 items-center rounded-lg bg-white px-3 text-xs font-bold text-amber-900 ring-1 ring-amber-300 hover:bg-amber-100"
+              >
+                Réessayer la vérification
+              </button>
+            </div>
           ) : null}
         </fieldset>
 
@@ -311,7 +335,7 @@ export function BookingCard({ vehicle, onAvailabilityChange }: BookingCardProps)
               <dd className="font-semibold text-[#0B1220] tabular-nums">{formatMad(pricing.subtotal)}</dd>
             </div>
             <div className="flex justify-between gap-3 text-slate-600">
-              <dt>Frais de service CarDrive</dt>
+              <dt>Frais de service KlickDrive</dt>
               <dd className="font-semibold text-emerald-700">Offerts</dd>
             </div>
             <div className="flex justify-between gap-3 border-t border-slate-200 pt-3 text-base font-extrabold text-[#0B1220]">
@@ -340,7 +364,7 @@ export function BookingCard({ vehicle, onAvailabilityChange }: BookingCardProps)
           ) : (
             <>
               <CalendarDays className="h-4 w-4" aria-hidden="true" />
-              {canBook ? 'Réserver ce véhicule' : 'Choisir d’autres dates'}
+              {canBook ? 'Réserver ce véhicule' : availability === 'error' && !datesError ? 'Réessayer la vérification' : 'Choisir d’autres dates'}
             </>
           )}
         </button>
@@ -361,13 +385,13 @@ export function BookingCard({ vehicle, onAvailabilityChange }: BookingCardProps)
         </ul>
 
         <a
-          href={`https://wa.me/212661987654?text=${encodeURIComponent(`Bonjour CarDrive, j'ai une question sur le véhicule ${vehicle.brand} ${vehicle.model} (${vehicle.year}) avant d'envoyer ma demande.`)}`}
+          href={`https://wa.me/212661987654?text=${encodeURIComponent(`Bonjour KlickDrive, j'ai une question sur le véhicule ${vehicle.brand} ${vehicle.model} (${vehicle.year}) avant d'envoyer ma demande.`)}`}
           target="_blank"
           rel="noopener noreferrer"
           className="flex min-h-11 items-center justify-center gap-1.5 rounded-xl text-[13px] font-semibold text-slate-600 transition-colors hover:text-[#0B1220]"
         >
           <MessageSquare className="h-4 w-4 text-emerald-600" aria-hidden="true" />
-          Une question ? Conciergerie CarDrive
+          Une question ? Conciergerie KlickDrive
         </a>
       </form>
 
@@ -399,7 +423,9 @@ export function BookingCard({ vehicle, onAvailabilityChange }: BookingCardProps)
               ? 'Dates à corriger'
               : availability === 'unavailable'
                 ? 'Indisponible pour ces dates'
-                : `Total ${formatMad(pricing.total)} · ${pricing.number_of_days} j`}
+                : availability === 'error'
+                  ? 'Disponibilité non vérifiée'
+                  : `Total ${formatMad(pricing.total)} · ${pricing.number_of_days} j`}
           </p>
         </div>
         <button
@@ -411,7 +437,13 @@ export function BookingCard({ vehicle, onAvailabilityChange }: BookingCardProps)
           }`}
         >
           <CalendarDays className="h-4 w-4" aria-hidden="true" />
-          {availability === 'checking' && !datesError ? 'Vérification…' : canBook ? 'Réserver' : 'Changer les dates'}
+          {availability === 'checking' && !datesError
+            ? 'Vérification…'
+            : canBook
+              ? 'Réserver'
+              : availability === 'error' && !datesError
+                ? 'Réessayer'
+                : 'Changer les dates'}
         </button>
       </div>
     </div>

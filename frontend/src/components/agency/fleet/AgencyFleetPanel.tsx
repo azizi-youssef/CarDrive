@@ -281,7 +281,7 @@ export function AgencyFleetPanel({
       {/* Top Banner & Action */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="flex items-center gap-2 text-lg font-extrabold text-[#0B1220]">
+          <h2 className="flex items-center gap-2 text-lg font-extrabold text-ink">
             <ListIcon className="h-5 w-5 text-slate-500" aria-hidden="true" />
             {isMotoList ? 'Motos et scooters' : 'Voitures'}
           </h2>
@@ -337,7 +337,7 @@ export function AgencyFleetPanel({
               setSearch(e.target.value);
               setPage(1);
             }}
-            className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2 pl-9 pr-3 text-sm focus:border-[#E63946] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#E63946]"
+            className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2 pl-9 pr-3 text-sm focus:border-brand focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand"
           />
         </div>
 
@@ -348,7 +348,7 @@ export function AgencyFleetPanel({
             setCategory(e.target.value);
             setPage(1);
           }}
-          className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-[#E63946] focus:outline-none"
+          className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-brand focus:outline-none"
         >
           <option value="all">Toutes les catégories</option>
           {typeCategories.map((c) => (
@@ -364,7 +364,7 @@ export function AgencyFleetPanel({
             setStatus(e.target.value);
             setPage(1);
           }}
-          className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-[#E63946] focus:outline-none"
+          className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-brand focus:outline-none"
         >
           <option value="all">Tous les statuts</option>
           <option value="AVAILABLE">Disponible</option>
@@ -376,7 +376,7 @@ export function AgencyFleetPanel({
         <select
           value={sort}
           onChange={(e) => setSort(e.target.value)}
-          className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-[#E63946] focus:outline-none"
+          className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-brand focus:outline-none"
         >
           <option value="created_at">Plus récents</option>
           <option value="price_asc">Prix croissant</option>
@@ -431,7 +431,7 @@ export function AgencyFleetPanel({
             <button
               type="button"
               onClick={() => (subscription?.is_at_capacity ? setUpgradeModalOpen(true) : setEditingVehicle('new'))}
-              className="mt-4 rounded-xl bg-[#0B1220] px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800"
+              className="mt-4 rounded-xl bg-ink px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800"
             >
               {`Ajouter une ${noun}`}
             </button>
@@ -463,7 +463,7 @@ export function AgencyFleetPanel({
                     <div className="flex h-full w-full flex-col items-center justify-center bg-slate-100 p-4 text-center text-slate-400">
                       <PlaceholderIcon className="mb-1 h-10 w-10 text-slate-300" aria-hidden="true" />
                       {canManage && (
-                        <label className="mt-1 flex cursor-pointer items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 shadow-xs transition hover:border-[#E63946] hover:text-accent-text">
+                        <label className="mt-1 flex cursor-pointer items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 shadow-xs transition hover:border-brand hover:text-accent-text">
                           <Camera className="h-3.5 w-3.5 text-accent-text" />
                           <span>Ajouter une photo</span>
                           <input
@@ -767,7 +767,7 @@ export function AgencyFleetPanel({
                 <button
                   type="submit"
                   disabled={blockingBusy}
-                  className="flex items-center gap-2 rounded-xl bg-[#0B1220] px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-50"
+                  className="flex items-center gap-2 rounded-xl bg-ink px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-50"
                 >
                   {blockingBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                   Confirmer le blocage

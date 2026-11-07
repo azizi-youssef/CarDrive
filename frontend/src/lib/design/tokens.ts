@@ -1,5 +1,5 @@
 /**
- * Jetons de design du portail agence CarDrive.
+ * Jetons de design du portail agence KlickDrive.
  * Palette de marque unique — evite la derive visuelle entre les dashboards.
  */
 

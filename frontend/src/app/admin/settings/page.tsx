@@ -15,8 +15,8 @@ import { AdminShell } from '@/components/admin/AdminShell';
 import { AccountProfileSettings } from '@/components/shared/AccountProfileSettings';
 
 export const metadata: Metadata = {
-  title: 'Paramètres | CarDrive Admin',
-  description: 'Configurez les paramètres et les règles de fonctionnement de la plateforme CarDrive.',
+  title: 'Paramètres | KlickDrive Admin',
+  description: 'Configurez les paramètres et les règles de fonctionnement de la plateforme KlickDrive.',
 };
 
 type SettingSection = {
@@ -36,7 +36,7 @@ const SETTING_SECTIONS: SettingSection[] = [
     icon: DollarSign,
     label: 'Abonnements & Monétisation',
     description:
-      'Gérez les forfaits mensuels basés sur la capacité en véhicules et les règles de monétisation CarDrive.',
+      'Gérez les forfaits mensuels basés sur la capacité en véhicules et les règles de monétisation KlickDrive.',
     accent: 'text-[#0B1220]',
     iconBackground: 'bg-blue-50',
     category: 'Finance',
@@ -68,7 +68,7 @@ export default function AdminSettingsPage() {
   return (
     <AdminShell
       title="Paramètres plateforme"
-      subtitle="Centralisez la configuration et la gestion de CarDrive."
+      subtitle="Centralisez la configuration et la gestion de KlickDrive."
     >
       <div className="mx-auto w-full max-w-6xl space-y-8">
         <AccountProfileSettings />

@@ -147,14 +147,14 @@ export default function CarDetailsPage({ params }: CarDetailsPageProps) {
   const agency = vehicle.agency;
   const agencyPhone = agency?.phone?.replace(/[^0-9]/g, '') || '212661987654';
   const whatsappLink = `https://wa.me/${agencyPhone}?text=${encodeURIComponent(
-    `Bonjour ${agency?.name || 'CarDrive'}, j'ai une question sur ${vehicleNoun} ${vehicle.brand} ${vehicle.model} (${vehicle.daily_price} DH/j) avant d'envoyer ma demande.`
+    `Bonjour ${agency?.name || 'KlickDrive'}, j'ai une question sur ${vehicleNoun} ${vehicle.brand} ${vehicle.model} (${vehicle.daily_price} DH/j) avant d'envoyer ma demande.`
   )}`;
 
   const handleShare = async () => {
     const url = window.location.href;
     try {
       if (navigator.share) {
-        await navigator.share({ title: `${title} — CarDrive`, url });
+        await navigator.share({ title: `${title} — KlickDrive`, url });
         return;
       }
       await navigator.clipboard.writeText(url);
@@ -211,7 +211,7 @@ export default function CarDetailsPage({ params }: CarDetailsPageProps) {
   if (vehicle.delivery_available === true) {
     conditions.push({ icon: Truck, label: 'Livraison', value: 'Possible', note: 'Hôtel ou adresse, selon l’agence.' });
   }
-  conditions.push({ icon: Wallet, label: 'Paiement', value: 'À l’agence', note: 'Aucun paiement en ligne sur CarDrive.' });
+  conditions.push({ icon: Wallet, label: 'Paiement', value: 'À l’agence', note: 'Aucun paiement en ligne sur KlickDrive.' });
 
   const fadeUp = reduceMotion
     ? {}

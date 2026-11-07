@@ -1,7 +1,7 @@
 {
-  "name": "cardrive",
+  "name": "klickdrive",
   "version": "1.0.0",
-  "description": "CarDrive — Monorepo Frontend + Backend",
+  "description": "KlickDrive — Monorepo Frontend + Backend",
   "private": true,
   "workspaces": [
     "frontend",
@@ -13,17 +13,21 @@
     "dev:frontend": "npm run dev -w frontend",
     "dev:backend": "npm run dev -w backend",
     "dev:legacy": "concurrently -n FRONT,BACK -c cyan,yellow \"npm run dev -w frontend\" \"npm run dev -w backend\"",
-    "build:shared": "npm run build -w @cardrive/shared",
+    "build:shared": "npm run build -w @klickdrive/shared",
     "build": "npm run build:shared && npm run build -w backend && npm run build -w frontend",
-    "lint": "npm run lint -w frontend && npm run lint -w @cardrive/shared",
+    "lint": "npm run lint -w frontend && npm run lint -w @klickdrive/shared",
     "test": "npm run test -w frontend",
     "build:frontend": "npm run build:shared && npm run build -w frontend",
-    "build:backend": "npm run build -w backend"
+    "build:backend": "npm run build -w backend",
+    "typecheck": "npm run typecheck -w frontend"
   },
   "devDependencies": {
     "concurrently": "^9.2.4"
   },
   "overrides": {
     "shell-quote": "^1.12.0"
+  },
+  "engines": {
+    "node": ">=22.12.0"
   }
 }

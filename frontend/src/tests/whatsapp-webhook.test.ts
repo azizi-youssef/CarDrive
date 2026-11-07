@@ -5,7 +5,7 @@ import { whatsappService } from '../lib/services/whatsapp.service';
 
 test('1. Webhook WhatsApp — Vérification du jeton Meta (GET handshake hub.challenge)', () => {
   const challenge = 'meta_test_challenge_123456';
-  const defaultToken = process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN || 'cardrive_whatsapp_secure_webhook_token_2026';
+  const defaultToken = process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN || 'klickdrive_whatsapp_secure_webhook_token_2026';
 
   // Cas valide : mode subscribe + bon jeton
   const validResult = whatsappService.verifyWebhook('subscribe', defaultToken, challenge);
@@ -94,7 +94,7 @@ test('4. Webhook WhatsApp — Traitement d’un message entrant client « AIDE �
   });
 
   assert.equal(result.intent, 'HELP', 'L’intention détectée doit être HELP');
-  assert.ok(result.replySent && result.replySent.includes('Assistance CarDrive'), 'La réponse automatique doit fournir le guide conciergerie');
+  assert.ok(result.replySent && result.replySent.includes('Assistance KlickDrive'), 'La réponse automatique doit fournir le guide conciergerie');
 });
 
 test('5. Webhook WhatsApp — Mise à jour des accusés de réception (sent -> delivered -> read)', async () => {

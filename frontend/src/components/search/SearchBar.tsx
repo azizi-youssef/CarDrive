@@ -58,7 +58,7 @@ function Field({
   return (
     <div
       className={cn(
-        'flex h-full min-w-0 flex-col justify-center rounded-xl border border-transparent bg-[#F5F6F8] px-3.5 py-2.5 transition-colors hover:bg-[#EEF0F3] focus-within:border-[#0B1220]/25 focus-within:bg-white focus-within:ring-2 focus-within:ring-[#0B1220]/10',
+        'flex h-full min-w-0 flex-col justify-center rounded-xl border border-transparent bg-canvas px-3.5 py-2.5 transition-colors hover:bg-[#EEF0F3] focus-within:border-ink/25 focus-within:bg-white focus-within:ring-2 focus-within:ring-ink/10',
         className
       )}
     >
@@ -243,7 +243,7 @@ export function SearchBar({
         <button
           type="submit"
           disabled={!today}
-          className="col-span-2 lg:col-span-1 flex min-h-12 lg:h-auto items-center justify-center gap-2 rounded-xl bg-action px-7 py-3.5 text-base lg:text-sm font-bold text-white transition hover:bg-action-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0B1220] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 shadow-sm"
+          className="col-span-2 lg:col-span-1 flex min-h-12 lg:h-auto items-center justify-center gap-2 rounded-xl bg-action px-7 py-3.5 text-base lg:text-sm font-bold text-white transition hover:bg-action-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 shadow-sm"
         >
           <Search className="h-4 w-4" aria-hidden="true" />
           {t.searchBar.searchBtn}

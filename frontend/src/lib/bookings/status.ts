@@ -1,10 +1,10 @@
-import { normalizeBookingStatus, type BookingStatus } from '@cardrive/shared';
+import { normalizeBookingStatus, type BookingStatus } from '@klickdrive/shared';
 import type { Locale } from '@/lib/i18n/config';
 import type { BadgeTone } from '@/components/ui/Badge';
 
 /**
  * Présentation des statuts de réservation — source unique pour l'espace client, l'agence et l'admin.
- * Couvre tous les statuts de la machine à états (@cardrive/shared), y compris les statuts historiques.
+ * Couvre tous les statuts de la machine à états (@klickdrive/shared), y compris les statuts historiques.
  * Aucun statut n'est inventé : les étapes du suivi correspondent à des statuts réels.
  */
 
@@ -22,83 +22,83 @@ interface StatusPresentation {
 
 const PRESENTATION: Record<BookingStatus, StatusPresentation> = {
   REQUESTED: {
-    customer: { fr: 'Demande envoyée', ar: 'تم إرسال الطلب', es: 'Solicitud enviada', de: 'Anfrage gesendet', nl: 'Aanvraag verzonden' },
+    customer: { fr: 'Demande envoyée', en: 'Request sent', ar: 'تم إرسال الطلب', es: 'Solicitud enviada', de: 'Anfrage gesendet', nl: 'Aanvraag verzonden' },
     business: 'Nouvelle demande',
     tone: 'warning',
   },
   UNDER_REVIEW: {
-    customer: { fr: 'Vérification par CarDrive', ar: 'قيد التحقق من CarDrive', es: 'En revisión por CarDrive', de: 'Prüfung durch CarDrive', nl: 'Controle door CarDrive' },
-    business: 'Vérification CarDrive',
+    customer: { fr: 'Vérification par KlickDrive', en: 'Being checked by KlickDrive', ar: 'قيد التحقق من KlickDrive', es: 'En revisión por KlickDrive', de: 'Prüfung durch KlickDrive', nl: 'Controle door KlickDrive' },
+    business: 'Vérification KlickDrive',
     tone: 'warning',
   },
   SENT_TO_AGENCY: {
-    customer: { fr: 'Transmise à l’agence', ar: 'أُرسل إلى الوكالة', es: 'Enviada a la agencia', de: 'An die Agentur übermittelt', nl: 'Doorgestuurd naar het verhuurbedrijf' },
+    customer: { fr: 'Transmise à l’agence', en: 'Sent to the agency', ar: 'أُرسل إلى الوكالة', es: 'Enviada a la agencia', de: 'An die Agentur übermittelt', nl: 'Doorgestuurd naar het verhuurbedrijf' },
     business: 'À traiter',
     tone: 'warning',
   },
   AGENCY_REVIEW: {
-    customer: { fr: 'Examen par l’agence', ar: 'قيد المراجعة لدى الوكالة', es: 'En revisión por la agencia', de: 'Prüfung durch die Agentur', nl: 'In behandeling bij het verhuurbedrijf' },
+    customer: { fr: 'Examen par l’agence', en: 'Under agency review', ar: 'قيد المراجعة لدى الوكالة', es: 'En revisión por la agencia', de: 'Prüfung durch die Agentur', nl: 'In behandeling bij het verhuurbedrijf' },
     business: 'En examen',
     tone: 'warning',
   },
   ALTERNATIVE_PROPOSED: {
-    customer: { fr: 'Alternative proposée', ar: 'تم اقتراح بديل', es: 'Alternativa propuesta', de: 'Alternative vorgeschlagen', nl: 'Alternatief voorgesteld' },
+    customer: { fr: 'Alternative proposée', en: 'Alternative offered', ar: 'تم اقتراح بديل', es: 'Alternativa propuesta', de: 'Alternative vorgeschlagen', nl: 'Alternatief voorgesteld' },
     business: 'Alternative proposée',
     tone: 'info',
   },
   APPROVED: {
-    customer: { fr: 'Réservation confirmée', ar: 'تم تأكيد الحجز', es: 'Reserva confirmada', de: 'Buchung bestätigt', nl: 'Reservering bevestigd' },
+    customer: { fr: 'Réservation confirmée', en: 'Booking confirmed', ar: 'تم تأكيد الحجز', es: 'Reserva confirmada', de: 'Buchung bestätigt', nl: 'Reservering bevestigd' },
     business: 'Confirmée',
     tone: 'success',
   },
   READY_FOR_PICKUP: {
-    customer: { fr: 'Véhicule prêt', ar: 'السيارة جاهزة', es: 'Vehículo listo', de: 'Fahrzeug bereit', nl: 'Voertuig klaar' },
+    customer: { fr: 'Véhicule prêt', en: 'Vehicle ready', ar: 'السيارة جاهزة', es: 'Vehículo listo', de: 'Fahrzeug bereit', nl: 'Voertuig klaar' },
     business: 'Prête à remettre',
     tone: 'success',
   },
   ACTIVE: {
-    customer: { fr: 'Location en cours', ar: 'الكراء جارٍ', es: 'Alquiler en curso', de: 'Miete läuft', nl: 'Huur loopt' },
+    customer: { fr: 'Location en cours', en: 'Rental in progress', ar: 'الكراء جارٍ', es: 'Alquiler en curso', de: 'Miete läuft', nl: 'Huur loopt' },
     business: 'En cours',
     tone: 'info',
   },
   COMPLETED: {
-    customer: { fr: 'Terminée', ar: 'منتهية', es: 'Finalizada', de: 'Abgeschlossen', nl: 'Afgerond' },
+    customer: { fr: 'Terminée', en: 'Completed', ar: 'منتهية', es: 'Finalizada', de: 'Abgeschlossen', nl: 'Afgerond' },
     business: 'Terminée',
     tone: 'neutral',
     final: true,
   },
   REJECTED: {
-    customer: { fr: 'Refusée par l’agence', ar: 'رفضتها الوكالة', es: 'Rechazada por la agencia', de: 'Von der Agentur abgelehnt', nl: 'Afgewezen door het verhuurbedrijf' },
+    customer: { fr: 'Refusée par l’agence', en: 'Declined by the agency', ar: 'رفضتها الوكالة', es: 'Rechazada por la agencia', de: 'Von der Agentur abgelehnt', nl: 'Afgewezen door het verhuurbedrijf' },
     business: 'Refusée',
     tone: 'danger',
     final: true,
   },
   CANCELLED: {
-    customer: { fr: 'Annulée', ar: 'ملغاة', es: 'Cancelada', de: 'Storniert', nl: 'Geannuleerd' },
+    customer: { fr: 'Annulée', en: 'Cancelled', ar: 'ملغاة', es: 'Cancelada', de: 'Storniert', nl: 'Geannuleerd' },
     business: 'Annulée',
     tone: 'neutral',
     final: true,
   },
   EXPIRED: {
-    customer: { fr: 'Expirée sans réponse', ar: 'انتهت دون رد', es: 'Caducada sin respuesta', de: 'Ohne Antwort abgelaufen', nl: 'Verlopen zonder antwoord' },
+    customer: { fr: 'Expirée sans réponse', en: 'Expired without a response', ar: 'انتهت دون رد', es: 'Caducada sin respuesta', de: 'Ohne Antwort abgelaufen', nl: 'Verlopen zonder antwoord' },
     business: 'Expirée',
     tone: 'neutral',
     final: true,
   },
   NO_SHOW: {
-    customer: { fr: 'Absence au rendez-vous', ar: 'عدم الحضور', es: 'No presentado', de: 'Nicht erschienen', nl: 'Niet verschenen' },
+    customer: { fr: 'Absence au rendez-vous', en: 'No-show', ar: 'عدم الحضور', es: 'No presentado', de: 'Nicht erschienen', nl: 'Niet verschenen' },
     business: 'Non présenté',
     tone: 'danger',
     final: true,
   },
   // Statuts historiques : même présentation que leur équivalent canonique
   PENDING: {
-    customer: { fr: 'Demande envoyée', ar: 'تم إرسال الطلب', es: 'Solicitud enviada', de: 'Anfrage gesendet', nl: 'Aanvraag verzonden' },
+    customer: { fr: 'Demande envoyée', en: 'Request sent', ar: 'تم إرسال الطلب', es: 'Solicitud enviada', de: 'Anfrage gesendet', nl: 'Aanvraag verzonden' },
     business: 'Nouvelle demande',
     tone: 'warning',
   },
   CONFIRMED: {
-    customer: { fr: 'Réservation confirmée', ar: 'تم تأكيد الحجز', es: 'Reserva confirmada', de: 'Buchung bestätigt', nl: 'Reservering bevestigd' },
+    customer: { fr: 'Réservation confirmée', en: 'Booking confirmed', ar: 'تم تأكيد الحجز', es: 'Reserva confirmada', de: 'Buchung bestätigt', nl: 'Reservering bevestigd' },
     business: 'Confirmée',
     tone: 'success',
   },
@@ -127,12 +127,12 @@ export function isFinalBookingStatus(status: string): boolean {
 export type TimelineStepKey = 'submitted' | 'sent' | 'review' | 'confirmed' | 'pickup' | 'completed';
 
 const STEP_LABELS: Record<TimelineStepKey, Labels> = {
-  submitted: { fr: 'Demande envoyée', ar: 'إرسال الطلب', es: 'Solicitud enviada', de: 'Anfrage gesendet', nl: 'Aanvraag verzonden' },
-  sent: { fr: 'Transmise à l’agence', ar: 'إرسال إلى الوكالة', es: 'Enviada a la agencia', de: 'An die Agentur übermittelt', nl: 'Naar verhuurbedrijf' },
-  review: { fr: 'Examen par l’agence', ar: 'مراجعة الوكالة', es: 'Revisión de la agencia', de: 'Prüfung durch die Agentur', nl: 'Beoordeling verhuurbedrijf' },
-  confirmed: { fr: 'Confirmée par l’agence', ar: 'تأكيد الوكالة', es: 'Confirmada por la agencia', de: 'Von der Agentur bestätigt', nl: 'Bevestigd door verhuurbedrijf' },
-  pickup: { fr: 'Remise du véhicule', ar: 'تسليم السيارة', es: 'Entrega del vehículo', de: 'Fahrzeugübergabe', nl: 'Overdracht voertuig' },
-  completed: { fr: 'Location terminée', ar: 'انتهاء الكراء', es: 'Alquiler finalizado', de: 'Miete abgeschlossen', nl: 'Huur afgerond' },
+  submitted: { fr: 'Demande envoyée', en: 'Request sent', ar: 'إرسال الطلب', es: 'Solicitud enviada', de: 'Anfrage gesendet', nl: 'Aanvraag verzonden' },
+  sent: { fr: 'Transmise à l’agence', en: 'Sent to the agency', ar: 'إرسال إلى الوكالة', es: 'Enviada a la agencia', de: 'An die Agentur übermittelt', nl: 'Naar verhuurbedrijf' },
+  review: { fr: 'Examen par l’agence', en: 'Under agency review', ar: 'مراجعة الوكالة', es: 'Revisión de la agencia', de: 'Prüfung durch die Agentur', nl: 'Beoordeling verhuurbedrijf' },
+  confirmed: { fr: 'Confirmée par l’agence', en: 'Confirmed by the agency', ar: 'تأكيد الوكالة', es: 'Confirmada por la agencia', de: 'Von der Agentur bestätigt', nl: 'Bevestigd door verhuurbedrijf' },
+  pickup: { fr: 'Remise du véhicule', en: 'Vehicle handover', ar: 'تسليم السيارة', es: 'Entrega del vehículo', de: 'Fahrzeugübergabe', nl: 'Overdracht voertuig' },
+  completed: { fr: 'Location terminée', en: 'Rental completed', ar: 'انتهاء الكراء', es: 'Alquiler finalizado', de: 'Miete abgeschlossen', nl: 'Huur afgerond' },
 };
 
 export const TIMELINE_STEPS: readonly TimelineStepKey[] = ['submitted', 'sent', 'review', 'confirmed', 'pickup', 'completed'];
@@ -181,7 +181,7 @@ export function bookingTimeline(status: string, locale: Locale = 'fr') {
 const NEXT_STEP_HINT: Record<BookingStatus, string> = {
   REQUESTED: 'Votre demande est enregistrée. Elle va être transmise à l’agence, qui vérifiera la disponibilité.',
   PENDING: 'Votre demande est enregistrée. Elle va être transmise à l’agence, qui vérifiera la disponibilité.',
-  UNDER_REVIEW: 'CarDrive vérifie votre demande avant de la transmettre à l’agence.',
+  UNDER_REVIEW: 'KlickDrive vérifie votre demande avant de la transmettre à l’agence.',
   SENT_TO_AGENCY: 'L’agence a reçu votre demande et va vérifier la disponibilité du véhicule.',
   AGENCY_REVIEW: 'L’agence examine votre demande. Sa réponse s’affichera ici.',
   ALTERNATIVE_PROPOSED: 'L’agence vous propose une alternative. Contactez-la pour l’accepter ou la refuser.',
@@ -189,7 +189,7 @@ const NEXT_STEP_HINT: Record<BookingStatus, string> = {
   CONFIRMED: 'L’agence a confirmé votre réservation. Contrat, caution et paiement se règlent sur place, à la remise des clés.',
   READY_FOR_PICKUP: 'Le véhicule est prêt. Présentez-vous au point de rendez-vous à l’heure prévue.',
   ACTIVE: 'Votre location est en cours. Bonne route !',
-  COMPLETED: 'Le véhicule a été restitué. Merci d’avoir loué avec CarDrive.',
+  COMPLETED: 'Le véhicule a été restitué. Merci d’avoir loué avec KlickDrive.',
   REJECTED: 'L’agence n’a pas pu accepter cette demande. Vous pouvez rechercher un autre véhicule aux mêmes dates.',
   EXPIRED: 'Cette demande a expiré sans réponse de l’agence. Vous pouvez en envoyer une nouvelle.',
   CANCELLED: 'Cette réservation a été annulée.',

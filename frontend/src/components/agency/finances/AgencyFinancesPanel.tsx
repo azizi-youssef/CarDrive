@@ -95,7 +95,7 @@ export function AgencyFinancesPanel({ agencyId }: { agencyId: string }) {
       'Véhicule',
       'Montant Brut (MAD)',
       'Taux Comm (%)',
-      'Commission CarDrive (MAD)',
+      'Commission KlickDrive (MAD)',
       'Net Agence (MAD)',
       'Statut Réservation',
       'Statut Commission',
@@ -119,7 +119,7 @@ export function AgencyFinancesPanel({ agencyId }: { agencyId: string }) {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `cardrive_finances_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `klickdrive_finances_${new Date().toISOString().split('T')[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -131,7 +131,7 @@ export function AgencyFinancesPanel({ agencyId }: { agencyId: string }) {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-sm text-slate-500">
-            Modèle par abonnement mensuel : <strong>0% de commission CarDrive</strong>. Vous conservez 100% de vos montants de location.
+            Modèle par abonnement mensuel : <strong>0% de commission KlickDrive</strong>. Vous conservez 100% de vos montants de location.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -147,7 +147,7 @@ export function AgencyFinancesPanel({ agencyId }: { agencyId: string }) {
             type="button"
             onClick={exportCSV}
             disabled={!data || data.transactions.length === 0}
-            className="flex items-center gap-2 rounded-xl bg-[#0B1220] px-4 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-slate-800 disabled:opacity-40"
+            className="flex items-center gap-2 rounded-xl bg-ink px-4 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-slate-800 disabled:opacity-40"
           >
             <FileSpreadsheet className="h-4 w-4" />
             Exporter CSV
@@ -166,12 +166,12 @@ export function AgencyFinancesPanel({ agencyId }: { agencyId: string }) {
       {data?.subscription && (
         <div className="rounded-2xl border border-blue-200 bg-linear-to-r from-blue-50/80 via-white to-slate-50 p-5 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-3.5">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#0B1220] text-white shadow-xs">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-ink text-white shadow-xs">
               <Sparkles className="h-5 w-5 text-amber-300" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-[#0B1220] uppercase tracking-wider">
+                <span className="text-xs font-bold text-ink uppercase tracking-wider">
                   Forfait Concession Actif
                 </span>
                 <span className="rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold px-2 py-0.5">
@@ -190,7 +190,7 @@ export function AgencyFinancesPanel({ agencyId }: { agencyId: string }) {
           <button
             type="button"
             onClick={() => setUpgradeModalOpen(true)}
-            className="flex items-center justify-center gap-1.5 rounded-xl bg-[#0B1220] hover:bg-slate-800 text-white px-4 py-2.5 text-xs font-bold transition shadow-xs cursor-pointer"
+            className="flex items-center justify-center gap-1.5 rounded-xl bg-ink hover:bg-slate-800 text-white px-4 py-2.5 text-xs font-bold transition shadow-xs cursor-pointer"
           >
             <span>Changer de formule</span>
             <ArrowUpRight className="h-4 w-4" />
@@ -203,7 +203,7 @@ export function AgencyFinancesPanel({ agencyId }: { agencyId: string }) {
         <div className="border-b border-slate-100 bg-slate-50/70 px-6 py-4">
           <h3 className="font-bold text-slate-900">Grand livre des réservations</h3>
           <p className="text-xs text-slate-500">
-            Relevé exhaustif des commissions et répartitions financières certifiées par CarDrive.
+            Relevé exhaustif des commissions et répartitions financières certifiées par KlickDrive.
           </p>
         </div>
 
@@ -255,10 +255,10 @@ export function AgencyFinancesPanel({ agencyId }: { agencyId: string }) {
                           t.status === 'COMPLETED'
                             ? 'bg-emerald-100 text-emerald-800'
                             : t.status === 'ACTIVE'
-                            ? 'bg-blue-100 text-blue-800'
-                            : t.status === 'REJECTED' || t.status === 'CANCELLED'
-                            ? 'bg-slate-100 text-slate-600'
-                            : 'bg-amber-100 text-amber-800'
+                              ? 'bg-blue-100 text-blue-800'
+                              : t.status === 'REJECTED' || t.status === 'CANCELLED'
+                                ? 'bg-slate-100 text-slate-600'
+                                : 'bg-amber-100 text-amber-800'
                         )}
                       >
                         {t.status}

@@ -130,7 +130,7 @@ const STRINGS: Record<string, NavStrings> = {
     categoriesHubsDesc: 'Flotte disponible immédiatement',
     viewAllCars: 'Voir tous les véhicules',
     searchFleet: 'Explorer la flotte',
-    allAgenciesVerified: 'Agences locales vérifiées par CarDrive avant leur mise en ligne',
+    allAgenciesVerified: 'Agences locales vérifiées par KlickDrive avant leur mise en ligne',
     navigation: 'Navigation principale',
     closeMenu: 'Fermer le menu',
     openMenu: 'Ouvrir le menu de navigation',
@@ -138,7 +138,7 @@ const STRINGS: Record<string, NavStrings> = {
     partnerFleetNotice: 'Pas encore fixé ?',
     partnerFleetDesc: 'Comparez la flotte de toutes les agences partenaires de Nador.',
     needAssistance: 'Assistance client directe',
-    whatsappHelp: 'Assistance WhatsApp CarDrive',
+    whatsappHelp: 'Assistance WhatsApp KlickDrive',
     badgeVerified: 'Partenaires vérifiés',
     badgePricing: 'Prix transparents',
     badgeSupport: 'Support local',
@@ -178,7 +178,7 @@ const STRINGS: Record<string, NavStrings> = {
     categoriesHubsDesc: 'أسطول جاهز للاستلام الفوري',
     viewAllCars: 'عرض جميع السيارات',
     searchFleet: 'تصفح الأسطول',
-    allAgenciesVerified: 'وكالات محلية تتحقق منها CarDrive قبل نشرها',
+    allAgenciesVerified: 'وكالات محلية تتحقق منها KlickDrive قبل نشرها',
     navigation: 'القائمة الرئيسية',
     closeMenu: 'إغلاق القائمة',
     openMenu: 'فتح قائمة التنقل',
@@ -226,7 +226,7 @@ const STRINGS: Record<string, NavStrings> = {
     categoriesHubsDesc: 'Immediately available vehicles',
     viewAllCars: 'See all vehicles',
     searchFleet: 'Browse Fleet',
-    allAgenciesVerified: 'Local agencies checked by CarDrive before going live',
+    allAgenciesVerified: 'Local agencies checked by KlickDrive before going live',
     navigation: 'Main navigation',
     closeMenu: 'Close menu',
     openMenu: 'Open navigation menu',
@@ -234,7 +234,7 @@ const STRINGS: Record<string, NavStrings> = {
     partnerFleetNotice: 'Not sure yet?',
     partnerFleetDesc: 'Compare the fleets of every partner agency in Nador.',
     needAssistance: 'Direct customer support',
-    whatsappHelp: 'CarDrive WhatsApp Support',
+    whatsappHelp: 'KlickDrive WhatsApp Support',
     badgeVerified: 'Verified Partners',
     badgePricing: 'Transparent Pricing',
     badgeSupport: 'Local support',
@@ -919,7 +919,7 @@ export function Navbar() {
             {/* -------------------------------------------------------- */}
             <Link
               href="/"
-              aria-label="CarDrive — Accueil"
+              aria-label="KlickDrive — Accueil"
               className="group flex shrink-0 items-center focus-visible:outline-2 focus-visible:outline-[#E63946]"
             >
               {/* Mobile Compact Emblem (under 640px) */}
@@ -931,7 +931,7 @@ export function Navbar() {
               >
                 <Image
                   src="/logo_12.png"
-                  alt="CarDrive"
+                  alt="KlickDrive"
                   fill
                   sizes="128px"
                   className="object-contain transition-transform duration-300 group-hover:scale-105"
@@ -951,7 +951,7 @@ export function Navbar() {
               >
                 <Image
                   src="/logo_12.png"
-                  alt="CarDrive — Location de voitures à Nador"
+                  alt="KlickDrive — Location de voitures à Nador"
                   fill
                   sizes="(max-width: 1024px) 208px, 224px"
                   className={cn(
@@ -1555,7 +1555,7 @@ export function Navbar() {
               >
                 <Image
                   src="/logo_12.png"
-                  alt="CarDrive"
+                  alt="KlickDrive"
                   width={140}
                   height={32}
                   className="h-8 w-auto object-contain"

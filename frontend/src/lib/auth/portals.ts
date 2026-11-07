@@ -1,6 +1,6 @@
-import { isPlatformAdminRole, type UserRole } from '@cardrive/shared';
+import { isPlatformAdminRole, type UserRole } from '@klickdrive/shared';
 
-/** Accès portail /admin (SUPER_ADMIN ou ADMIN uniquement). */
+/** Accès portail /admin : SUPER_ADMIN uniquement (le rôle historique ADMIN n'a pas de droit global). */
 export function canAccessAdminPortal(role: string): boolean {
   return isPlatformAdminRole(role);
 }
@@ -33,8 +33,7 @@ export function canManageAgencyFleet(role: UserRole): boolean {
   return (
     role === 'AGENCY_OWNER' ||
     role === 'AGENCY_MANAGER' ||
-    role === 'SUPER_ADMIN' ||
-    role === 'ADMIN'
+    role === 'SUPER_ADMIN'
   );
 }
 

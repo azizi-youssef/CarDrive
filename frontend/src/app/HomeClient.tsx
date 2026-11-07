@@ -499,7 +499,7 @@ export function HomeClient({
                 {/* Photo */}
                 <Image
                   src={category.image}
-                  alt={`${category.name} — CarDrive Nador`}
+                  alt={`${category.name} — KlickDrive Nador`}
                   fill
                   loading="lazy"
                   sizes="(max-width: 640px) 72vw, (max-width: 1024px) 33vw, 16vw"
@@ -569,7 +569,7 @@ export function HomeClient({
             <div>
               <p className="section-header-eyebrow">
                 <span className="h-3 w-3 rounded-full bg-[#E63946]" />
-                Sélection CarDrive
+                Sélection KlickDrive
               </p>
               <h2 className="text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">
                 Les voitures populaires
@@ -793,7 +793,7 @@ export function HomeClient({
       )}
 
       {/* ================================================================
-          CARDRIVE DIFFERENTIATOR — Exemple explicite et non ambigu
+          KLICKDRIVE DIFFERENTIATOR — Exemple explicite et non ambigu
       ================================================================= */}
       <section className="relative overflow-hidden bg-[#080D16] py-20 text-white sm:py-28">
         <div className="absolute inset-0 bg-line-grid opacity-60" />
@@ -980,7 +980,7 @@ export function HomeClient({
               Comment fonctionne votre réservation
             </h2>
             <p className="mt-3 text-sm sm:text-base leading-6 text-slate-600">
-              Sur CarDrive, vous envoyez une <strong>demande sans aucun paiement en ligne</strong>. L’agence locale vérifie sa disponibilité et confirme sous 24 h.
+              Sur KlickDrive, vous envoyez une <strong>demande sans aucun paiement en ligne</strong>. L’agence locale vérifie sa disponibilité et confirme sous 24 h.
             </p>
           </div>
 
@@ -1082,7 +1082,7 @@ export function HomeClient({
               Tant que votre demande n’a pas été formellement validée par l’agence, aucun frais n’est engagé. Si vous souhaitez modifier vos dates, vous pouvez contacter l’agence sans pénalité.
             </TranspItem>
             <TranspItem title="Comment sont auditées les agences partenaires ?">
-              Avant de figurer sur CarDrive, chaque agence fournit son registre de commerce en règle, une attestation d’assurance responsabilité civile professionnelle valide et l’inventaire certifié de ses véhicules.
+              Avant de figurer sur KlickDrive, chaque agence fournit son registre de commerce en règle, une attestation d’assurance responsabilité civile professionnelle valide et l’inventaire certifié de ses véhicules.
             </TranspItem>
           </div>
         </div>
@@ -1102,7 +1102,7 @@ export function HomeClient({
               Des agences locales de confiance
             </h2>
             <p className="mt-2 text-sm text-slate-500">
-              Découvrez les professionnels vérifiés présents sur CarDrive.
+              Découvrez les professionnels vérifiés présents sur KlickDrive.
             </p>
           </div>
           <Link href="/agencies" className="hidden items-center gap-2 text-sm font-bold text-slate-600 transition hover:text-accent-text sm:flex">
@@ -1149,7 +1149,7 @@ export function HomeClient({
                 </Link>
                 <Link href="/agency/join" className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100">
                   <Building2 className="h-3.5 w-3.5 text-[#0B1220]" />
-                  Vous êtes une agence ? Rejoignez CarDrive
+                  Vous êtes une agence ? Rejoignez KlickDrive
                 </Link>
               </div>
             </div>
@@ -1179,7 +1179,7 @@ export function HomeClient({
             <div className="max-w-2xl">
               <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-bold text-slate-300">
                 <Building2 className="h-3.5 w-3.5 text-accent-text" />
-                CarDrive pour les professionnels
+                KlickDrive pour les professionnels
               </div>
 
               <h2 className="text-3xl font-black tracking-tight sm:text-4xl">
@@ -1205,7 +1205,7 @@ export function HomeClient({
                 href="/agency/join"
                 className="btn-accent inline-flex items-center justify-center gap-2 px-6 py-3.5 text-sm"
               >
-                Rejoindre CarDrive
+                Rejoindre KlickDrive
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <p className="text-center text-xs text-slate-400 sm:text-left">

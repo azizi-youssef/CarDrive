@@ -1,5 +1,5 @@
 -- ========================================================================
--- CarDrive : location de motos par les agences partenaires
+-- KlickDrive : location de motos par les agences partenaires
 -- Migration : 20261106000100_motorcycle_rentals.sql
 --
 -- Additive et rétrocompatible :

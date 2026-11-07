@@ -3,7 +3,7 @@ import { AdminShell } from '@/components/admin/AdminShell';
 import { AdminFinanceClient } from '@/components/admin/finance/AdminFinanceClient';
 import { commissionService } from '@/lib/services/commission.service';
 
-export const metadata: Metadata = { title: 'Abonnements & Finances | CarDrive Admin' };
+export const metadata: Metadata = { title: 'Abonnements & Finances | KlickDrive Admin' };
 export const dynamic = 'force-dynamic';
 
 export default async function AdminFinancePage() {

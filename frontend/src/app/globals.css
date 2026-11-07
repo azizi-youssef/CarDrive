@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /* ================================================================
-   CarDrive — Design system (source unique des couleurs et arrondis)
+   KlickDrive — Design system (source unique des couleurs et arrondis)
    ================================================================
    Les jetons ci-dessous sont exposés à Tailwind (@theme) :
    bg-action, text-ink-secondary, border-line, bg-success-soft…
@@ -611,6 +611,20 @@ nav[aria-label="Breadcrumb"] a {
 }
 .is-rtl .hover\:translate-x-0\.5:hover {
   --tw-translate-x: -0.125rem;
+}
+[dir="rtl"], .is-rtl {
+  text-align: right;
+}
+[dir="rtl"] .rtl-flip,
+.is-rtl .rtl-flip {
+  transform: scaleX(-1);
+}
+[dir="rtl"] input[type="tel"],
+[dir="rtl"] input[type="email"],
+.is-rtl input[type="tel"],
+.is-rtl input[type="email"] {
+  direction: ltr;
+  text-align: left;
 }
 
 /* ================================================================

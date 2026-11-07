@@ -280,7 +280,7 @@ export function AgencyCalendarPanel({
                 });
                 setBlockingOpen(true);
               }}
-              className="flex items-center gap-2 rounded-xl bg-[#0B1220] px-4 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-slate-800"
+              className="flex items-center gap-2 rounded-xl bg-ink px-4 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-slate-800"
             >
               <Plus className="h-4 w-4" />
               Bloquer une période
@@ -405,7 +405,7 @@ export function AgencyCalendarPanel({
             Aucun véhicule disponible dans cette sélection.
           </div>
         ) : (
-          <table className="w-full min-w-[800px] border-collapse text-left text-xs">
+          <table className="w-full min-w-200 border-collapse text-left text-xs">
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50">
                 <th className="sticky left-0 z-10 w-56 border-r border-slate-200 bg-slate-50 p-3 font-semibold text-slate-700">
@@ -415,7 +415,7 @@ export function AgencyCalendarPanel({
                   <th
                     key={day.dateStr}
                     className={cn(
-                      'min-w-[42px] border-r border-slate-100 p-2 text-center',
+                      'min-w-10.5 border-r border-slate-100 p-2 text-center',
                       day.isToday && 'bg-red-50 text-accent-text'
                     )}
                   >
@@ -686,7 +686,7 @@ export function AgencyCalendarPanel({
                 <button
                   type="submit"
                   disabled={blockBusy}
-                  className="flex items-center gap-2 rounded-xl bg-[#0B1220] px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-50"
+                  className="flex items-center gap-2 rounded-xl bg-ink px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-50"
                 >
                   {blockBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                   Enregistrer le blocage

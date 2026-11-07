@@ -8,14 +8,14 @@ import { CATALOG_PATHS, typeOfCategory } from '@/lib/vehicles/kind';
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: 'Location de moto et scooter à Nador | CarDrive',
+  title: 'Location de moto et scooter à Nador | KlickDrive',
   description:
     'Comparez les motos et scooters proposés par les agences partenaires vérifiées à Nador : tarifs, cylindrée, permis exigé. Demande de réservation sans paiement en ligne.',
   alternates: { canonical: '/motos' },
   openGraph: {
-    title: 'Louer une moto ou un scooter à Nador — CarDrive',
+    title: 'Louer une moto ou un scooter à Nador — KlickDrive',
     description: 'Motos et scooters des agences partenaires vérifiées à Nador, avec cylindrée et permis exigé.',
-    url: 'https://cardrive.ma/motos',
+    url: 'https://klickdrive.ma/motos',
   },
 };
 

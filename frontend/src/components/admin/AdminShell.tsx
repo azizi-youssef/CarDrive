@@ -77,8 +77,8 @@ function useIsActive() {
 }
 
 /* ── Préférence « sidebar réduite » (persistée, sans flash d'hydratation) ── */
-const COLLAPSE_KEY = 'cardrive:admin-sidebar-collapsed';
-const COLLAPSE_EVENT = 'cardrive:admin-sidebar';
+const COLLAPSE_KEY = 'klickdrive:admin-sidebar-collapsed';
+const COLLAPSE_EVENT = 'klickdrive:admin-sidebar';
 
 function readCollapsed() {
   try {
@@ -115,16 +115,21 @@ function SidebarLogo({ collapsed }: { collapsed: boolean }) {
   return (
     <Link
       href="/admin"
-      aria-label="CarDrive Admin — vue d'ensemble"
+      aria-label="KlickDrive Admin — vue d'ensemble"
       className="flex items-center gap-2.5 rounded-md outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-[#E63946]/60"
     >
-      <div className={cn('relative shrink-0', collapsed ? 'h-7 w-7' : 'h-8 w-28')}>
+      <div
+        className={cn(
+          'relative shrink-0 rounded-md bg-white p-1',
+          collapsed ? 'h-8 w-8' : 'h-10 w-32'
+        )}
+      >
         <Image
           src="/logo_12.png"
-          alt=""
+          alt="KlickDrive"
           fill
-          sizes={collapsed ? '28px' : '112px'}
-          className="object-contain object-left"
+          sizes={collapsed ? '32px' : '128px'}
+          className="object-contain object-left p-1"
           priority
         />
       </div>
@@ -374,16 +379,16 @@ export function AdminTopBar({
       .then((profile) => {
         if (profile) setUserProfile(profile);
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   useEffect(() => {
     loadProfile();
     const handleUpdate = () => loadProfile();
-    window.addEventListener('cardrive:profile-updated', handleUpdate);
+    window.addEventListener('klickdrive:profile-updated', handleUpdate);
     window.addEventListener('focus', handleUpdate);
     return () => {
-      window.removeEventListener('cardrive:profile-updated', handleUpdate);
+      window.removeEventListener('klickdrive:profile-updated', handleUpdate);
       window.removeEventListener('focus', handleUpdate);
     };
   }, [loadProfile]);

@@ -1,6 +1,6 @@
 -- ========================================================================
--- CarDrive: Agency Fleet, Availability Calendar & Rental Inspections
--- Migration: 20261012000300_agency_fleet_and_availability.sql
+-- KlickDrive: Agency Fleet, Availability Calendar & Rental Inspections
+-- Migration: 20261012000400_agency_fleet_and_availability.sql
 -- ========================================================================
 
 -- 1. Additive columns to public.vehicles

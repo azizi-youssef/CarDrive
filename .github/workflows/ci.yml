@@ -4,37 +4,115 @@ on:
   push:
     branches: [main, master, develop]
   pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  build-and-test:
+  quality:
+    name: Lint, types, tests, migrations, build
     runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      # Aucun secret : les tests utilisent une base PostgreSQL locale (PGlite) et des valeurs de test.
+      NEXT_TELEMETRY_DISABLED: '1'
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22.12'
           cache: npm
 
-      - name: Install dependencies
+      - name: Install (lockfile only)
         run: npm ci
+
+      - name: Validate workspaces and lockfile
+        run: npm ls --workspaces --depth=0
 
       - name: Build shared package
         run: npm run build:shared
 
-      - name: Lint frontend
-        run: npm run lint -w frontend
+      - name: Lint
+        run: npm run lint
 
-      - name: Lint shared
-        run: npm run lint -w @cardrive/shared
+      - name: TypeScript
+        run: npm run typecheck
 
-      - name: Booking engine tests
-        run: npm run test -w frontend
+      - name: Unit and component tests (Vitest)
+        run: npm run test:unit -w frontend
 
-      - name: Build backend
-        run: npm run build -w backend
+      - name: Migrations and RLS on a clean PostgreSQL (PGlite)
+        run: npm run test:db -w frontend
 
-      - name: Build frontend
+      - name: Legacy suites (node:test, being migrated)
+        run: npm run test:legacy -w frontend
+
+      - name: Coverage report
+        run: npm run test:coverage -w frontend
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: frontend/coverage
+          if-no-files-found: ignore
+
+      - name: Production build (Next.js BFF)
         run: npm run build -w frontend
+
+  staging:
+    name: Staging checks (Supabase migrations, RLS, E2E)
+    # Exécuté manuellement ou sur main, uniquement si les secrets de staging sont configurés.
+    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
+    needs: quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: staging
+    env:
+      STAGING_BASE_URL: ${{ secrets.STAGING_BASE_URL }}
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_STAGING_PROJECT_REF: ${{ secrets.SUPABASE_STAGING_PROJECT_REF }}
+      SUPABASE_STAGING_DB_PASSWORD: ${{ secrets.SUPABASE_STAGING_DB_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Skip when staging is not configured
+        id: guard
+        run: |
+          if [ -z "$STAGING_BASE_URL" ] || [ -z "$SUPABASE_STAGING_PROJECT_REF" ]; then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Staging non configuré : migrations distantes et E2E non exécutés (NOT VERIFIED)."
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/setup-node@v4
+        if: steps.guard.outputs.configured == 'true'
+        with:
+          node-version: '22.12'
+          cache: npm
+
+      - name: Install
+        if: steps.guard.outputs.configured == 'true'
+        run: npm ci
+
+      - name: Apply migrations to staging (Supabase CLI)
+        if: steps.guard.outputs.configured == 'true'
+        run: |
+          npx --yes supabase@latest link --project-ref "$SUPABASE_STAGING_PROJECT_REF" --password "$SUPABASE_STAGING_DB_PASSWORD" --workdir backend
+          npx --yes supabase@latest db push --workdir backend --password "$SUPABASE_STAGING_DB_PASSWORD"
+
+      - name: End-to-end tests (Playwright) against staging
+        if: steps.guard.outputs.configured == 'true'
+        run: |
+          npx playwright install --with-deps chromium
+          npm run test:e2e -w frontend
         env:
-          NEXT_PUBLIC_API_URL: http://localhost:4000
+          E2E_BASE_URL: ${{ secrets.STAGING_BASE_URL }}

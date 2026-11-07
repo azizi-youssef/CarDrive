@@ -38,7 +38,7 @@ import {
   type LoginPortal,
 } from '@/lib/auth/login-portals';
 import { createClient, isSupabaseConfigured } from '@/lib/supabase/client';
-import { USER_ROLES } from '@cardrive/shared';
+import { USER_ROLES } from '@klickdrive/shared';
 
 const MAX_ATTEMPTS = 5;
 const LOCK_SECONDS = 30;
@@ -78,7 +78,7 @@ const PORTAL_COPY: Record<
     emailPlaceholder: 'vous@example.com',
     emailLabel: 'Adresse e-mail',
     trust: 'Connexion sécurisée. Google disponible pour les clients.',
-    help: 'Utilisez « Mot de passe oublié » ou contactez CarDrive si vous ne retrouvez pas votre compte.',
+    help: 'Utilisez « Mot de passe oublié » ou contactez KlickDrive si vous ne retrouvez pas votre compte.',
     submitLabel: 'Se connecter',
   },
   agency: {
@@ -91,7 +91,7 @@ const PORTAL_COPY: Record<
     emailPlaceholder: 'contact@votre-agence.ma',
     emailLabel: 'E-mail professionnel',
     trust: 'Accès réservé aux agences partenaires autorisées.',
-    help: 'Mot de passe oublié ou agence non activée ? Contactez le responsable CarDrive.',
+    help: 'Mot de passe oublié ou agence non activée ? Contactez le responsable KlickDrive.',
     submitLabel: 'Accéder à mon espace',
   },
   admin: {
@@ -100,11 +100,11 @@ const PORTAL_COPY: Record<
     titleAccent: 'sous contrôle.',
     copy: 'Validez les agences, la commission et la marketplace depuis l’administration.',
     accessLabel: 'Espace administrateur',
-    formSubtitle: 'Connectez-vous pour gérer la plateforme CarDrive.',
-    emailPlaceholder: 'admin@cardrive.ma',
+    formSubtitle: 'Connectez-vous pour gérer la plateforme KlickDrive.',
+    emailPlaceholder: 'admin@klickdrive.ma',
     emailLabel: 'Adresse e-mail',
     trust: 'Accès réservé aux administrateurs autorisés.',
-    help: 'Contactez le responsable CarDrive pour vérifier votre compte ou réinitialiser votre mot de passe.',
+    help: 'Contactez le responsable KlickDrive pour vérifier votre compte ou réinitialiser votre mot de passe.',
     submitLabel: 'Se connecter',
   },
 };
@@ -594,8 +594,8 @@ function LoginStyles() {
 /* Logo sur fond clair (le gris de « Drive » manque de contraste sur le panneau graphite) */
 function BrandLogo() {
   return (
-    <Link href="/" className="cd-logo" aria-label="CarDrive — Accueil">
-      <Image src="/logo_12.png" alt="CarDrive" width={851} height={229} sizes="168px" priority />
+    <Link href="/" className="cd-logo" aria-label="KlickDrive — Accueil">
+      <Image src="/logo_12.png" alt="KlickDrive" width={851} height={229} sizes="168px" priority />
     </Link>
   );
 }
@@ -605,7 +605,7 @@ function BrandPanel({ portal }: { portal: LoginPortal }) {
   const features = PORTAL_FEATURES[portal];
 
   return (
-    <aside className="cd-brand" aria-label="CarDrive">
+    <aside className="cd-brand" aria-label="KlickDrive">
       <div className="cd-eyebrow">{copy.eyebrow}</div>
       <svg className="cd-road-art" aria-hidden="true" viewBox="0 0 720 720" fill="none">
         <path d="M805 60H492c-112 0-202 90-202 202v63c0 84-68 152-152 152H-92" stroke="#e63946" strokeOpacity=".06" strokeWidth="148" />
@@ -742,7 +742,7 @@ function PortalLoginForm() {
 
     try {
       if (!isSupabaseConfigured()) {
-        setError('La connexion est momentanément indisponible. Contactez CarDrive.');
+        setError('La connexion est momentanément indisponible. Contactez KlickDrive.');
         return;
       }
       const supabase = createClient();
@@ -901,7 +901,7 @@ function PortalLoginForm() {
     <main lang="fr" className={`cd-login`}>
       <LoginStyles />
       <BrandPanel portal={portal} />
-      <section className="cd-access" aria-label="Connexion CarDrive">
+      <section className="cd-access" aria-label="Connexion KlickDrive">
         <div className="cd-topbar">
           <BrandLogo />
           <Link href="/" className="cd-back" aria-label="Retour au site">
@@ -920,240 +920,240 @@ function PortalLoginForm() {
 
         <div className="cd-form-content">
           <div className="cd-card">
-          {portal !== 'admin' && (
-            <nav className="cd-portal-tabs" aria-label="Type de compte">
-              <Link
-                href={loginUrl('client')}
-                className="cd-portal-tab"
-                aria-current={portal === 'client' ? 'page' : undefined}
-              >
-                <UserRound aria-hidden="true" />
-                Client
-              </Link>
-              <Link
-                href={loginUrl('agency')}
-                className="cd-portal-tab"
-                aria-current={portal === 'agency' ? 'page' : undefined}
-              >
-                <Building2 aria-hidden="true" />
+            {portal !== 'admin' && (
+              <nav className="cd-portal-tabs" aria-label="Type de compte">
+                <Link
+                  href={loginUrl('client')}
+                  className="cd-portal-tab"
+                  aria-current={portal === 'client' ? 'page' : undefined}
+                >
+                  <UserRound aria-hidden="true" />
+                  Client
+                </Link>
+                <Link
+                  href={loginUrl('agency')}
+                  className="cd-portal-tab"
+                  aria-current={portal === 'agency' ? 'page' : undefined}
+                >
+                  <Building2 aria-hidden="true" />
+                  <span>
+                    Agence<span className="cd-tab-extra"> partenaire</span>
+                  </span>
+                </Link>
+              </nav>
+            )}
+            {portal === 'admin' && (
+              <div className="cd-admin-note">
                 <span>
-                  Agence<span className="cd-tab-extra"> partenaire</span>
+                  <ShieldCheck aria-hidden="true" />
+                  Accès réservé — administration
                 </span>
-              </Link>
-            </nav>
-          )}
-          {portal === 'admin' && (
-            <div className="cd-admin-note">
-              <span>
-                <ShieldCheck aria-hidden="true" />
-                Accès réservé — administration
-              </span>
-              <Link href={loginUrl('client')}>Espace client</Link>
-            </div>
-          )}
-
-          <header className="cd-form-header">
-            <h1>{isRegistration ? 'Créer un compte client' : 'Connexion'}</h1>
-            <p>{isRegistration ? 'Créez votre espace pour suivre vos demandes et réservations.' : copy.formSubtitle}</p>
-          </header>
-
-          {error && (
-            <div role="alert" className="cd-alert">
-              <AlertCircle aria-hidden="true" />
-              <p>{error}</p>
-            </div>
-          )}
-          {notice && (
-            <div role="status" className="cd-notice">
-              <CheckCircle2 aria-hidden="true" />
-              <p>{notice}</p>
-            </div>
-          )}
-
-          <form className="cd-form" noValidate onSubmit={handleSubmit} aria-busy={busy}>
-            {isRegistration && (
-              <div className="cd-field">
-                <label htmlFor="cd-login-name">Nom complet</label>
-                <div className="cd-input-wrap">
-                  <UserRound aria-hidden="true" className="cd-input-icon" />
-                  <input
-                    ref={nameRef}
-                    id="cd-login-name"
-                    type="text"
-                    autoComplete="name"
-                    required
-                    maxLength={120}
-                    value={fullName}
-                    onChange={(event) => {
-                      setFullName(event.target.value);
-                      setFieldErrors((current) => ({ ...current, name: undefined }));
-                    }}
-                    placeholder="Votre nom"
-                    disabled={busy}
-                    aria-invalid={Boolean(fieldErrors.name)}
-                    aria-describedby={fieldErrors.name ? 'cd-err-name' : undefined}
-                    className="cd-input"
-                  />
-                </div>
-                {fieldErrors.name && <p id="cd-err-name" className="cd-field-error">{fieldErrors.name}</p>}
+                <Link href={loginUrl('client')}>Espace client</Link>
               </div>
             )}
 
-            <div className="cd-field">
-              <label htmlFor="cd-login-email">{copy.emailLabel}</label>
-              <div className="cd-input-wrap">
-                <Mail aria-hidden="true" className="cd-input-icon" />
-                <input
-                  ref={emailRef}
-                  id="cd-login-email"
-                  type="email"
-                  inputMode="email"
-                  autoCapitalize="none"
-                  spellCheck={false}
-                  autoComplete={isRegistration ? 'email' : 'username'}
-                  required
-                  value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                    setFieldErrors((c) => ({ ...c, email: undefined }));
-                  }}
-                  placeholder={copy.emailPlaceholder}
-                  disabled={busy}
-                  aria-invalid={Boolean(fieldErrors.email)}
-                  aria-describedby={fieldErrors.email ? 'cd-err-email' : undefined}
-                  className="cd-input"
-                />
-              </div>
-              {fieldErrors.email && <p id="cd-err-email" className="cd-field-error">{fieldErrors.email}</p>}
-            </div>
+            <header className="cd-form-header">
+              <h1>{isRegistration ? 'Créer un compte client' : 'Connexion'}</h1>
+              <p>{isRegistration ? 'Créez votre espace pour suivre vos demandes et réservations.' : copy.formSubtitle}</p>
+            </header>
 
-            <div className="cd-field">
-              {portal !== 'admin' && !isRegistration ? (
-                <div className="cd-label-row">
-                  <label htmlFor="cd-login-password">Mot de passe</label>
-                  <button type="button" className="cd-link-btn" onClick={handleForgotPassword} disabled={busy || locked}>
-                    {status === 'resetting' ? 'Envoi…' : 'Mot de passe oublié ?'}
-                  </button>
+            {error && (
+              <div role="alert" className="cd-alert">
+                <AlertCircle aria-hidden="true" />
+                <p>{error}</p>
+              </div>
+            )}
+            {notice && (
+              <div role="status" className="cd-notice">
+                <CheckCircle2 aria-hidden="true" />
+                <p>{notice}</p>
+              </div>
+            )}
+
+            <form className="cd-form" noValidate onSubmit={handleSubmit} aria-busy={busy}>
+              {isRegistration && (
+                <div className="cd-field">
+                  <label htmlFor="cd-login-name">Nom complet</label>
+                  <div className="cd-input-wrap">
+                    <UserRound aria-hidden="true" className="cd-input-icon" />
+                    <input
+                      ref={nameRef}
+                      id="cd-login-name"
+                      type="text"
+                      autoComplete="name"
+                      required
+                      maxLength={120}
+                      value={fullName}
+                      onChange={(event) => {
+                        setFullName(event.target.value);
+                        setFieldErrors((current) => ({ ...current, name: undefined }));
+                      }}
+                      placeholder="Votre nom"
+                      disabled={busy}
+                      aria-invalid={Boolean(fieldErrors.name)}
+                      aria-describedby={fieldErrors.name ? 'cd-err-name' : undefined}
+                      className="cd-input"
+                    />
+                  </div>
+                  {fieldErrors.name && <p id="cd-err-name" className="cd-field-error">{fieldErrors.name}</p>}
                 </div>
-              ) : (
-                <label htmlFor="cd-login-password">Mot de passe</label>
               )}
-              <div className="cd-input-wrap">
-                <LockKeyhole aria-hidden="true" className="cd-input-icon" />
-                <input
-                  ref={passwordRef}
-                  id="cd-login-password"
-                  type={showPassword ? 'text' : 'password'}
-                  autoComplete={isRegistration ? 'new-password' : 'current-password'}
-                  required
-                  value={password}
-                  onChange={(e) => {
-                    setPassword(e.target.value);
-                    setFieldErrors((c) => ({ ...c, password: undefined }));
-                  }}
-                  onKeyDown={(e) => setCapsLock(e.getModifierState('CapsLock'))}
-                  onKeyUp={(e) => setCapsLock(e.getModifierState('CapsLock'))}
-                  onBlur={() => setCapsLock(false)}
-                  placeholder="Votre mot de passe"
-                  disabled={busy}
-                  aria-invalid={Boolean(fieldErrors.password)}
-                  aria-describedby={passwordDescribedBy}
-                  className="cd-input cd-input-password"
-                />
-                <button
-                  type="button"
-                  className="cd-toggle-password"
-                  onClick={() => setShowPassword((v) => !v)}
-                  disabled={busy}
-                  aria-controls="cd-login-password"
-                  aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
-                >
-                  {showPassword ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}
-                </button>
-              </div>
-              {fieldErrors.password && <p id="cd-err-password" className="cd-field-error">{fieldErrors.password}</p>}
-              {isRegistration && !fieldErrors.password && (
-                <p id="cd-password-hint" className="cd-hint">
-                  {MIN_PASSWORD_LENGTH} caractères minimum.
-                </p>
-              )}
-              {capsLock && <p className="cd-caps-hint">Verrouillage majuscules activé.</p>}
-            </div>
 
-            {isRegistration && (
               <div className="cd-field">
-                <label htmlFor="cd-password-confirmation">Confirmer le mot de passe</label>
+                <label htmlFor="cd-login-email">{copy.emailLabel}</label>
+                <div className="cd-input-wrap">
+                  <Mail aria-hidden="true" className="cd-input-icon" />
+                  <input
+                    ref={emailRef}
+                    id="cd-login-email"
+                    type="email"
+                    inputMode="email"
+                    autoCapitalize="none"
+                    spellCheck={false}
+                    autoComplete={isRegistration ? 'email' : 'username'}
+                    required
+                    value={email}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      setFieldErrors((c) => ({ ...c, email: undefined }));
+                    }}
+                    placeholder={copy.emailPlaceholder}
+                    disabled={busy}
+                    aria-invalid={Boolean(fieldErrors.email)}
+                    aria-describedby={fieldErrors.email ? 'cd-err-email' : undefined}
+                    className="cd-input"
+                  />
+                </div>
+                {fieldErrors.email && <p id="cd-err-email" className="cd-field-error">{fieldErrors.email}</p>}
+              </div>
+
+              <div className="cd-field">
+                {portal !== 'admin' && !isRegistration ? (
+                  <div className="cd-label-row">
+                    <label htmlFor="cd-login-password">Mot de passe</label>
+                    <button type="button" className="cd-link-btn" onClick={handleForgotPassword} disabled={busy || locked}>
+                      {status === 'resetting' ? 'Envoi…' : 'Mot de passe oublié ?'}
+                    </button>
+                  </div>
+                ) : (
+                  <label htmlFor="cd-login-password">Mot de passe</label>
+                )}
                 <div className="cd-input-wrap">
                   <LockKeyhole aria-hidden="true" className="cd-input-icon" />
                   <input
-                    ref={passwordConfirmationRef}
-                    id="cd-password-confirmation"
+                    ref={passwordRef}
+                    id="cd-login-password"
                     type={showPassword ? 'text' : 'password'}
-                    autoComplete="new-password"
+                    autoComplete={isRegistration ? 'new-password' : 'current-password'}
                     required
-                    value={passwordConfirmation}
-                    onChange={(event) => {
-                      setPasswordConfirmation(event.target.value);
-                      setFieldErrors((current) => ({ ...current, passwordConfirmation: undefined }));
+                    value={password}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      setFieldErrors((c) => ({ ...c, password: undefined }));
                     }}
-                    placeholder="Confirmez votre mot de passe"
+                    onKeyDown={(e) => setCapsLock(e.getModifierState('CapsLock'))}
+                    onKeyUp={(e) => setCapsLock(e.getModifierState('CapsLock'))}
+                    onBlur={() => setCapsLock(false)}
+                    placeholder="Votre mot de passe"
                     disabled={busy}
-                    aria-invalid={Boolean(fieldErrors.passwordConfirmation)}
-                    aria-describedby={fieldErrors.passwordConfirmation ? 'cd-err-confirmation' : undefined}
-                    className="cd-input"
+                    aria-invalid={Boolean(fieldErrors.password)}
+                    aria-describedby={passwordDescribedBy}
+                    className="cd-input cd-input-password"
                   />
+                  <button
+                    type="button"
+                    className="cd-toggle-password"
+                    onClick={() => setShowPassword((v) => !v)}
+                    disabled={busy}
+                    aria-controls="cd-login-password"
+                    aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                  >
+                    {showPassword ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}
+                  </button>
                 </div>
-                {fieldErrors.passwordConfirmation && (
-                  <p id="cd-err-confirmation" className="cd-field-error">{fieldErrors.passwordConfirmation}</p>
+                {fieldErrors.password && <p id="cd-err-password" className="cd-field-error">{fieldErrors.password}</p>}
+                {isRegistration && !fieldErrors.password && (
+                  <p id="cd-password-hint" className="cd-hint">
+                    {MIN_PASSWORD_LENGTH} caractères minimum.
+                  </p>
                 )}
+                {capsLock && <p className="cd-caps-hint">Verrouillage majuscules activé.</p>}
+              </div>
+
+              {isRegistration && (
+                <div className="cd-field">
+                  <label htmlFor="cd-password-confirmation">Confirmer le mot de passe</label>
+                  <div className="cd-input-wrap">
+                    <LockKeyhole aria-hidden="true" className="cd-input-icon" />
+                    <input
+                      ref={passwordConfirmationRef}
+                      id="cd-password-confirmation"
+                      type={showPassword ? 'text' : 'password'}
+                      autoComplete="new-password"
+                      required
+                      value={passwordConfirmation}
+                      onChange={(event) => {
+                        setPasswordConfirmation(event.target.value);
+                        setFieldErrors((current) => ({ ...current, passwordConfirmation: undefined }));
+                      }}
+                      placeholder="Confirmez votre mot de passe"
+                      disabled={busy}
+                      aria-invalid={Boolean(fieldErrors.passwordConfirmation)}
+                      aria-describedby={fieldErrors.passwordConfirmation ? 'cd-err-confirmation' : undefined}
+                      className="cd-input"
+                    />
+                  </div>
+                  {fieldErrors.passwordConfirmation && (
+                    <p id="cd-err-confirmation" className="cd-field-error">{fieldErrors.passwordConfirmation}</p>
+                  )}
+                </div>
+              )}
+
+              <button type="submit" className="cd-submit" disabled={busy || locked} data-success={status === 'success'}>
+                {status === 'submitting' ? (
+                  <>
+                    <Loader2 className="cd-spinner" aria-hidden="true" />
+                    {isRegistration ? 'Création…' : 'Connexion…'}
+                  </>
+                ) : status === 'success' ? (
+                  <>
+                    <Check aria-hidden="true" />
+                    {isRegistration ? 'Compte créé' : 'Connexion réussie'}
+                  </>
+                ) : locked ? (
+                  <>Réessayer dans {lockLeft} s</>
+                ) : (
+                  <>
+                    {isRegistration ? 'Créer mon compte' : copy.submitLabel}
+                    <ArrowRight aria-hidden="true" />
+                  </>
+                )}
+              </button>
+              {locked && <p className="cd-countdown">Patientez avant une nouvelle tentative.</p>}
+              <p className="cd-sr-only" role="status" aria-live="polite">{liveMessage}</p>
+            </form>
+
+            {portal === 'client' && (
+              <div className="cd-oauth">
+                <div className="cd-oauth-divider">ou</div>
+                <GoogleSignInButton variant="light" next={redirectUrl} label="Continuer avec Google" />
               </div>
             )}
 
-            <button type="submit" className="cd-submit" disabled={busy || locked} data-success={status === 'success'}>
-              {status === 'submitting' ? (
-                <>
-                  <Loader2 className="cd-spinner" aria-hidden="true" />
-                  {isRegistration ? 'Création…' : 'Connexion…'}
-                </>
-              ) : status === 'success' ? (
-                <>
-                  <Check aria-hidden="true" />
-                  {isRegistration ? 'Compte créé' : 'Connexion réussie'}
-                </>
-              ) : locked ? (
-                <>Réessayer dans {lockLeft} s</>
-              ) : (
-                <>
-                  {isRegistration ? 'Créer mon compte' : copy.submitLabel}
-                  <ArrowRight aria-hidden="true" />
-                </>
-              )}
-            </button>
-            {locked && <p className="cd-countdown">Patientez avant une nouvelle tentative.</p>}
-            <p className="cd-sr-only" role="status" aria-live="polite">{liveMessage}</p>
-          </form>
+            {portal === 'client' && (
+              <p className="cd-join">
+                {isRegistration ? 'Vous avez déjà un compte ? ' : 'Nouveau sur KlickDrive ? '}
+                <Link href={isRegistration ? loginUrl('client') : `${LOGIN_PATH}?portal=client&mode=signup`}>
+                  {isRegistration ? 'Se connecter' : 'Créer un compte'}
+                </Link>
+              </p>
+            )}
 
-          {portal === 'client' && (
-            <div className="cd-oauth">
-              <div className="cd-oauth-divider">ou</div>
-              <GoogleSignInButton variant="light" next={redirectUrl} label="Continuer avec Google" />
-            </div>
-          )}
-
-          {portal === 'client' && (
-            <p className="cd-join">
-              {isRegistration ? 'Vous avez déjà un compte ? ' : 'Nouveau sur CarDrive ? '}
-              <Link href={isRegistration ? loginUrl('client') : `${LOGIN_PATH}?portal=client&mode=signup`}>
-                {isRegistration ? 'Se connecter' : 'Créer un compte'}
-              </Link>
-            </p>
-          )}
-
-          {portal === 'agency' && (
-            <p className="cd-join">
-              Pas encore partenaire ? <Link href="/agency/join">Rejoindre le réseau</Link>
-            </p>
-          )}
+            {portal === 'agency' && (
+              <p className="cd-join">
+                Pas encore partenaire ? <Link href="/agency/join">Rejoindre le réseau</Link>
+              </p>
+            )}
           </div>
 
           <div className="cd-trust">
@@ -1169,7 +1169,7 @@ function PortalLoginForm() {
           </details>
         </div>
 
-        <p className="cd-access-footer">© {new Date().getFullYear()} CarDrive · Nador, Maroc</p>
+        <p className="cd-access-footer">© {new Date().getFullYear()} KlickDrive · Nador, Maroc</p>
       </section>
     </main>
   );

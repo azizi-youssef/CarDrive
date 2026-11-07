@@ -1,14 +1,14 @@
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
-import { isPlatformAdminRole } from '@cardrive/shared';
+import { isPlatformAdminRole } from '@klickdrive/shared';
 import { getServerAuth } from '@/lib/auth/server';
 
 export const metadata: Metadata = {
   title: {
-    default: 'Administration — CarDrive',
-    template: '%s — Admin CarDrive',
+    default: 'Administration — KlickDrive',
+    template: '%s — Admin KlickDrive',
   },
-  description: 'Portail de super-administration CarDrive',
+  description: 'Portail de super-administration KlickDrive',
   robots: { index: false, follow: false },
 };
 

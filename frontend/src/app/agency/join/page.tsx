@@ -1,13 +1,65 @@
+
 'use client';
 
 import React, { useState } from 'react';
 import Link from 'next/link';
 import {
-  CheckCircle2,
-  Sparkles,
   ArrowRight,
+  ArrowLeft,
+  Building2,
+  Check,
+  CheckCircle2,
+  ShieldCheck,
+  Users,
+  CarFront,
+  CalendarDays,
+  Headset,
+  MapPin,
+  Phone,
+  UserRound,
+  Sparkles,
+  BadgeCheck,
+  Clock3,
+  CircleHelp,
+  ChevronRight,
 } from 'lucide-react';
-import { SpotlightCard, ShinyText, Magnet } from '@/components/ui/react-bits';
+
+const benefits = [
+  {
+    icon: Users,
+    title: 'Une nouvelle clientèle',
+    description:
+      'Présentez votre flotte aux voyageurs, touristes et MRE recherchant une location à Nador et dans l’Oriental.',
+  },
+  {
+    icon: CalendarDays,
+    title: 'Vos réservations centralisées',
+    description:
+      'Recevez et gérez les demandes de location avec une meilleure visibilité sur votre activité.',
+  },
+  {
+    icon: CarFront,
+    title: 'Votre flotte en ligne',
+    description:
+      'Présentez vos véhicules, leurs caractéristiques, leurs tarifs et leurs disponibilités.',
+  },
+  {
+    icon: ShieldCheck,
+    title: 'Un partenariat de confiance',
+    description:
+      'Après vérification de votre dossier, votre agence peut obtenir le statut de partenaire vérifié.',
+  },
+];
+
+const fleetOptions = [
+  '1 à 5 véhicules',
+  '5 à 15 véhicules',
+  '15 à 30 véhicules',
+  'Plus de 30 véhicules',
+];
+
+const inputClass =
+  'w-full min-h-[48px] rounded-xl border border-slate-200 bg-white px-4 text-sm text-[#0B1220] placeholder:text-slate-400 outline-none transition-all hover:border-slate-300 focus:border-[#0B1220] focus:ring-4 focus:ring-[#0B1220]/[0.07]';
 
 export default function AgencyJoinPage() {
   const [submitted, setSubmitted] = useState(false);
@@ -15,195 +67,455 @@ export default function AgencyJoinPage() {
   const [managerName, setManagerName] = useState('');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
-  const [fleetSize, setFleetSize] = useState('5-15 véhicules');
+  const [fleetSize, setFleetSize] = useState('5 à 15 véhicules');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    // À connecter à votre API d'inscription agence.
+    // Ne pas considérer cette étape comme un envoi réel au serveur.
     setSubmitted(true);
   };
 
   return (
-    <div className="bg-[#F8FAFC] min-h-screen py-16">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        
-        {/* Header */}
-        <div className="text-center max-w-2xl mx-auto mb-12">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-100 border border-slate-200/80 text-[#0B1220] text-xs font-semibold mb-4 shadow-2xs">
-            <Sparkles className="w-3.5 h-3.5 text-accent-text" />
-            <ShinyText text="Programme Partenaires Nador" className="text-[#0B1220]" />
+    <main className="min-h-screen bg-[#F5F6F8] text-[#0B1220]">
+      {/* HERO */}
+      <section className="relative overflow-hidden bg-[#0B1220]">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 opacity-[0.08]"
+          style={{
+            backgroundImage:
+              'linear-gradient(rgba(255,255,255,.16) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.16) 1px, transparent 1px)',
+            backgroundSize: '48px 48px',
+          }}
+        />
+
+        <div
+          aria-hidden="true"
+          className="absolute -right-32 -top-40 h-[420px] w-[420px] rounded-full bg-[#E63946]/20 blur-[110px]"
+        />
+
+        <div className="relative mx-auto max-w-7xl px-4 pb-16 pt-14 sm:px-6 sm:pb-20 sm:pt-20 lg:px-8">
+          <div className="mx-auto max-w-3xl text-center">
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.06] px-4 py-2 text-xs font-semibold text-white/90">
+              <Sparkles className="h-4 w-4 text-[#E63946]" />
+              Programme partenaires KlickDrive
+            </div>
+
+            <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-white sm:text-4xl lg:text-5xl">
+              Faites grandir votre agence avec{' '}
+              <span className="text-[#E63946]">KlickDrive.</span>
+            </h1>
+
+            <p className="mx-auto mt-5 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
+              Développez votre visibilité, présentez votre flotte et gérez
+              vos demandes de location depuis une plateforme conçue pour
+              les agences de Nador et de la région de l’Oriental.
+            </p>
+
+            <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <a
+                href="#agency-form"
+                className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#E63946] px-6 text-sm font-bold text-white shadow-lg shadow-red-950/20 transition-colors hover:bg-[#C92F3B] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/30 sm:w-auto"
+              >
+                Devenir partenaire
+                <ArrowRight className="h-4 w-4" />
+              </a>
+
+              <Link
+                href="/"
+                className="inline-flex min-h-12 w-full items-center justify-center rounded-xl border border-white/20 px-6 text-sm font-semibold text-white transition-colors hover:bg-white/10 sm:w-auto"
+              >
+                Découvrir KlickDrive
+              </Link>
+            </div>
+
+            <div className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-xs text-slate-300">
+              <span className="flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-[#E63946]" />
+                Inscription gratuite
+              </span>
+              <span className="flex items-center gap-2">
+                <ShieldCheck className="h-4 w-4 text-[#E63946]" />
+                Vérification des agences
+              </span>
+              <span className="flex items-center gap-2">
+                <Headset className="h-4 w-4 text-[#E63946]" />
+                Accompagnement partenaire
+              </span>
+            </div>
           </div>
-
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-[#0B1220] tracking-tight">
-            Rejoignez le réseau des agences de location à Nador
-          </h1>
-
-          <p className="mt-3.5 text-sm leading-relaxed text-slate-600">
-            Recevez des réservations directes de touristes et résidents marocains à l’étranger (MRE), digitalisez vos plannings et augmentez votre taux de rotation.
-          </p>
         </div>
 
+        <div className="h-1 w-full bg-gradient-to-r from-transparent via-[#E63946] to-transparent opacity-80" />
+      </section>
+
+      {/* MAIN CONTENT */}
+      <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
         {submitted ? (
-          <div className="bg-white rounded-3xl border border-slate-200/90 p-8 sm:p-12 text-center max-w-xl mx-auto shadow-xl shadow-slate-900/5 space-y-4">
-            <div className="w-16 h-16 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto ring-1 ring-emerald-200/80">
-              <CheckCircle2 className="w-8 h-8" />
-            </div>
-            <h2 className="text-xl font-bold text-[#0B1220]">Demande d’adhésion envoyée !</h2>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Merci <strong>{managerName}</strong>. Notre équipe locale à Nador va vérifier les informations de votre agence (<strong>{agencyName}</strong>) et vous contacter au <strong>{phone}</strong> sous 24h ouvrées pour activer votre espace gestionnaire.
-            </p>
-            <div className="pt-4">
-              <Link
-                href="/agency"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0B1220] hover:bg-slate-800 text-white text-xs font-bold shadow-xs transition-colors"
-              >
-                <span>Explorer la démo du dashboard agence</span>
-                <ArrowRight className="w-4 h-4 text-[#E63946]" />
-              </Link>
+          <div className="mx-auto max-w-2xl">
+            <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl shadow-slate-900/[0.04]">
+              <div className="bg-[#0B1220] px-6 py-10 text-center sm:px-10">
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-400/20">
+                  <CheckCircle2 className="h-9 w-9" />
+                </div>
+
+                <h2 className="mt-5 text-2xl font-bold text-white">
+                  Demande préparée !
+                </h2>
+                <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-slate-300">
+                  Votre formulaire a été validé dans cette interface.
+                  La transmission à notre équipe nécessite encore la
+                  connexion au service d'inscription.
+                </p>
+              </div>
+
+              <div className="space-y-5 p-6 sm:p-10">
+                <h3 className="text-sm font-bold text-[#0B1220]">
+                  Récapitulatif de votre demande
+                </h3>
+
+                <div className="divide-y divide-slate-100 rounded-2xl border border-slate-200">
+                  {[
+                    ['Agence', agencyName],
+                    ['Responsable', managerName],
+                    ['Téléphone', phone],
+                    ['Adresse', address],
+                    ['Taille de flotte', fleetSize],
+                  ].map(([label, value]) => (
+                    <div
+                      key={label}
+                      className="flex flex-col gap-1 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+                    >
+                      <span className="text-xs text-slate-500">{label}</span>
+                      <span className="text-sm font-semibold text-[#0B1220]">
+                        {value}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setSubmitted(false)}
+                  className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-slate-200 text-sm font-semibold text-[#0B1220] transition-colors hover:bg-slate-50"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  Retour au formulaire
+                </button>
+              </div>
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            
-            {/* Left Perks Info (5 cols) */}
-            <div className="lg:col-span-5 space-y-6">
-              <SpotlightCard className="p-6 shadow-sm space-y-4">
-                <h2 className="font-bold text-base text-[#0B1220]">
-                  Pourquoi inscrire votre agence ?
+          <div className="grid grid-cols-1 items-start gap-10 lg:grid-cols-12 lg:gap-14">
+            {/* LEFT: BENEFITS */}
+            <div className="lg:col-span-5">
+              <div className="mb-8">
+                <span className="text-xs font-bold uppercase tracking-[0.16em] text-[#E63946]">
+                  Pourquoi KlickDrive ?
+                </span>
+
+                <h2 className="mt-3 text-2xl font-extrabold leading-tight tracking-tight sm:text-3xl">
+                  Votre activité mérite une meilleure visibilité.
                 </h2>
 
-                <div className="space-y-3.5 text-xs text-slate-600">
-                  <div className="flex items-start gap-2.5">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                    <span><strong>Visibilité MRE & Touristes :</strong> Atteignez des milliers de clients cherchant un véhicule à l’Aéroport Al-Aroui ou à Nador.</span>
-                  </div>
+                <p className="mt-4 text-sm leading-7 text-slate-600">
+                  KlickDrive accompagne les agences de location dans leur
+                  développement digital, avec des outils adaptés à leur
+                  activité et à leurs besoins.
+                </p>
+              </div>
 
-                  <div className="flex items-start gap-2.5">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                    <span><strong>Réservations directes & WhatsApp :</strong> Vos prospects vous contactent directement avec la référence pré-remplie du véhicule.</span>
-                  </div>
+              <div className="space-y-3">
+                {benefits.map((benefit, index) => {
+                  const Icon = benefit.icon;
 
-                  <div className="flex items-start gap-2.5">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                    <span><strong>SaaS de gestion de flotte inclus :</strong> Calendrier des disponibilités, gestion des prix et suivi du chiffre d’affaires.</span>
-                  </div>
+                  return (
+                    <div
+                      key={benefit.title}
+                      className="group flex gap-4 rounded-2xl border border-slate-200/80 bg-white p-4 transition-all hover:border-slate-300 hover:shadow-md hover:shadow-slate-900/[0.03] sm:p-5"
+                    >
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#0B1220] text-white transition-colors group-hover:bg-[#E63946]">
+                        <Icon className="h-5 w-5" />
+                      </div>
 
-                  <div className="flex items-start gap-2.5">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                    <span><strong>Badge « Vérifié » :</strong> Renforcez la confiance des clients grâce à notre audit de conformité légale.</span>
-                  </div>
+                      <div>
+                        <h3 className="text-sm font-bold text-[#0B1220]">
+                          {benefit.title}
+                        </h3>
+                        <p className="mt-1.5 text-xs leading-6 text-slate-600">
+                          {benefit.description}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* TRUST PANEL */}
+              <div className="mt-6 rounded-2xl border border-[#0B1220]/10 bg-[#0B1220] p-5 text-white sm:p-6">
+                <div className="flex items-center gap-2">
+                  <BadgeCheck className="h-5 w-5 text-[#E63946]" />
+                  <h3 className="text-sm font-bold">
+                    Un partenariat transparent
+                  </h3>
                 </div>
-              </SpotlightCard>
 
-              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/90 text-xs text-slate-700">
-                <span className="font-bold text-[#0B1220] block mb-1">
-                  100% sans engagement initial
-                </span>
-                Inscription gratuite. Notre équipe vérifie votre dossier et active votre espace sous 24 h ouvrées.
+                <p className="mt-3 text-xs leading-6 text-slate-300">
+                  Votre demande est étudiée avant toute activation.
+                  Les modalités d’abonnement et les conditions du
+                  partenariat sont communiquées avant votre engagement.
+                </p>
+
+                <div className="mt-4 flex items-center gap-2 border-t border-white/10 pt-4 text-xs font-medium text-slate-300">
+                  <Clock3 className="h-4 w-4 text-[#E63946]" />
+                  Inscription sans frais
+                </div>
               </div>
             </div>
 
-            {/* Right Registration Form (7 cols) */}
-            <div className="lg:col-span-7 bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 shadow-sm">
-              <h2 className="text-lg font-bold text-[#0B1220] mb-4 pb-2 border-b border-slate-100">
-                Formulaire d’enregistrement agence
-              </h2>
+            {/* RIGHT: FORM */}
+            <div id="agency-form" className="lg:col-span-7">
+              <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl shadow-slate-900/[0.04]">
+                <div className="border-b border-slate-100 px-6 py-6 sm:px-8">
+                  <div className="flex items-start gap-4">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#0B1220] text-white">
+                      <Building2 className="h-6 w-6" />
+                    </div>
 
-              <form onSubmit={handleSubmit} className="space-y-4 text-sm">
-                <div>
-                  <label htmlFor="join-agency-name" className="block font-semibold text-slate-700 mb-1">
-                    Nom commercial de l’agence *
-                  </label>
-                  <input id="join-agency-name"
-                    type="text"
-                    required
-                    placeholder="Ex: Nador Prestige Rent"
-                    value={agencyName}
-                    onChange={(e) => setAgencyName(e.target.value)}
-                    className="w-full min-h-11 rounded-xl border border-line-strong bg-surface px-3 text-base text-ink outline-none transition-colors hover:border-[#98A2B3] focus:border-ink focus:ring-4 focus:ring-ink/8 sm:text-sm"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label htmlFor="join-contact-name" className="block font-semibold text-slate-700 mb-1">
-                      Nom du gérant / responsable *
-                    </label>
-                    <input id="join-contact-name"
-                      type="text"
-                      required
-                      placeholder="Ex: Khalid El Idrissi"
-                      value={managerName}
-                      onChange={(e) => setManagerName(e.target.value)}
-                      className="w-full min-h-11 rounded-xl border border-line-strong bg-surface px-3 text-base text-ink outline-none transition-colors hover:border-[#98A2B3] focus:border-ink focus:ring-4 focus:ring-ink/8 sm:text-sm"
-                    />
+                    <div>
+                      <h2 className="text-lg font-extrabold tracking-tight text-[#0B1220]">
+                        Rejoindre notre réseau
+                      </h2>
+                      <p className="mt-1 text-xs leading-5 text-slate-500">
+                        Renseignez les informations de votre agence.
+                        Notre équipe pourra ensuite étudier votre demande.
+                      </p>
+                    </div>
                   </div>
 
-                  <div>
-                    <label htmlFor="join-phone" className="block font-semibold text-slate-700 mb-1">
-                      Téléphone / WhatsApp pro *
-                    </label>
-                    <input id="join-phone"
-                      type="tel"
-                      required
-                      placeholder="+212 6..."
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      className="w-full min-h-11 rounded-xl border border-line-strong bg-surface px-3 text-base text-ink outline-none transition-colors hover:border-[#98A2B3] focus:border-ink focus:ring-4 focus:ring-ink/8 sm:text-sm"
-                    />
+                  <div className="mt-6 flex items-center gap-2">
+                    <div className="h-1 flex-1 rounded-full bg-[#E63946]" />
+                    <div className="h-1 flex-1 rounded-full bg-slate-100" />
+                    <div className="h-1 flex-1 rounded-full bg-slate-100" />
                   </div>
+                  <p className="mt-2 text-[11px] text-slate-400">
+                    Informations de votre agence
+                  </p>
                 </div>
 
-                <div>
-                  <label htmlFor="join-city" className="block font-semibold text-slate-700 mb-1">
-                    Adresse physique à Nador ou environs *
-                  </label>
-                  <input id="join-city"
-                    type="text"
-                    required
-                    placeholder="Ex: Boulevard Mohammed V, Nador"
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                    className="w-full min-h-11 rounded-xl border border-line-strong bg-surface px-3 text-base text-ink outline-none transition-colors hover:border-[#98A2B3] focus:border-ink focus:ring-4 focus:ring-ink/8 sm:text-sm"
-                  />
-                </div>
+                <form
+                  onSubmit={handleSubmit}
+                  className="space-y-5 px-6 py-7 sm:px-8 sm:py-8"
+                >
+                  {/* AGENCY NAME */}
+                  <div>
+                    <label
+                      htmlFor="join-agency-name"
+                      className="mb-2 block text-xs font-bold text-slate-700"
+                    >
+                      Nom commercial de l’agence
+                      <span className="ml-1 text-[#E63946]">*</span>
+                    </label>
 
-                <div>
-                  <label htmlFor="join-fleet-size" className="block font-semibold text-slate-700 mb-1">
-                    Taille approximative de votre flotte
-                  </label>
-                  <select id="join-fleet-size"
-                    value={fleetSize}
-                    onChange={(e) => setFleetSize(e.target.value)}
-                    className="w-full min-h-11 cursor-pointer rounded-xl border border-line-strong bg-surface px-3 text-base text-ink outline-none transition-colors hover:border-[#98A2B3] focus:border-ink focus:ring-4 focus:ring-ink/8 sm:text-sm"
-                  >
-                    <option value="1-5 véhicules">1 à 5 véhicules</option>
-                    <option value="5-15 véhicules">5 à 15 véhicules</option>
-                    <option value="15-30 véhicules">15 à 30 véhicules</option>
-                    <option value="30+ véhicules">Plus de 30 véhicules</option>
-                  </select>
-                </div>
+                    <div className="relative">
+                      <Building2 className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                      <input
+                        id="join-agency-name"
+                        name="agencyName"
+                        type="text"
+                        autoComplete="organization"
+                        required
+                        minLength={2}
+                        maxLength={100}
+                        placeholder="Ex. : Nador Prestige Rent"
+                        value={agencyName}
+                        onChange={(e) => setAgencyName(e.target.value)}
+                        className={`${inputClass} pl-11`}
+                      />
+                    </div>
+                  </div>
 
-                <div className="pt-2 text-center sm:text-left">
-                  <Magnet strength={0.2} className="w-full">
+                  {/* MANAGER + PHONE */}
+                  <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                    <div>
+                      <label
+                        htmlFor="join-contact-name"
+                        className="mb-2 block text-xs font-bold text-slate-700"
+                      >
+                        Nom du responsable
+                        <span className="ml-1 text-[#E63946]">*</span>
+                      </label>
+
+                      <div className="relative">
+                        <UserRound className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                        <input
+                          id="join-contact-name"
+                          name="managerName"
+                          type="text"
+                          autoComplete="name"
+                          required
+                          minLength={2}
+                          maxLength={100}
+                          placeholder="Votre nom complet"
+                          value={managerName}
+                          onChange={(e) => setManagerName(e.target.value)}
+                          className={`${inputClass} pl-11`}
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="join-phone"
+                        className="mb-2 block text-xs font-bold text-slate-700"
+                      >
+                        Téléphone / WhatsApp
+                        <span className="ml-1 text-[#E63946]">*</span>
+                      </label>
+
+                      <div className="relative">
+                        <Phone className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                        <input
+                          id="join-phone"
+                          name="phone"
+                          type="tel"
+                          inputMode="tel"
+                          autoComplete="tel"
+                          dir="ltr"
+                          required
+                          minLength={8}
+                          maxLength={20}
+                          placeholder="+212 6 XX XX XX XX"
+                          value={phone}
+                          onChange={(e) => setPhone(e.target.value)}
+                          className={`${inputClass} pl-11`}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* ADDRESS */}
+                  <div>
+                    <label
+                      htmlFor="join-address"
+                      className="mb-2 block text-xs font-bold text-slate-700"
+                    >
+                      Adresse de l’agence
+                      <span className="ml-1 text-[#E63946]">*</span>
+                    </label>
+
+                    <div className="relative">
+                      <MapPin className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                      <input
+                        id="join-address"
+                        name="address"
+                        type="text"
+                        autoComplete="street-address"
+                        required
+                        minLength={5}
+                        maxLength={200}
+                        placeholder="Quartier, rue, ville..."
+                        value={address}
+                        onChange={(e) => setAddress(e.target.value)}
+                        className={`${inputClass} pl-11`}
+                      />
+                    </div>
+                    <p className="mt-1.5 text-[11px] text-slate-400">
+                      Nador et communes environnantes.
+                    </p>
+                  </div>
+
+                  {/* FLEET SIZE */}
+                  <div>
+                    <label
+                      htmlFor="join-fleet-size"
+                      className="mb-2 block text-xs font-bold text-slate-700"
+                    >
+                      Taille approximative de votre flotte
+                    </label>
+
+                    <div className="relative">
+                      <CarFront className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                      <select
+                        id="join-fleet-size"
+                        name="fleetSize"
+                        value={fleetSize}
+                        onChange={(e) => setFleetSize(e.target.value)}
+                        className={`${inputClass} cursor-pointer appearance-none pl-11 pr-10`}
+                      >
+                        {fleetOptions.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronRight className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 rotate-90 text-slate-400" />
+                    </div>
+                  </div>
+
+                  {/* SUBMIT */}
+                  <div className="border-t border-slate-100 pt-5">
                     <button
                       type="submit"
-                      className="w-full py-3.5 rounded-xl bg-action hover:bg-action-hover text-white font-bold text-sm shadow-xs hover:shadow-[0_4px_16px_rgba(230,57,70,0.3)] transition-all cursor-pointer active:scale-[0.99]"
+                      className="group inline-flex min-h-[52px] w-full items-center justify-center gap-3 rounded-xl bg-[#E63946] px-5 text-sm font-bold text-white shadow-lg shadow-[#E63946]/15 transition-all hover:-translate-y-0.5 hover:bg-[#C92F3B] hover:shadow-xl hover:shadow-[#E63946]/20 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#E63946]/20 active:translate-y-0"
                     >
-                      Envoyer ma demande de partenariat
+                      Envoyer ma demande
+                      <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                     </button>
-                  </Magnet>
+
+                    <div className="mt-4 flex items-start justify-center gap-2 text-center">
+                      <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
+                      <p className="max-w-sm text-[11px] leading-5 text-slate-500">
+                        Vos informations sont utilisées pour étudier votre
+                        candidature et vous contacter au sujet du partenariat.
+                      </p>
+                    </div>
+                  </div>
+                </form>
+              </div>
+
+              <div className="mt-5 flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-4">
+                <CircleHelp className="mt-0.5 h-5 w-5 shrink-0 text-[#E63946]" />
+                <div>
+                  <p className="text-xs font-bold text-[#0B1220]">
+                    Une question avant de vous inscrire ?
+                  </p>
+                  <p className="mt-1 text-xs leading-5 text-slate-500">
+                    Notre équipe pourra vous présenter le fonctionnement
+                    de la plateforme et les modalités du partenariat.
+                  </p>
                 </div>
-
-                <p className="text-[11px] text-ink-secondary text-center">
-                  En soumettant ce formulaire, vous acceptez d’être contacté par l’équipe CarDrive Nador.
-                </p>
-              </form>
+              </div>
             </div>
-
           </div>
         )}
+      </section>
 
-      </div>
-    </div>
+      {/* BOTTOM CTA */}
+      {!submitted && (
+        <section className="border-t border-slate-200 bg-white">
+          <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 py-8 sm:flex-row sm:px-6 lg:px-8">
+            <div>
+              <h2 className="text-sm font-bold text-[#0B1220]">
+                Prêt à développer votre activité ?
+              </h2>
+              <p className="mt-1 text-xs text-slate-500">
+                Rejoignez le réseau de partenaires KlickDrive.
+              </p>
+            </div>
+
+            <a
+              href="#agency-form"
+              className="inline-flex items-center gap-2 text-sm font-bold text-[#E63946] transition-colors hover:text-[#C92F3B]"
+            >
+              Commencer l’inscription
+              <ArrowRight className="h-4 w-4" />
+            </a>
+          </div>
+        </section>
+      )}
+    </main>
   );
 }

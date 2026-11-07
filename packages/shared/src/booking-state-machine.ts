@@ -38,8 +38,18 @@ export function targetStatusForAgencyAction(action: AgencyBookingAction): Bookin
   return AGENCY_ACTION_TO[action];
 }
 
+/**
+ * Droits globaux plateforme : uniquement SUPER_ADMIN (ACCESS_CONTROL.md).
+ * Le rôle historique ADMIN n'obtient aucun droit global : il doit être promu SUPER_ADMIN
+ * par une opération d'administration de confiance, après vérification d'identité.
+ */
 export function isPlatformAdminRole(role: string): boolean {
-  return role === 'SUPER_ADMIN' || role === 'ADMIN';
+  return role === 'SUPER_ADMIN';
+}
+
+/** Rôle historique, conservé pour l'affichage et la migration des comptes ; sans droit global. */
+export function isLegacyAdminRole(role: string): boolean {
+  return role === 'ADMIN';
 }
 
 export function isPlatformStaffRole(role: string): boolean {

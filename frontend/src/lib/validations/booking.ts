@@ -4,7 +4,7 @@ export {
   agencyBookingActionSchema,
   deliveryTypeEnum,
   type BookingRequestInput,
-} from '@cardrive/shared';
+} from '@klickdrive/shared';
 
 import { z } from 'zod';
 

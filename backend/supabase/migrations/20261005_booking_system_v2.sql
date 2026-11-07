@@ -1,5 +1,5 @@
 -- ========================================================================
--- CarDrive: Migration V2 - Marketplace Reservation Flow, Configurable Commission & Audit Events
+-- KlickDrive: Migration V2 - Marketplace Reservation Flow, Configurable Commission & Audit Events
 -- Target: Supabase / PostgreSQL 15+
 -- ========================================================================
 
@@ -187,7 +187,7 @@ CREATE POLICY "Bookings viewable by customer, agency or admin"
         OR public.is_admin()
     );
 
--- Seuls les gestionnaires de l'agence concernée ou les administrateurs CarDrive
+-- Seuls les gestionnaires de l'agence concernée ou les administrateurs KlickDrive
 -- peuvent modifier l'état ou le véhicule d'une réservation.
 DROP POLICY IF EXISTS "Agencies and Admins can update booking status" ON public.bookings;
 CREATE POLICY "Agencies and Admins can update booking status"

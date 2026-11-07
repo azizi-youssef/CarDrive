@@ -5,7 +5,7 @@ import { ChevronRight, FileText } from 'lucide-react';
 export const metadata: Metadata = {
   title: 'Conditions Générales de Vente',
   description:
-    'Conditions Générales de Vente (CGV) de CarDrive, plateforme de location de voitures à Nador. Modalités de réservation, annulation, tarification et responsabilités.',
+    'Conditions Générales de Vente (CGV) de KlickDrive, plateforme de location de voitures à Nador. Modalités de réservation, annulation, tarification et responsabilités.',
   robots: { index: true, follow: true },
 };
 
@@ -38,7 +38,7 @@ export default function CGVPage() {
       <div className="border-b border-amber-200 bg-amber-50">
         <div className="mx-auto max-w-4xl px-4 py-4 sm:px-6 lg:px-8">
           <p className="text-sm text-amber-800">
-            <strong>Important :</strong> En utilisant la plateforme CarDrive, vous acceptez les
+            <strong>Important :</strong> En utilisant la plateforme KlickDrive, vous acceptez les
             présentes Conditions Générales de Vente dans leur intégralité. Veuillez les lire
             attentivement avant toute réservation.
           </p>
@@ -52,21 +52,21 @@ export default function CGVPage() {
           <Section title="Article 1 — Objet et champ d'application">
             <Paragraph>
               Les présentes Conditions Générales de Vente (ci-après « CGV ») régissent les
-              relations contractuelles entre <strong>CarDrive</strong> (ci-après « la Plateforme »)
+              relations contractuelles entre <strong>KlickDrive</strong> (ci-après « la Plateforme »)
               et tout utilisateur (ci-après « le Client ») souhaitant effectuer une demande de
               réservation de véhicule auprès d&apos;une agence partenaire.
             </Paragraph>
             <Paragraph>
-              CarDrive agit en qualité d&apos;<strong>intermédiaire de mise en relation</strong> entre
+              KlickDrive agit en qualité d&apos;<strong>intermédiaire de mise en relation</strong> entre
               les Clients et les Agences partenaires. Le contrat de location est conclu
-              directement entre le Client et l&apos;Agence. CarDrive n&apos;est pas partie au contrat de
+              directement entre le Client et l&apos;Agence. KlickDrive n&apos;est pas partie au contrat de
               location lui-même.
             </Paragraph>
           </Section>
 
           <Section title="Article 2 — Inscription et compte utilisateur">
             <Paragraph>
-              La création d&apos;un compte sur CarDrive est gratuite. Pour effectuer une demande de
+              La création d&apos;un compte sur KlickDrive est gratuite. Pour effectuer une demande de
               réservation, le Client doit :
             </Paragraph>
             <ul className="mt-3 space-y-2 text-sm text-slate-600">
@@ -76,13 +76,13 @@ export default function CGVPage() {
             </ul>
             <Paragraph>
               Le Client est responsable de la confidentialité de ses identifiants. Toute
-              utilisation frauduleuse du compte doit être signalée immédiatement à CarDrive.
+              utilisation frauduleuse du compte doit être signalée immédiatement à KlickDrive.
             </Paragraph>
           </Section>
 
           <Section title="Article 3 — Processus de réservation">
             <Paragraph>
-              Le processus de réservation sur CarDrive comprend les étapes suivantes :
+              Le processus de réservation sur KlickDrive comprend les étapes suivantes :
             </Paragraph>
             <ol className="mt-3 space-y-3 text-sm text-slate-600">
               {[
@@ -105,12 +105,12 @@ export default function CGVPage() {
 
           <Section title="Article 4 — Tarification et paiement">
             <Paragraph>
-              Les prix affichés sur CarDrive sont exprimés en <strong>Dirhams Marocains (MAD)</strong>{' '}
+              Les prix affichés sur KlickDrive sont exprimés en <strong>Dirhams Marocains (MAD)</strong>{' '}
               et représentent le tarif journalier de base hors options.
             </Paragraph>
             <Paragraph>
               Les conditions de paiement (mode, délai, caution) sont fixées par chaque agence
-              partenaire et précisées lors de la confirmation de réservation. CarDrive ne collecte
+              partenaire et précisées lors de la confirmation de réservation. KlickDrive ne collecte
               pas de paiement pour le compte des agences partenaires.
             </Paragraph>
             <Paragraph>
@@ -127,10 +127,10 @@ export default function CGVPage() {
             <Paragraph>
               En cas d&apos;annulation souhaitée par le Client avant la remise des clés, celui-ci
               doit contacter directement l&apos;agence partenaire via les coordonnées fournies à la
-              confirmation et en informer CarDrive.
+              confirmation et en informer KlickDrive.
             </Paragraph>
             <Paragraph>
-              CarDrive se réserve le droit d&apos;annuler une réservation en cas de suspicion de
+              KlickDrive se réserve le droit d&apos;annuler une réservation en cas de suspicion de
               fraude, d&apos;informations erronées ou de non-respect des présentes CGV.
             </Paragraph>
           </Section>
@@ -153,13 +153,13 @@ export default function CGVPage() {
             </ul>
           </Section>
 
-          <Section title="Article 7 — Responsabilité de CarDrive">
+          <Section title="Article 7 — Responsabilité de KlickDrive">
             <Paragraph>
-              CarDrive s&apos;engage à maintenir la disponibilité de la plateforme et à traiter les
+              KlickDrive s&apos;engage à maintenir la disponibilité de la plateforme et à traiter les
               données personnelles avec sécurité.
             </Paragraph>
             <Paragraph>
-              CarDrive ne peut être tenu responsable :
+              KlickDrive ne peut être tenu responsable :
             </Paragraph>
             <ul className="mt-3 space-y-2 text-sm text-slate-600">
               {[
@@ -178,7 +178,7 @@ export default function CGVPage() {
 
           <Section title="Article 8 — Protection anti-désintermédiation">
             <Paragraph>
-              La mise en relation effectuée via CarDrive est réservée à l&apos;usage personnel du
+              La mise en relation effectuée via KlickDrive est réservée à l&apos;usage personnel du
               Client. Il est strictement interdit d&apos;utiliser les informations obtenues via la
               plateforme pour contacter les agences partenaires en dehors du cadre de la
               réservation et dans le but de contourner la plateforme.
@@ -187,7 +187,7 @@ export default function CGVPage() {
 
           <Section title="Article 9 — Propriété intellectuelle">
             <Paragraph>
-              Tous les contenus de la plateforme CarDrive sont protégés par le droit de la
+              Tous les contenus de la plateforme KlickDrive sont protégés par le droit de la
               propriété intellectuelle. Toute utilisation non autorisée est strictement interdite.
             </Paragraph>
           </Section>
@@ -202,7 +202,7 @@ export default function CGVPage() {
 
           <Section title="Article 11 — Modification des CGV">
             <Paragraph>
-              CarDrive se réserve le droit de modifier les présentes CGV à tout moment. Les
+              KlickDrive se réserve le droit de modifier les présentes CGV à tout moment. Les
               Clients seront informés des modifications substantielles par email ou notification
               sur la plateforme. L&apos;utilisation continue de la plateforme après modification
               vaut acceptation des nouvelles CGV.
@@ -214,7 +214,7 @@ export default function CGVPage() {
               Pour toute réclamation ou question relative aux présentes CGV :
             </Paragraph>
             <ul className="mt-3 space-y-1.5 text-sm text-slate-600">
-              <li>📧 <a href="mailto:contact@cardrive.ma" className="text-accent-text hover:underline font-semibold">contact@cardrive.ma</a></li>
+              <li>📧 <a href="mailto:contact@klickdrive.ma" className="text-accent-text hover:underline font-semibold">contact@klickdrive.ma</a></li>
               <li>📍 Nador, Région de l&apos;Oriental, Maroc</li>
               <li>💬 <Link href="/contact" className="text-accent-text hover:underline font-semibold">Formulaire de contact en ligne</Link></li>
             </ul>

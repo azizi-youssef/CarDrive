@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createAdminClient, createClient } from '@/lib/supabase/server';
 
-const PROFILE_AVATAR_BUCKET = 'cardrive-profile-avatars';
+const PROFILE_AVATAR_BUCKET = 'klickdrive-profile-avatars';
+const LEGACY_PROFILE_AVATAR_BUCKET = 'cardrive-profile-avatars';
 const MAX_AVATAR_SIZE = 5 * 1024 * 1024;
 const profileSchema = z.object({
   full_name: z.string().trim().min(1, 'Le nom est requis.').max(100, 'Le nom est trop long.'),
@@ -50,22 +51,24 @@ function matchesImageSignature(type: string, bytes: Uint8Array): boolean {
   );
 }
 
-function getOwnedAvatarPath(avatarUrl: string | null, userId: string): string | null {
+function getOwnedAvatarInfo(avatarUrl: string | null, userId: string): { bucket: string; path: string } | null {
   if (!avatarUrl) return null;
   try {
     const pathname = new URL(avatarUrl).pathname;
-    const prefix = `/storage/v1/object/public/${PROFILE_AVATAR_BUCKET}/`;
-    if (!pathname.startsWith(prefix)) return null;
-
-    const objectPath = pathname
-      .slice(prefix.length)
-      .split('/')
-      .map((segment) => decodeURIComponent(segment))
-      .join('/');
-    if (!objectPath.startsWith(`${userId}/`) || objectPath.split('/').includes('..')) {
-      return null;
+    for (const bucket of [PROFILE_AVATAR_BUCKET, LEGACY_PROFILE_AVATAR_BUCKET]) {
+      const prefix = `/storage/v1/object/public/${bucket}/`;
+      if (pathname.startsWith(prefix)) {
+        const objectPath = pathname
+          .slice(prefix.length)
+          .split('/')
+          .map((segment) => decodeURIComponent(segment))
+          .join('/');
+        if (objectPath.startsWith(`${userId}/`) && !objectPath.split('/').includes('..')) {
+          return { bucket, path: objectPath };
+        }
+      }
     }
-    return objectPath;
+    return null;
   } catch {
     return null;
   }
@@ -199,13 +202,16 @@ export async function POST(request: NextRequest) {
     return failure('Profil introuvable.', 404);
   }
 
-  const previousPath = getOwnedAvatarPath(existing.avatar_url, auth.user.id);
-  if (previousPath && previousPath !== uploadedPath && (uploadedPath || parsed.data.remove_avatar)) {
-    const { error: removeError } = await admin.storage
-      .from(PROFILE_AVATAR_BUCKET)
-      .remove([previousPath]);
-    if (removeError) {
-      console.error('[AccountProfile] Failed to remove previous avatar:', removeError.message);
+  const previous = getOwnedAvatarInfo(existing.avatar_url, auth.user.id);
+  if (previous && (uploadedPath || parsed.data.remove_avatar)) {
+    const isSameAsUploaded = previous.bucket === PROFILE_AVATAR_BUCKET && previous.path === uploadedPath;
+    if (!isSameAsUploaded) {
+      const { error: removeError } = await admin.storage
+        .from(previous.bucket)
+        .remove([previous.path]);
+      if (removeError) {
+        console.error('[AccountProfile] Failed to remove previous avatar:', removeError.message);
+      }
     }
   }
 

@@ -15,13 +15,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const formattedName = decoded.replace(/\b\p{L}/gu, (letter) => letter.toUpperCase());
 
   return {
-    title: `Louer ${formattedName} à Nador | CarDrive`,
+    title: `Louer ${formattedName} à Nador | KlickDrive`,
     description: `Réservez ${formattedName} auprès d'agences vérifiées à Nador, Aéroport Nador-Al Aroui et Port Beni Ansar. Conditions transparentes et demande sans paiement immédiat.`,
     alternates: { canonical: `/cars/${slug}` },
     openGraph: {
-      title: `${formattedName} en location à Nador — CarDrive`,
+      title: `${formattedName} en location à Nador — KlickDrive`,
       description: `Consultez les caractéristiques, tarifs et avis pour ${formattedName} à Nador.`,
-      url: `https://cardrive.ma/cars/${slug}`,
+      url: `https://klickdrive.ma/cars/${slug}`,
     },
   };
 }

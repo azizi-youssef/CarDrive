@@ -28,7 +28,7 @@ export function AgencyLogo({
     return (
       <span
         aria-label={`Logo indisponible pour ${name}`}
-        className={`flex h-full w-full items-center justify-center bg-[#0B1220] text-lg font-bold text-white ${className}`}
+        className={`flex h-full w-full items-center justify-center bg-ink text-lg font-bold text-white ${className}`}
       >
         {name.trim().charAt(0).toLocaleUpperCase('fr-FR') || '?'}
       </span>

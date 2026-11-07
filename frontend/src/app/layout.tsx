@@ -5,9 +5,9 @@ import Script from 'next/script';
 import './globals.css';
 import { AppShell } from '@/components/layout/AppShell';
 
-const SITE_URL = 'https://cardrive.ma';
-const SITE_NAME = 'CarDrive';
-const SITE_TITLE = 'CarDrive — Location de voitures à Nador';
+const SITE_URL = 'https://klickdrive.ma';
+const SITE_NAME = 'KlickDrive';
+const SITE_TITLE = 'KlickDrive — Location de voitures à Nador';
 const SITE_DESCRIPTION =
   "Trouvez et comparez des voitures de location à Nador auprès d'agences locales. Recherchez par dates, catégorie et destination : aéroport Nador-Al Aroui, Beni Ansar, Nador et Marchica.";
 
@@ -72,10 +72,10 @@ export const metadata: Metadata = {
 
   icons: {
     icon: [
-      { url: '/icon_cardrive.ico', sizes: 'any' },
+      { url: '/icon_klickdrive.ico', sizes: 'any' },
     ],
-    shortcut: '/icon_cardrive.ico',
-    apple: [{ url: '/icon_cardrive.ico' }],
+    shortcut: '/icon_klickdrive.ico',
+    apple: [{ url: '/icon_klickdrive.ico' }],
   },
 
   manifest: '/manifest.webmanifest',
@@ -91,7 +91,7 @@ export const metadata: Metadata = {
     images: [
       {
         // Image dédiée au partage, au format 1200×630
-        url: '/og-cardrive.png',
+        url: '/og-klickdrive.png',
         width: 1200,
         height: 630,
         alt: SITE_TITLE,
@@ -104,7 +104,7 @@ export const metadata: Metadata = {
     title: SITE_TITLE,
     description:
       "Trouvez et comparez votre voiture de location à Nador auprès d'agences locales.",
-    images: ['/og-cardrive.png'],
+    images: ['/og-klickdrive.png'],
   },
 
   formatDetection: {
@@ -132,7 +132,7 @@ const jsonLd = {
         width: 512,
         height: 512,
       },
-      image: `${SITE_URL}/og-cardrive.png`,
+      image: `${SITE_URL}/og-klickdrive.png`,
       description: SITE_DESCRIPTION,
       address: {
         '@type': 'PostalAddress',
@@ -154,7 +154,7 @@ const jsonLd = {
       contactPoint: {
         '@type': 'ContactPoint',
         contactType: 'customer support',
-        email: 'contact@cardrive.ma',
+        email: 'contact@klickdrive.ma',
         availableLanguage: ['French', 'Arabic'],
       },
       priceRange: '$$',

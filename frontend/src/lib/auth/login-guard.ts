@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { isPlatformAdminRole, type UserRole } from '@cardrive/shared';
+import { isPlatformAdminRole, type UserRole } from '@klickdrive/shared';
 import { canAccessAgencyPortal } from '@/lib/auth/portals';
 
 export async function verifyAdminPortalLogin(
@@ -20,7 +20,7 @@ export async function verifyAdminPortalLogin(
   const role = (profile?.role ?? 'CUSTOMER') as UserRole;
   if (!isPlatformAdminRole(role)) {
     await supabase.auth.signOut();
-    return 'Ce compte n’a pas accès à l’administration CarDrive. Utilisez un e-mail administrateur.';
+    return 'Ce compte n’a pas accès à l’administration KlickDrive. Utilisez un e-mail administrateur.';
   }
 
   return null;
@@ -79,15 +79,15 @@ export async function verifyAgencyPortalLogin(
 
   if (!canAccessAgencyPortal(role, authorizedAgencyIds)) {
     await supabase.auth.signOut();
-    return 'Ce compte n’est pas autorisé sur le portail agence. Contactez votre responsable ou CarDrive.';
+    return 'Ce compte n’est pas autorisé sur le portail agence. Contactez votre responsable ou KlickDrive.';
   }
 
   if (!isPlatformAdminRole(role) && authorizedAgencyIds.length === 0) {
     await supabase.auth.signOut();
     const hasSuspendedAgency = agencies?.some((agency) => agency.status === 'SUSPENDED');
     return hasSuspendedAgency
-      ? 'Ce compte agence est actuellement suspendu par l’administration CarDrive. Veuillez contacter le support.'
-      : 'Ce compte agence est en attente d’activation par l’administration CarDrive.';
+      ? 'Ce compte agence est actuellement suspendu par l’administration KlickDrive. Veuillez contacter le support.'
+      : 'Ce compte agence est en attente d’activation par l’administration KlickDrive.';
   }
 
   return null;

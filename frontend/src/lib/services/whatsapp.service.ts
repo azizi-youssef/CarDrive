@@ -2,10 +2,11 @@ import { createHmac, timingSafeEqual } from 'node:crypto';
 import { Booking } from '@/types';
 import { createAdminClient } from '@/lib/supabase/server';
 import { signedBookingPdfPath } from '@/lib/auth/booking-pdf-link';
+import { maskPhone, withRetry } from '@/lib/notifications/retry';
 
 /**
  * ========================================================================
- * Service WhatsApp Business — CarDrive
+ * Service WhatsApp Business — KlickDrive
  * Gère l'envoi de notifications via WhatsApp Business Cloud API (Meta Graph),
  * l'enregistrement des identifiants de messages (wamid) et la résilience aux erreurs.
  * ========================================================================
@@ -175,47 +176,23 @@ export class WhatsAppService {
     }
 
     if (!this.isConfigured()) {
-      return this.simulateSend(normalized, 'TEXT', undefined, messageText, options);
+      return this.handleNotConfigured(normalized, 'TEXT', undefined, messageText, options);
     }
 
-    try {
-      const token = process.env.WHATSAPP_API_TOKEN || process.env.META_WHATSAPP_TOKEN;
-      const phoneId = process.env.WHATSAPP_PHONE_NUMBER_ID;
-      const apiVersion = process.env.WHATSAPP_API_VERSION || 'v21.0';
-      const url = `https://graph.facebook.com/${apiVersion}/${phoneId}/messages`;
-
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          messaging_product: 'whatsapp',
-          recipient_type: 'individual',
-          to: normalized,
-          type: 'text',
-          text: {
-            preview_url: true,
-            body: messageText,
-          },
-        }),
-        signal: AbortSignal.timeout(8000),
-      });
-
-      const data = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        const errorMsg = this.formatMetaApiError(data);
-        return this.recordFailure(normalized, errorMsg, 'TEXT', undefined, options, data);
-      }
-
-      const wamid = data?.messages?.[0]?.id || `wamid.${Date.now()}`;
-      return this.recordSuccess(normalized, wamid, 'TEXT', undefined, options, { body: messageText });
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Erreur réseau lors de l\'envoi WhatsApp';
-      return this.recordFailure(normalized, msg, 'TEXT', undefined, options);
-    }
+    return this.deliver(
+      normalized,
+      'TEXT',
+      undefined,
+      options,
+      {
+        messaging_product: 'whatsapp',
+        recipient_type: 'individual',
+        to: normalized,
+        type: 'text',
+        text: { preview_url: true, body: messageText },
+      },
+      { length: messageText.length }
+    );
   }
 
   /**
@@ -241,57 +218,109 @@ export class WhatsAppService {
     }
 
     if (!this.isConfigured()) {
-      return this.simulateSend(normalized, 'TEMPLATE', templateName, JSON.stringify(parameters), options);
+      return this.handleNotConfigured(normalized, 'TEMPLATE', templateName, JSON.stringify(parameters), options);
     }
 
-    try {
-      const token = process.env.WHATSAPP_API_TOKEN || process.env.META_WHATSAPP_TOKEN;
-      const phoneId = process.env.WHATSAPP_PHONE_NUMBER_ID;
-      const apiVersion = process.env.WHATSAPP_API_VERSION || 'v21.0';
-      const url = `https://graph.facebook.com/${apiVersion}/${phoneId}/messages`;
-
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
+    return this.deliver(
+      normalized,
+      'TEMPLATE',
+      templateName,
+      options,
+      {
+        messaging_product: 'whatsapp',
+        recipient_type: 'individual',
+        to: normalized,
+        type: 'template',
+        template: {
+          name: templateName,
+          language: { code: languageCode },
+          components: [{ type: 'body', parameters }],
         },
-        body: JSON.stringify({
-          messaging_product: 'whatsapp',
-          recipient_type: 'individual',
-          to: normalized,
-          type: 'template',
-          template: {
-            name: templateName,
-            language: { code: languageCode },
-            components: [
-              {
-                type: 'body',
-                parameters,
-              },
-            ],
-          },
-        }),
-        signal: AbortSignal.timeout(8000),
-      });
+      },
+      { parameterCount: parameters.length }
+    );
+  }
 
-      const data = await response.json().catch(() => ({}));
+  /**
+   * Appel Graph API avec nouvelles tentatives contrôlées (voir lib/notifications/retry.ts).
+   * Le résumé enregistré ne contient ni le texte du message ni les paramètres (données personnelles).
+   */
+  private async deliver(
+    recipient: string,
+    type: 'TEMPLATE' | 'TEXT',
+    templateName: string | undefined,
+    options: WhatsAppSendOptions,
+    payload: Record<string, unknown>,
+    summary: Record<string, unknown>
+  ): Promise<WhatsAppMessageResult> {
+    const token = process.env.WHATSAPP_API_TOKEN || process.env.META_WHATSAPP_TOKEN;
+    const phoneId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+    const apiVersion = process.env.WHATSAPP_API_VERSION || 'v21.0';
+    const url = `https://graph.facebook.com/${apiVersion}/${phoneId}/messages`;
 
-      if (!response.ok) {
-        const errorMsg = this.formatMetaApiError(data);
-        return this.recordFailure(normalized, errorMsg, 'TEMPLATE', templateName, options, data);
+    const { outcome, attempts } = await withRetry<Record<string, unknown>>(async () => {
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+          signal: AbortSignal.timeout(8000),
+        });
+        const data = (await response.json().catch(() => ({}))) as Record<string, unknown>;
+        const retryAfter = Number(response.headers.get('retry-after'));
+        return { kind: 'response', status: response.status, data, retryAfterSeconds: Number.isFinite(retryAfter) ? retryAfter : null };
+      } catch (err: unknown) {
+        const error = err instanceof Error ? err : new Error(String(err));
+        const isTimeout = error.name === 'TimeoutError' || error.name === 'AbortError';
+        return isTimeout ? { kind: 'timeout', error } : { kind: 'network-error', error };
       }
+    });
 
-      const wamid = data?.messages?.[0]?.id || `wamid.${Date.now()}`;
-      return this.recordSuccess(normalized, wamid, 'TEMPLATE', templateName, options, { parameters });
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Erreur lors de l\'appel API WhatsApp';
-      return this.recordFailure(normalized, msg, 'TEMPLATE', templateName, options);
+    if (outcome.kind !== 'response') {
+      const message =
+        outcome.kind === 'timeout'
+          ? 'Délai dépassé lors de l\'envoi WhatsApp (non renvoyé pour éviter un doublon).'
+          : `Erreur réseau lors de l'envoi WhatsApp : ${outcome.error.message}`;
+      return this.recordFailure(recipient, message, type, templateName, options, { attempts });
     }
+    if (outcome.status < 200 || outcome.status >= 300) {
+      return this.recordFailure(recipient, this.formatMetaApiError(outcome.data), type, templateName, options, {
+        attempts,
+        httpStatus: outcome.status,
+        meta: outcome.data,
+      });
+    }
+
+    const messages = outcome.data?.messages as Array<{ id?: string }> | undefined;
+    const wamid = messages?.[0]?.id || `wamid.${Date.now()}`;
+    return this.recordSuccess(recipient, wamid, type, templateName, options, { ...summary, attempts });
+  }
+
+  /**
+   * WhatsApp non configuré : simulation en développement uniquement.
+   * En production, c'est un échec explicite (jamais un faux succès).
+   */
+  private handleNotConfigured(
+    recipient: string,
+    type: 'TEMPLATE' | 'TEXT',
+    templateName: string | undefined,
+    content: string,
+    options: WhatsAppSendOptions
+  ): WhatsAppMessageResult {
+    if (process.env.NODE_ENV === 'production') {
+      return this.recordFailure(
+        recipient,
+        'WhatsApp Business non configuré (WHATSAPP_API_TOKEN / WHATSAPP_PHONE_NUMBER_ID) : message non envoyé.',
+        type,
+        templateName,
+        options
+      );
+    }
+    return this.simulateSend(recipient, type, templateName, content, options);
   }
 
   // ========================================================================
-  // NOTIFICATIONS MÉTIER CARDRIVE
+  // NOTIFICATIONS MÉTIER KLICKDRIVE
   // ========================================================================
 
   /**
@@ -309,7 +338,7 @@ export class WhatsAppService {
     const dates = `${booking.start_date} → ${booking.end_date}`;
 
     const text =
-      `🚗 *CARDRIVE — Confirmation de Réservation*\n\n` +
+      `🚗 *KLICKDRIVE — Confirmation de Réservation*\n\n` +
       `Bonjour *${booking.customer_name}*,\n\n` +
       `Votre réservation a bien été enregistrée :\n` +
       `• *Réf. dossier :* ${ref}\n` +
@@ -319,7 +348,7 @@ export class WhatsAppService {
       `• *Montant total :* ${booking.total_price} MAD\n` +
       `• *Caution à l'arrivée :* ${booking.deposit_amount || 3000} MAD (empreinte)\n\n` +
       `Un agent vous contactera pour organiser l'accueil et la remise des clés.\n` +
-      `📄 Suivi en direct : https://cardrive.ma/account/bookings/${encodeURIComponent(ref)}`;
+      `📄 Suivi en direct : https://klickdrive.ma/account/bookings/${encodeURIComponent(ref)}`;
 
     return this.sendTextMessage(phone, text, {
       ...options,
@@ -337,7 +366,7 @@ export class WhatsAppService {
     agencyPhone: string,
     appUrl?: string
   ): Promise<WhatsAppMessageResult> {
-    const baseUrl = appUrl || process.env.NEXT_PUBLIC_APP_URL || 'https://cardrive.ma';
+    const baseUrl = appUrl || process.env.NEXT_PUBLIC_APP_URL || 'https://klickdrive.ma';
     const ref = booking.reference || booking.booking_ref || '';
     const pdfUrl = `${baseUrl}${signedBookingPdfPath(ref)}`;
     const vehicleName = booking.vehicle
@@ -345,7 +374,7 @@ export class WhatsAppService {
       : 'Véhicule';
 
     const text =
-      `🚨 *NOUVELLE DEMANDE DE LOCATION CARDRIVE*\n\n` +
+      `🚨 *NOUVELLE DEMANDE DE LOCATION KLICKDRIVE*\n\n` +
       `*Dossier :* ${ref}\n` +
       `*Véhicule :* ${vehicleName}\n` +
       `*Client :* ${booking.customer_name} (${booking.customer_phone})\n` +
@@ -372,7 +401,7 @@ export class WhatsAppService {
   ): Promise<WhatsAppMessageResult> {
     const ref = booking.reference || booking.booking_ref || '';
     const text =
-      `📍 *CARDRIVE — Organisation de votre Rendez-vous*\n\n` +
+      `📍 *KLICKDRIVE — Organisation de votre Rendez-vous*\n\n` +
       `Bonjour *${booking.customer_name}*,\n\n` +
       `Votre rendez-vous pour la remise du véhicule est planifié :\n` +
       `• *Dossier :* ${ref}\n` +
@@ -400,8 +429,8 @@ export class WhatsAppService {
     const ref = booking.reference || booking.booking_ref || '';
     const isPickup = params.type === 'PICKUP';
     const title = isPickup
-      ? `🔑 *CARDRIVE — Remise des Clés Validée (Départ)*`
-      : `🏁 *CARDRIVE — Restitution du Véhicule Validée*`;
+      ? `🔑 *KLICKDRIVE — Remise des Clés Validée (Départ)*`
+      : `🏁 *KLICKDRIVE — Restitution du Véhicule Validée*`;
 
     const text =
       `${title}\n\n` +
@@ -413,7 +442,7 @@ export class WhatsAppService {
       (params.damages ? `• *Observations état :* ${params.damages}\n` : '') +
       (params.depositStatus ? `• *Statut caution :* ${params.depositStatus}\n` : '') +
       (params.agentName ? `• *Agent certifié :* ${params.agentName}\n` : '') +
-      `\nMerci pour votre confiance avec CarDrive !`;
+      `\nMerci pour votre confiance avec KlickDrive !`;
 
     return this.sendTextMessage(booking.customer_phone, text, {
       bookingRef: ref,
@@ -444,7 +473,7 @@ export class WhatsAppService {
     const simulatedId = `wamid.sim_${Date.now()}_${Math.random().toString(36).substring(7)}`;
     const timestamp = new Date().toISOString();
 
-    console.log(`[WhatsAppService] 📱 [SIMULATED] Outbound to ${recipient}:`, content.slice(0, 100) + '...');
+    console.log(`[WhatsAppService] [SIMULATED] Outbound to ${maskPhone(recipient)} (${content.length} caractères)`);
 
     const logEntry: WhatsAppMessageLog = {
       id: crypto.randomUUID(),
@@ -455,7 +484,7 @@ export class WhatsAppService {
       templateName,
       status: 'SIMULATED',
       sentAt: timestamp,
-      payloadSummary: { simulated: true, snippet: content.slice(0, 150) },
+      payloadSummary: { simulated: true, length: content.length },
     };
 
     this.pushLog(logEntry);
@@ -515,7 +544,7 @@ export class WhatsAppService {
   ): WhatsAppMessageResult {
     const timestamp = new Date().toISOString();
     const fakeId = `err_${Date.now()}`;
-    console.error(`[WhatsAppService] ❌ Failed to send to ${recipient}: ${errorMessage}`);
+    console.error(`[WhatsAppService] Failed to send to ${maskPhone(recipient)}: ${errorMessage}`);
 
     const logEntry: WhatsAppMessageLog = {
       id: crypto.randomUUID(),
@@ -623,7 +652,7 @@ export class WhatsAppService {
       console.warn('[WhatsAppService] Avertissement : WHATSAPP_WEBHOOK_VERIFY_TOKEN non configuré dans .env.local, utilisation du fallback dev.');
     }
 
-    const expectedToken = envToken || 'cardrive_whatsapp_secure_webhook_token_2026';
+    const expectedToken = envToken || 'klickdrive_whatsapp_secure_webhook_token_2026';
 
     if (mode === 'subscribe' && token && challenge && this.timingSafeStringEqual(token, expectedToken)) {
       return challenge;
@@ -856,7 +885,7 @@ export class WhatsAppService {
           `📍 *Lieu de prise en charge :* ${pickupLocation}\n` +
           `📅 *Période :* du ${booking.start_date} au ${booking.end_date}\n\n` +
           `L'agence partenaire prépare votre véhicule et vous accueillera à votre arrivée.\n` +
-          `📄 Détails : https://cardrive.ma/account/bookings/${encodeURIComponent(bookingRef || '')}`;
+          `📄 Détails : https://klickdrive.ma/account/bookings/${encodeURIComponent(bookingRef || '')}`;
         actionTaken = `Dossier ${bookingRef} passé au statut CONFIRMED`;
       } else if (booking && booking.status === 'CONFIRMED') {
         replyText =
@@ -905,28 +934,28 @@ export class WhatsAppService {
           `❌ *Annulation prise en compte*\n\n` +
           `Bonjour *${customerName}*,\n` +
           `Votre demande d'annulation pour le dossier *${bookingRef}* a bien été enregistrée. Aucun montant ne vous sera débité.\n\n` +
-          `Au plaisir de vous accueillir prochainement sur CarDrive.ma.`;
+          `Au plaisir de vous accueillir prochainement sur KlickDrive.ma.`;
         actionTaken = `Dossier ${bookingRef} passé au statut CANCELLED`;
       } else {
         replyText =
           `❌ *Annulation*\n\n` +
-          `Votre demande d'annulation a bien été enregistrée par le service client CarDrive.`;
+          `Votre demande d'annulation a bien été enregistrée par le service client KlickDrive.`;
         actionTaken = `Demande d'annulation enregistrée`;
       }
     } else if (intent === 'HELP') {
       replyText =
-        `📍 *Assistance CarDrive — Conciergerie*\n\n` +
+        `📍 *Assistance KlickDrive — Conciergerie*\n\n` +
         `Bonjour *${customerName}*,\n` +
         (bookingRef ? `Pour votre dossier *${bookingRef}* :\n` : '') +
         `• Prise en charge : *${pickupLocation}*\n` +
         (booking?.start_date ? `• Date : *${booking.start_date} à ${booking.pickup_time || '10:00'}*\n` : '') +
-        `• Assistance CarDrive (lun–ven 9h–18h, sam. 9h–13h) : *+212 661-987654*\n\n` +
+        `• Assistance KlickDrive (lun–ven 9h–18h, sam. 9h–13h) : *+212 661-987654*\n\n` +
         `Répondez *CONFIRMER* pour valider ou *ANNULER* pour vous désister.`;
       actionTaken = `Guide d'assistance envoyé`;
     } else {
       replyText =
         `Bonjour *${customerName}* !\n\n` +
-        `Bienvenue sur le service WhatsApp de *CarDrive.ma*.\n` +
+        `Bienvenue sur le service WhatsApp de *KlickDrive.ma*.\n` +
         `• Répondez *OUI* ou *CONFIRMER* pour valider votre réservation.\n` +
         `• Répondez *ANNULER* si vous souhaitez annuler.\n` +
         `• Répondez *AIDE* pour contacter notre conciergerie.\n\n` +

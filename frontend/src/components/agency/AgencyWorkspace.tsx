@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { CalendarDays, Car, LayoutDashboard } from 'lucide-react';
-import { canPerformAgencyBookingAction } from '@cardrive/shared';
+import { canPerformAgencyBookingAction } from '@klickdrive/shared';
 import { signOutEverywhere } from '@/lib/auth/client';
 import { canManageAgencyBookings, canManageAgencyFleet } from '@/lib/auth/portals';
 import { Sidebar, type AgencySection } from '@/components/agency/shell/Sidebar';
@@ -168,10 +168,10 @@ export function AgencyWorkspace({
         })
         .catch(() => {});
     };
-    window.addEventListener('cardrive:profile-updated', handleUpdate);
+    window.addEventListener('klickdrive:profile-updated', handleUpdate);
     window.addEventListener('focus', handleUpdate);
     return () => {
-      window.removeEventListener('cardrive:profile-updated', handleUpdate);
+      window.removeEventListener('klickdrive:profile-updated', handleUpdate);
       window.removeEventListener('focus', handleUpdate);
     };
   }, []);

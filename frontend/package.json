@@ -1,5 +1,5 @@
 {
-  "name": "cardrive-frontend",
+  "name": "klickdrive-frontend",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -7,10 +7,15 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "npx tsx src/tests/booking-engine.test.ts && npx tsx src/tests/subscription-engine.test.ts && npx tsx src/tests/agency-access-validation.test.ts && npx tsx src/tests/date-only.test.ts && npx tsx src/tests/agency-credentials.test.ts && npx tsx src/tests/agency-management.test.ts && npx tsx src/tests/availability.test.ts && npx tsx src/tests/whatsapp-delivery.test.ts && npx tsx src/tests/i18n.test.ts && npx tsx src/tests/whatsapp-webhook.test.ts && npx tsx src/tests/booking-pdf-link.test.ts && npx tsx src/tests/booking-pdf.test.ts && npx tsx src/tests/security-hardening.test.ts && npx tsx src/tests/booking-status-display.test.ts && npx tsx src/tests/catalog-discovery.test.ts && npx tsx src/tests/motorcycle-rentals.test.ts"
+    "typecheck": "tsc --noEmit -p .",
+    "test": "npm run test:unit && npm run test:db && npm run test:legacy",
+    "test:unit": "vitest run --exclude \"src/tests/db/**\"",
+    "test:db": "vitest run src/tests/db",
+    "test:coverage": "vitest run --coverage --exclude \"src/tests/db/**\"",
+    "test:legacy": "npx tsx src/tests/booking-engine.test.ts && npx tsx src/tests/subscription-engine.test.ts && npx tsx src/tests/agency-access-validation.test.ts && npx tsx src/tests/date-only.test.ts && npx tsx src/tests/agency-credentials.test.ts && npx tsx src/tests/agency-management.test.ts && npx tsx src/tests/availability.test.ts && npx tsx src/tests/whatsapp-delivery.test.ts && npx tsx src/tests/i18n.test.ts && npx tsx src/tests/whatsapp-webhook.test.ts && npx tsx src/tests/booking-pdf-link.test.ts && npx tsx src/tests/booking-pdf.test.ts && npx tsx src/tests/security-hardening.test.ts && npx tsx src/tests/booking-status-display.test.ts && npx tsx src/tests/catalog-discovery.test.ts && npx tsx src/tests/motorcycle-rentals.test.ts"
   },
   "dependencies": {
-    "@cardrive/shared": "1.0.0",
+    "@klickdrive/shared": "1.0.0",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.117.2",
     "clsx": "^2.1.1",
@@ -25,13 +30,16 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.15",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitest/coverage-v8": "^5.1.0",
     "eslint": "^9",
     "eslint-config-next": "16.4.5",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^5.1.0"
   }
 }

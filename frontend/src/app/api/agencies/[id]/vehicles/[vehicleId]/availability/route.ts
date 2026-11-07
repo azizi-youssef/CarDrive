@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAgencyPermissionApi } from '@/lib/auth/access-api';
 import { createAdminClient } from '@/lib/supabase/server';
 import { z } from 'zod';
-import { isBlockingBookingStatus } from '@cardrive/shared';
+import { isBlockingBookingStatus } from '@klickdrive/shared';
 import { isValidDateOnly } from '@/lib/utils/date-only';
 
 type RouteContext = { params: Promise<{ id: string; vehicleId: string }> };

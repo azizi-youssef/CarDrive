@@ -11,41 +11,41 @@ import {
 test('1. Normalisation email - Minuscules et suppression accents', () => {
   assert.equal(
     generateBaseAgencyEmail('Élite Drive Oriental'),
-    'elite.drive.oriental@cardrive.ma'
+    'elite.drive.oriental@klickdrive.ma'
   );
   assert.equal(
     generateBaseAgencyEmail('Location Auto Nador Aéroport'),
-    'location.auto.nador.aeroport@cardrive.ma'
+    'location.auto.nador.aeroport@klickdrive.ma'
   );
 });
 
 test('2. Normalisation email - Espaces, tirets, symboles et points consécutifs', () => {
   assert.equal(
     generateBaseAgencyEmail("Rif Car & Co (Nador - Al'Aroui)"),
-    'rif.car.co.nador.al.aroui@cardrive.ma'
+    'rif.car.co.nador.al.aroui@klickdrive.ma'
   );
   assert.equal(
     generateBaseAgencyEmail('Agence..Auto...100%..Discount'),
-    'agence.auto.100.discount@cardrive.ma'
+    'agence.auto.100.discount@klickdrive.ma'
   );
 });
 
 test('3. Génération des candidats de collision avec suffixe', () => {
   const candidates = generateCandidateAgencyEmails('Rif Car', 4);
   assert.deepEqual(candidates, [
-    'rif.car@cardrive.ma',
-    'rif.car2@cardrive.ma',
-    'rif.car3@cardrive.ma',
-    'rif.car4@cardrive.ma',
+    'rif.car@klickdrive.ma',
+    'rif.car2@klickdrive.ma',
+    'rif.car3@klickdrive.ma',
+    'rif.car4@klickdrive.ma',
   ]);
 });
 
 test('4. Résolution d’unicité d’email avec simulation de collision', async () => {
-  const existingEmails = new Set(['rif.car@cardrive.ma', 'rif.car2@cardrive.ma']);
+  const existingEmails = new Set(['rif.car@klickdrive.ma', 'rif.car2@klickdrive.ma']);
   const uniqueEmail = await resolveUniqueAgencyEmail('Rif Car', async (email) =>
     existingEmails.has(email)
   );
-  assert.equal(uniqueEmail, 'rif.car3@cardrive.ma');
+  assert.equal(uniqueEmail, 'rif.car3@klickdrive.ma');
 });
 
 test('5. Génération mot de passe temporaire sécurisé', () => {

@@ -302,7 +302,7 @@ export function VehicleFormModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-900/60 p-4 backdrop-blur-sm">
       <div className="relative w-full max-w-3xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-100 bg-[#0B1220] px-6 py-4 text-white">
+        <div className="flex items-center justify-between border-b border-slate-100 bg-ink px-6 py-4 text-white">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-action text-white">
               {isMoto ? <Motorbike className="h-5 w-5" aria-hidden="true" /> : <Car className="h-5 w-5" aria-hidden="true" />}
@@ -316,7 +316,7 @@ export function VehicleFormModal({
                     : 'Ajouter un nouveau véhicule'}
               </h2>
               <p className="text-xs text-slate-300">
-                Flotte CarDrive — Tarification certifiée & disponibilité
+                Flotte KlickDrive — Tarification certifiée & disponibilité
               </p>
             </div>
           </div>
@@ -337,7 +337,7 @@ export function VehicleFormModal({
             className={cn(
               'flex items-center gap-2 border-b-2 px-4 pb-3 transition-colors',
               step === 1
-                ? 'border-[#E63946] font-semibold text-[#0B1220]'
+                ? 'border-brand font-semibold text-ink'
                 : 'border-transparent text-slate-500 hover:text-slate-900'
             )}
           >
@@ -357,7 +357,7 @@ export function VehicleFormModal({
             className={cn(
               'flex items-center gap-2 border-b-2 px-4 pb-3 transition-colors',
               step === 2
-                ? 'border-[#E63946] font-semibold text-[#0B1220]'
+                ? 'border-brand font-semibold text-ink'
                 : 'border-transparent text-slate-500 hover:text-slate-900'
             )}
           >
@@ -377,7 +377,7 @@ export function VehicleFormModal({
             className={cn(
               'flex items-center gap-2 border-b-2 px-4 pb-3 transition-colors',
               step === 3
-                ? 'border-[#E63946] font-semibold text-[#0B1220]'
+                ? 'border-brand font-semibold text-ink'
                 : 'border-transparent text-slate-500 hover:text-slate-900'
             )}
           >
@@ -428,7 +428,7 @@ export function VehicleFormModal({
                           className={cn(
                             'flex min-h-11 items-center justify-center gap-2 rounded-xl border px-3 text-sm font-semibold transition-colors',
                             active
-                              ? 'border-[#0B1220] bg-[#0B1220] text-white'
+                              ? 'border-ink bg-ink text-white'
                               : 'border-slate-300 bg-white text-slate-700 hover:border-slate-400'
                           )}
                         >
@@ -452,7 +452,7 @@ export function VehicleFormModal({
                     placeholder={isMoto ? 'Ex: Yamaha, Honda, SYM...' : 'Ex: Dacia, Renault, Peugeot...'}
                     value={form.brand}
                     onChange={(e) => setForm({ ...form, brand: e.target.value })}
-                    className="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm focus:border-[#E63946] focus:outline-none focus:ring-1 focus:ring-[#E63946]"
+                    className="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
                   />
                 </div>
                 <div>
@@ -465,7 +465,7 @@ export function VehicleFormModal({
                     placeholder={isMoto ? 'Ex: NMAX 125, Forza 350, MT-07...' : 'Ex: Duster, Clio 5, 208...'}
                     value={form.model}
                     onChange={(e) => setForm({ ...form, model: e.target.value })}
-                    className="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm focus:border-[#E63946] focus:outline-none focus:ring-1 focus:ring-[#E63946]"
+                    className="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
                   />
                 </div>
               </div>
@@ -481,7 +481,7 @@ export function VehicleFormModal({
                     max={new Date().getFullYear() + 1}
                     value={form.year}
                     onChange={(e) => setForm({ ...form, year: Number(e.target.value) })}
-                    className="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm focus:border-[#E63946] focus:outline-none focus:ring-1 focus:ring-[#E63946]"
+                    className="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
                   />
                 </div>
                 <div>
@@ -500,7 +500,7 @@ export function VehicleFormModal({
                       });
                     }}
                     required
-                    className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-[#E63946] focus:outline-none"
+                    className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-brand focus:outline-none"
                   >
                     {isMoto && (
                       <option value="" disabled>
@@ -523,7 +523,7 @@ export function VehicleFormModal({
                     onChange={(e) =>
                       setForm({ ...form, transmission: e.target.value as 'MANUAL' | 'AUTOMATIC' })
                     }
-                    className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-[#E63946] focus:outline-none"
+                    className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-brand focus:outline-none"
                   >
                     <option value="MANUAL">{isMoto ? 'Manuelle (embrayage)' : 'Manuelle'}</option>
                     <option value="AUTOMATIC">{isMoto ? 'Automatique (scooter)' : 'Automatique'}</option>
@@ -541,7 +541,7 @@ export function VehicleFormModal({
                         fuel: e.target.value as 'DIESEL' | 'GASOLINE' | 'HYBRID' | 'ELECTRIC',
                       })
                     }
-                    className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-[#E63946] focus:outline-none"
+                    className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-brand focus:outline-none"
                   >
                     {!isMoto && <option value="DIESEL">Diesel</option>}
                     <option value="GASOLINE">Essence</option>
@@ -634,7 +634,7 @@ export function VehicleFormModal({
                       onChange={(e) =>
                         setForm({ ...form, license_required: (e.target.value || null) as MotorcycleLicense | null })
                       }
-                      className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-[#E63946] focus:outline-none"
+                      className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-brand focus:outline-none"
                     >
                       <option value="">À préciser au client</option>
                       {MOTORCYCLE_LICENSES.map((license) => (
@@ -665,7 +665,7 @@ export function VehicleFormModal({
                         className={cn(
                           'flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-all',
                           active
-                            ? 'border-[#E63946] bg-red-50 text-accent-text'
+                            ? 'border-brand bg-red-50 text-accent-text'
                             : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
                         )}
                       >
@@ -694,7 +694,7 @@ export function VehicleFormModal({
                       min="50"
                       value={form.daily_price}
                       onChange={(e) => setForm({ ...form, daily_price: Number(e.target.value) })}
-                      className="w-full rounded-xl border border-slate-300 py-2.5 pl-3.5 pr-16 text-lg font-bold text-[#0B1220] focus:border-[#E63946] focus:outline-none focus:ring-1 focus:ring-[#E63946]"
+                      className="w-full rounded-xl border border-slate-300 py-2.5 pl-3.5 pr-16 text-lg font-bold text-ink focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
                     />
                     <span className="absolute right-3.5 top-2.5 text-sm font-semibold text-slate-400">
                       DH / jour
@@ -715,7 +715,7 @@ export function VehicleFormModal({
                       min="0"
                       value={form.deposit}
                       onChange={(e) => setForm({ ...form, deposit: Number(e.target.value) })}
-                      className="w-full rounded-xl border border-slate-300 py-2.5 pl-3.5 pr-16 text-lg font-bold text-[#0B1220] focus:border-[#E63946] focus:outline-none"
+                      className="w-full rounded-xl border border-slate-300 py-2.5 pl-3.5 pr-16 text-lg font-bold text-ink focus:border-brand focus:outline-none"
                     />
                     <span className="absolute right-3.5 top-2.5 text-sm font-semibold text-slate-400">
                       DH
@@ -801,7 +801,7 @@ export function VehicleFormModal({
 
                 <div
                   onClick={() => fileInputRef.current?.click()}
-                  className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50/70 p-6 transition-colors hover:border-[#E63946] hover:bg-red-50/20"
+                  className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50/70 p-6 transition-colors hover:border-brand hover:bg-red-50/20"
                 >
                   {uploading ? (
                     <div className="flex flex-col items-center gap-2">
@@ -833,7 +833,7 @@ export function VehicleFormModal({
                   <div>
                     <p className="font-semibold text-amber-900">Aucune photo ajoutée pour l&apos;instant</p>
                     <p className="mt-0.5 text-amber-700">
-                      Ajoutez au moins 1 photo pour que {isMoto ? 'votre moto soit présentée' : 'votre véhicule soit présenté'} avec son visuel réel sur la marketplace CarDrive.
+                      Ajoutez au moins 1 photo pour que {isMoto ? 'votre moto soit présentée' : 'votre véhicule soit présenté'} avec son visuel réel sur la marketplace KlickDrive.
                     </p>
                   </div>
                 </div>
@@ -850,8 +850,8 @@ export function VehicleFormModal({
                       <div
                         key={imgUrl}
                         className={cn(
-                          'group relative aspect-[4/3] overflow-hidden rounded-xl border-2 bg-slate-100',
-                          idx === 0 ? 'border-[#E63946]' : 'border-slate-200'
+                          'group relative aspect-4/3 overflow-hidden rounded-xl border-2 bg-slate-100',
+                          idx === 0 ? 'border-brand' : 'border-slate-200'
                         )}
                       >
                         <Image
@@ -900,7 +900,7 @@ export function VehicleFormModal({
                       Publier immédiatement sur la marketplace
                     </h3>
                     <p className="text-xs text-slate-500">
-                      Rend le véhicule visible par les clients lors des recherches sur CarDrive.
+                      Rend le véhicule visible par les clients lors des recherches sur KlickDrive.
                     </p>
                   </div>
                   <label className="relative inline-flex cursor-pointer items-center">
@@ -910,7 +910,7 @@ export function VehicleFormModal({
                       onChange={(e) => setForm({ ...form, published: e.target.checked })}
                       className="peer sr-only"
                     />
-                    <div className="peer h-6 w-11 rounded-full bg-slate-300 peer-checked:bg-[#E63946] after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full"></div>
+                    <div className="peer h-6 w-11 rounded-full bg-slate-300 peer-checked:bg-brand after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full"></div>
                   </label>
                 </div>
               </div>
@@ -942,7 +942,7 @@ export function VehicleFormModal({
                 <button
                   type="button"
                   onClick={() => setStep((s) => (s + 1) as 2 | 3)}
-                  className="rounded-xl bg-[#0B1220] px-5 py-2 text-sm font-semibold text-white hover:bg-[#1E293B]"
+                  className="rounded-xl bg-ink px-5 py-2 text-sm font-semibold text-white hover:bg-[#1E293B]"
                 >
                   Suivant
                 </button>
@@ -956,10 +956,10 @@ export function VehicleFormModal({
                   {uploading
                     ? 'Téléversement en cours...'
                     : busy
-                    ? 'Enregistrement...'
-                    : form.id
-                    ? 'Enregistrer les modifications'
-                    : 'Créer et enregistrer'}
+                      ? 'Enregistrement...'
+                      : form.id
+                        ? 'Enregistrer les modifications'
+                        : 'Créer et enregistrer'}
                 </button>
               )}
             </div>

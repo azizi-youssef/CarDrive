@@ -1,4 +1,4 @@
-# CarDrive — audit et contrôle d’accès agences
+# KlickDrive — audit et contrôle d’accès agences
 
 ## Rapport d’audit de l’architecture existante
 
@@ -87,7 +87,7 @@ Les validations Zod du module sont exécutées par `npm run test`. Le script RLS
 
 ## Remédiations de sécurité additionnelles
 
-La migration additive `20261011_security_remediation.sql` complète le socle RBAC :
+La migration additive `20261011000500_security_remediation.sql` complète le socle RBAC :
 
 - Les statistiques agence exigent `reports.read` et sont calculées en base par agrégats, sans transférer toutes les réservations au serveur d’application.
 - Les statistiques plateforme exigent `agencies.read` (réservé à `SUPER_ADMIN` par la fonction de permission).

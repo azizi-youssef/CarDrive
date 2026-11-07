@@ -1,12 +1,15 @@
 import { z } from 'zod';
 import { BOOKING_STATUSES, type BookingStatus } from './booking-status';
 
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export const deliveryTypeEnum = z.enum(['AGENCY_PICKUP', 'AIRPORT', 'HOTEL', 'ADDRESS']);
 
 export const bookingRequestSchema = z
   .object({
-    vehicleId: z.string().min(1, 'Identifiant véhicule requis'),
-    agencyId: z.string().min(1, 'Identifiant agence requis'),
+    // Identifiants issus de la base (UUID) : tout autre format est refusé avant toute requête
+    vehicleId: z.string().regex(UUID_PATTERN, 'Identifiant véhicule invalide'),
+    agencyId: z.string().regex(UUID_PATTERN, 'Identifiant agence invalide'),
     firstName: z.string().min(2, 'Le prénom doit contenir au moins 2 caractères'),
     lastName: z.string().min(2, 'Le nom doit contenir au moins 2 caractères'),
     cin: z.string().min(3, 'Numéro de CIN ou Passeport requis'),

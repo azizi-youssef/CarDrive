@@ -1,6 +1,14 @@
 import { Vehicle, SearchFilters } from '@/types';
 import { createClient, createAdminClient } from '@/lib/supabase/server';
 import { findSameModelAlternatives } from '@/lib/availability/engine';
+import {
+  AvailabilityValidationError,
+  BLOCKING_BOOKING_STATUSES,
+  evaluateAvailability,
+  isUuid,
+  type AvailabilityStatus,
+} from '@/lib/availability/status';
+import { formatLocalDate } from '@/lib/utils/date-only';
 
 function requireSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -137,6 +145,8 @@ export class VehiclesService {
   }
 
   async getVehicleById(id: string): Promise<Vehicle | null> {
+    // Un identifiant non UUID ne peut correspondre à aucun véhicule (évite une erreur SQL de conversion)
+    if (!isUuid(id)) return null;
     requireSupabase();
     const supabase = (await createAdminClient()) ?? (await createClient());
     if (!supabase) throw new Error('Client Supabase indisponible.');
@@ -173,75 +183,79 @@ export class VehiclesService {
     });
   }
 
-  async checkAvailability(vehicleId: string, startDate: string, endDate: string): Promise<boolean> {
+  /**
+   * Disponibilité d'un véhicule sur une période, en trois états (voir lib/availability/status.ts).
+   * Ne renvoie jamais AVAILABLE sans vérification réussie : toute erreur donne UNKNOWN.
+   * Un identifiant invalide lève AvailabilityValidationError (réponse 400).
+   */
+  async getAvailabilityStatus(vehicleId: string, startDate: string, endDate: string): Promise<AvailabilityStatus> {
+    if (!isUuid(vehicleId)) throw new AvailabilityValidationError();
     requireSupabase();
     const supabase = (await createAdminClient()) ?? (await createClient());
-    if (!supabase) throw new Error('Client Supabase indisponible.');
+    if (!supabase) return 'UNKNOWN';
 
-    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(vehicleId);
-
-    // 1. Tenter via RPC Postgres si UUID valide
-    if (isUuid) {
-      try {
-        const { data, error } = await supabase.rpc('vehicle_availability', {
-          p_vehicle_ids: [vehicleId],
-          p_start_date: startDate,
-          p_end_date: endDate,
-        });
-        if (!error && Array.isArray(data)) {
-          return (
-            data.some(
-              (item: { vehicle_id: string; available: boolean }) =>
-                item.vehicle_id === vehicleId && item.available
-            ) ?? false
-          );
-        }
-        if (error) {
-          console.warn('[VehiclesService] RPC vehicle_availability unavailable, falling back to direct table lookup:', error.message);
-        }
-      } catch (rpcErr) {
-        console.warn('[VehiclesService] RPC execution error, falling back:', rpcErr);
+    // 1. Fonction SQL canonique (même règle que la recherche et la contrainte d'exclusion)
+    try {
+      const { data, error } = await supabase.rpc('vehicle_availability', {
+        p_vehicle_ids: [vehicleId],
+        p_start_date: startDate,
+        p_end_date: endDate,
+      });
+      if (!error && Array.isArray(data)) {
+        const row = (data as { vehicle_id: string; available: boolean }[]).find((item) => item.vehicle_id === vehicleId);
+        // La fonction renvoie une ligne par véhicule demandé ; absence de ligne = réponse inattendue
+        if (row) return row.available ? 'AVAILABLE' : 'UNAVAILABLE';
+        console.warn('[VehiclesService] vehicle_availability: no row returned for the requested vehicle');
+      } else if (error) {
+        console.warn('[VehiclesService] vehicle_availability RPC failed, using equivalent table checks:', error.message);
       }
+    } catch (rpcError) {
+      console.warn('[VehiclesService] vehicle_availability RPC threw, using equivalent table checks:', rpcError);
     }
 
-    // 2. Fallback direct en base (tables vehicles + bookings)
+    // 2. Vérification équivalente sur les tables : toute erreur rend l'état inconnu (fail-closed)
     try {
-      const { data: vData, error: vError } = await supabase
-        .from('vehicles')
-        .select('id, status, published, archived_at')
-        .eq('id', vehicleId)
-        .maybeSingle();
-
-      if (vError || !vData) {
-        return true;
+      const [vehicleRes, bookingsRes, blocksRes] = await Promise.all([
+        supabase
+          .from('vehicles')
+          .select('id, status, published, archived_at, agency:agencies(status, archived_at)')
+          .eq('id', vehicleId)
+          .maybeSingle(),
+        supabase
+          .from('bookings')
+          .select('start_date, end_date, status')
+          .eq('vehicle_id', vehicleId)
+          .in('status', [...BLOCKING_BOOKING_STATUSES])
+          .lte('start_date', endDate)
+          .gte('end_date', startDate),
+        supabase
+          .from('vehicle_unavailability')
+          .select('start_date, end_date')
+          .eq('vehicle_id', vehicleId)
+          .lte('start_date', endDate)
+          .gte('end_date', startDate),
+      ]);
+      if (vehicleRes.error || bookingsRes.error || blocksRes.error) {
+        console.error('[VehiclesService] Availability table checks failed:', vehicleRes.error?.message ?? bookingsRes.error?.message ?? blocksRes.error?.message);
+        return 'UNKNOWN';
       }
-
-      if (
-        vData.published === false ||
-        vData.archived_at ||
-        vData.status === 'MAINTENANCE' ||
-        vData.status === 'BLOCKED'
-      ) {
-        return false;
-      }
-
-      // Vérifier les réservations actives bloquantes sur la période
-      const { data: conflicts, error: bError } = await supabase
-        .from('bookings')
-        .select('id, start_date, end_date, status')
-        .eq('vehicle_id', vehicleId)
-        .in('status', ['APPROVED', 'CONFIRMED', 'ACTIVE', 'READY_FOR_PICKUP'])
-        .lte('start_date', endDate)
-        .gte('end_date', startDate);
-
-      if (!bError && conflicts && conflicts.length > 0) {
-        return false;
-      }
-
-      return true;
+      const vehicleRow = vehicleRes.data as
+        | { status: string; published: boolean; archived_at: string | null; agency: unknown }
+        | null;
+      const agencyRaw = vehicleRow ? (Array.isArray(vehicleRow.agency) ? vehicleRow.agency[0] : vehicleRow.agency) : null;
+      return evaluateAvailability(
+        {
+          vehicle: vehicleRow ? { status: vehicleRow.status, published: vehicleRow.published, archived_at: vehicleRow.archived_at } : null,
+          agency: (agencyRaw as { status: string; archived_at: string | null } | null) ?? null,
+          bookings: (bookingsRes.data ?? []) as { start_date: string; end_date: string; status: string }[],
+          unavailability: (blocksRes.data ?? []) as { start_date: string; end_date: string }[],
+        },
+        { startDate, endDate },
+        formatLocalDate(new Date())
+      );
     } catch (fallbackError) {
-      console.warn('[VehiclesService] Availability fallback error:', fallbackError);
-      return true;
+      console.error('[VehiclesService] Availability table checks threw:', fallbackError);
+      return 'UNKNOWN';
     }
   }
 

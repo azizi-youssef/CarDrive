@@ -1,4 +1,4 @@
-import { isBlockingBookingStatus } from '@cardrive/shared';
+import { isBlockingBookingStatus } from '@klickdrive/shared';
 import { Vehicle, Booking } from '@/types';
 
 /**

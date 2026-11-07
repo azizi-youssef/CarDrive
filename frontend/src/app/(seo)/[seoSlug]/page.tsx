@@ -42,13 +42,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     description: page.metaDescription,
     keywords: page.keywords,
     alternates: {
-      canonical: `https://cardrive.ma/${page.slug}`,
+      canonical: `https://klickdrive.ma/${page.slug}`,
     },
     openGraph: {
       title: page.title,
       description: page.metaDescription,
-      url: `https://cardrive.ma/${page.slug}`,
-      siteName: 'CarDrive Nador',
+      url: `https://klickdrive.ma/${page.slug}`,
+      siteName: 'KlickDrive Nador',
       locale: 'fr_FR',
       type: 'website',
     },
@@ -91,10 +91,10 @@ export default async function SeoLandingPage({ params }: PageProps) {
     '@graph': [
       {
         '@type': 'LocalBusiness',
-        '@id': `https://cardrive.ma/${pageData.slug}#business`,
-        name: 'CarDrive Marketplace Nador',
+        '@id': `https://klickdrive.ma/${pageData.slug}#business`,
+        name: 'KlickDrive Marketplace Nador',
         description: pageData.metaDescription,
-        url: `https://cardrive.ma/${pageData.slug}`,
+        url: `https://klickdrive.ma/${pageData.slug}`,
         telephone: '+212 536 60 00 00',
         address: {
           '@type': 'PostalAddress',
@@ -112,7 +112,7 @@ export default async function SeoLandingPage({ params }: PageProps) {
       },
       {
         '@type': 'FAQPage',
-        '@id': `https://cardrive.ma/${pageData.slug}#faq`,
+        '@id': `https://klickdrive.ma/${pageData.slug}#faq`,
         mainEntity: pageData.faqs.map((faq) => ({
           '@type': 'Question',
           name: faq.question,
@@ -223,7 +223,7 @@ export default async function SeoLandingPage({ params }: PageProps) {
                 Nos agences partenaires opérant sur cette zone
               </h2>
               <p className="text-sm text-slate-600 mt-2">
-                Chaque agence est rigoureusement sélectionnée selon notre charte qualité CarDrive.
+                Chaque agence est rigoureusement sélectionnée selon notre charte qualité KlickDrive.
               </p>
             </div>
 

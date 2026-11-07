@@ -6,12 +6,12 @@ import { FAQ_ITEMS } from './faq-data';
 export const metadata: Metadata = {
   title: 'Questions fréquentes sur la location de voitures à Nador',
   description:
-    "Réponses aux questions les plus courantes : comment réserver, dépôt de garantie, assurance, kilométrage, annulation et agences vérifiées CarDrive à Nador.",
+    "Réponses aux questions les plus courantes : comment réserver, dépôt de garantie, assurance, kilométrage, annulation et agences vérifiées KlickDrive à Nador.",
   alternates: { canonical: '/faq' },
   openGraph: {
-    title: 'FAQ — Location de voitures à Nador | CarDrive',
-    description: 'Toutes les réponses sur la réservation, les tarifs, les garanties et les agences partenaires CarDrive à Nador.',
-    url: 'https://cardrive.ma/faq',
+    title: 'FAQ — Location de voitures à Nador | KlickDrive',
+    description: 'Toutes les réponses sur la réservation, les tarifs, les garanties et les agences partenaires KlickDrive à Nador.',
+    url: 'https://klickdrive.ma/faq',
   },
 };
 

@@ -8,7 +8,7 @@ import { hasValidImageSignature } from '@/lib/utils/image-upload';
 
 type RouteContext = { params: Promise<{ id: string }> };
 
-const BUCKET = 'cardrive-agency-logos';
+const BUCKET = 'klickdrive-agency-logos';
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const IMAGE_TYPES = new Map([
   ['image/jpeg', 'jpg'],

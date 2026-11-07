@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAgencyPermissionApi } from '@/lib/auth/access-api';
 import { createAdminClient } from '@/lib/supabase/server';
-import { isBlockingBookingStatus } from '@cardrive/shared';
+import { isBlockingBookingStatus } from '@klickdrive/shared';
 
 type RouteContext = { params: Promise<{ id: string }> };
 

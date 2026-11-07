@@ -1,6 +1,6 @@
 -- ========================================================================
--- CarDrive: Super Admin Agency Management Module
--- Migration: 20261012_agency_admin_module.sql
+-- KlickDrive: Super Admin Agency Management Module
+-- Migration: 20261012000500_agency_admin_module.sql
 -- ========================================================================
 
 -- 1. Ensure archived_at column exists on agencies

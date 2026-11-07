@@ -542,7 +542,7 @@ export function AdminNotificationsClient() {
                 value={messageContent}
                 onChange={(e) => setMessageContent(e.target.value)}
                 rows={5}
-                placeholder="Rédigez votre message officiel CarDrive..."
+                placeholder="Rédigez votre message officiel KlickDrive..."
                 className="w-full rounded-xl border border-slate-200 p-3.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 font-sans"
                 required
               />
@@ -597,7 +597,7 @@ export function AdminNotificationsClient() {
                     size="sm"
                     onClick={() => {
                       setActiveTab('broadcast');
-                      setMessageContent(`[Modèle: ${t.name}]\nBonjour, CarDrive vous informe concernant votre réservation...`);
+                      setMessageContent(`[Modèle: ${t.name}]\nBonjour, KlickDrive vous informe concernant votre réservation...`);
                     }}
                     className="text-xs"
                   >
@@ -634,7 +634,7 @@ export function AdminNotificationsClient() {
                         value={
                           typeof window !== 'undefined'
                             ? `${window.location.origin}/api/webhooks/whatsapp`
-                            : 'https://cardrive.ma/api/webhooks/whatsapp'
+                            : 'https://klickdrive.ma/api/webhooks/whatsapp'
                         }
                         className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 font-mono text-xs text-slate-800"
                       />
@@ -645,7 +645,7 @@ export function AdminNotificationsClient() {
                           copyToClipboard(
                             typeof window !== 'undefined'
                               ? `${window.location.origin}/api/webhooks/whatsapp`
-                              : 'https://cardrive.ma/api/webhooks/whatsapp',
+                              : 'https://klickdrive.ma/api/webhooks/whatsapp',
                             'url'
                           )
                         }
@@ -666,7 +666,7 @@ export function AdminNotificationsClient() {
                       <input
                         type="text"
                         readOnly
-                        value={data?.webhookInfo?.verifyToken || 'cardrive_whatsapp_secure_webhook_token_2026'}
+                        value={data?.webhookInfo?.verifyToken || 'klickdrive_whatsapp_secure_webhook_token_2026'}
                         className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 font-mono text-xs text-slate-800"
                       />
                       <Btn
@@ -674,7 +674,7 @@ export function AdminNotificationsClient() {
                         size="sm"
                         onClick={() =>
                           copyToClipboard(
-                            data?.webhookInfo?.verifyToken || 'cardrive_whatsapp_secure_webhook_token_2026',
+                            data?.webhookInfo?.verifyToken || 'klickdrive_whatsapp_secure_webhook_token_2026',
                             'token'
                           )
                         }

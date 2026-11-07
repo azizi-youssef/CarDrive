@@ -1,4 +1,4 @@
-export type Locale = 'fr' | 'ar' | 'de' | 'es' | 'nl';
+export type Locale = 'fr' | 'ar' | 'en' | 'de' | 'es' | 'nl';
 
 export interface LanguageOption {
   code: Locale;
@@ -24,6 +24,13 @@ export const SUPPORTED_LOCALES: LanguageOption[] = [
     direction: 'rtl',
   },
   {
+    code: 'en',
+    label: 'Anglais',
+    nativeName: 'English',
+    flag: '🇬🇧',
+    direction: 'ltr',
+  },
+  {
     code: 'de',
     label: 'Allemand',
     nativeName: 'Deutsch',
@@ -47,5 +54,40 @@ export const SUPPORTED_LOCALES: LanguageOption[] = [
 ];
 
 export const DEFAULT_LOCALE: Locale = 'fr';
-export const LOCALE_COOKIE_KEY = 'cardrive_locale';
-export const LOCALE_STORAGE_KEY = 'cardrive_locale';
+export const LOCALE_COOKIE_KEY = 'klickdrive_locale';
+export const LOCALE_STORAGE_KEY = 'klickdrive_locale';
+
+const LOCALE_CODES = new Set<string>(SUPPORTED_LOCALES.map((option) => option.code));
+
+export function isLocale(value: unknown): value is Locale {
+  return typeof value === 'string' && LOCALE_CODES.has(value);
+}
+
+/** Valeur de cookie → langue prise en charge (sinon la langue par défaut) */
+export function resolveLocale(value: string | null | undefined): Locale {
+  const code = (value ?? '').trim().toLowerCase();
+  return isLocale(code) ? code : DEFAULT_LOCALE;
+}
+
+export function localeDirection(locale: Locale): 'ltr' | 'rtl' {
+  return SUPPORTED_LOCALES.find((option) => option.code === locale)?.direction ?? 'ltr';
+}
+
+/**
+ * En-tête Accept-Language → première langue prise en charge, par ordre de préférence (q).
+ * Ex. « ar-MA,ar;q=0.9,fr;q=0.8 » → « ar ». Sans correspondance : langue par défaut.
+ */
+export function localeFromAcceptLanguage(header: string | null | undefined): Locale {
+  if (!header) return DEFAULT_LOCALE;
+  const ranked = header
+    .split(',')
+    .map((part, index) => {
+      const [tag, ...params] = part.trim().split(';');
+      const q = params.map((p) => p.trim()).find((p) => p.startsWith('q='));
+      const quality = q ? Number(q.slice(2)) : 1;
+      return { code: tag.trim().slice(0, 2).toLowerCase(), quality: Number.isFinite(quality) ? quality : 0, index };
+    })
+    .filter((entry) => entry.quality > 0)
+    .sort((a, b) => b.quality - a.quality || a.index - b.index);
+  return ranked.find((entry) => isLocale(entry.code))?.code as Locale | undefined ?? DEFAULT_LOCALE;
+}

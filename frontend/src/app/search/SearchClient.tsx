@@ -287,7 +287,7 @@ function SearchPageContent({ preload, vehicleType }: { preload: SearchPreload | 
 
           <p className="mb-2 inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-accent-on-dark">
             <span className="h-px w-6 bg-[#E63946]" aria-hidden="true" />
-            Catalogue CarDrive
+            Catalogue KlickDrive
           </p>
           <h1 className="text-[26px] font-extrabold leading-tight tracking-tight sm:text-4xl lg:text-[44px]">
             {isMotoView ? 'Location de moto à Nador' : 'Location de voiture à Nador'}

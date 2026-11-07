@@ -1,4 +1,4 @@
--- Correct the CarDrive subscription pricing grid.
+-- Correct the KlickDrive subscription pricing grid.
 UPDATE public.subscription_plans
 SET
   min_vehicles = CASE slug

@@ -101,7 +101,7 @@ export function AdminAnalyticsClient() {
   const exportCSV = () => {
     if (!data) return;
     const rows = [
-      ['Rapport Analytics & Performance CarDrive'],
+      ['Rapport Analytics & Performance KlickDrive'],
       ['Date d’exportation', new Date().toLocaleDateString('fr-FR')],
       [],
       ['Indicateurs Clés', 'Valeur'],
@@ -135,7 +135,7 @@ export function AdminAnalyticsClient() {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `cardrive-analytics-${new Date().toISOString().slice(0, 10)}.csv`);
+    link.setAttribute('download', `KlickDrive-analytics-${new Date().toISOString().slice(0, 10)}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -192,9 +192,9 @@ export function AdminAnalyticsClient() {
   const bookingsTrend =
     lastFull && beforeLast && beforeLast.bookings > 0
       ? {
-          value: Math.round(((lastFull.bookings - beforeLast.bookings) / beforeLast.bookings) * 100),
-          label: `demandes en ${lastFull.month}`,
-        }
+        value: Math.round(((lastFull.bookings - beforeLast.bookings) / beforeLast.bookings) * 100),
+        label: `demandes en ${lastFull.month}`,
+      }
       : null;
 
   return (
@@ -232,9 +232,9 @@ export function AdminAnalyticsClient() {
       {/* ── Bannière MRR Forfaits Abonnements ─────────────────────────── */}
       <section
         aria-labelledby="mrr-overview-title"
-        className="relative overflow-hidden rounded-2xl bg-[#0B1220] p-6 sm:p-8 shadow-sm"
+        className="relative overflow-hidden rounded-2xl bg-ink p-6 sm:p-8 shadow-sm"
       >
-        <div className="pointer-events-none absolute -top-12 right-0 h-48 w-80 rounded-full bg-[#E63946]/10 blur-3xl" />
+        <div className="pointer-events-none absolute -top-12 right-0 h-48 w-80 rounded-full bg-brand/10 blur-3xl" />
         <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
           <div>
             <div className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1 text-xs font-semibold text-amber-300 mb-3">
@@ -315,7 +315,7 @@ export function AdminAnalyticsClient() {
           </div>
           <div className="flex items-center gap-4 text-xs">
             <span className="flex items-center gap-1.5 text-slate-600">
-              <span className="h-3 w-3 rounded-sm bg-[#0B1220]" />
+              <span className="h-3 w-3 rounded-sm bg-ink" />
               Total réservations
             </span>
             <span className="flex items-center gap-1.5 text-slate-600">
@@ -339,7 +339,7 @@ export function AdminAnalyticsClient() {
                     <div className="w-full max-w-10 sm:max-w-13 flex items-end justify-center gap-1 h-36 bg-slate-50 rounded-xl p-1 border border-slate-100">
                       {/* Barre totale */}
                       <div
-                        className="w-1/2 rounded-md bg-[#0B1220] transition-all duration-500 group-hover:opacity-90"
+                        className="w-1/2 rounded-md bg-ink transition-all duration-500 group-hover:opacity-90"
                         style={{ height: `${Math.max(6, totalH)}%` }}
                         title={`Total: ${item.bookings}`}
                       />
@@ -394,7 +394,7 @@ export function AdminAnalyticsClient() {
                   </div>
                   <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
                     <div
-                      className="h-full rounded-full bg-[#0B1220] transition-all duration-500"
+                      className="h-full rounded-full bg-ink transition-all duration-500"
                       style={{ width: `${cat.percentage}%` }}
                     />
                   </div>
@@ -433,7 +433,7 @@ export function AdminAnalyticsClient() {
                   </div>
                   <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
                     <div
-                      className="h-full rounded-full bg-[#E63946] transition-all duration-500"
+                      className="h-full rounded-full bg-brand transition-all duration-500"
                       style={{ width: `${loc.percentage}%` }}
                     />
                   </div>
@@ -473,7 +473,7 @@ export function AdminAnalyticsClient() {
                 {data.topAgencies.map((agency, idx) => (
                   <tr key={agency.name} className="hover:bg-slate-50/50 transition-colors">
                     <td className="px-5 py-3.5 sm:px-6 font-medium text-slate-900 flex items-center gap-3">
-                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-[#0B1220] text-xs font-bold text-white">
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-ink text-xs font-bold text-white">
                         {idx + 1}
                       </span>
                       <span className="font-semibold">{agency.name}</span>

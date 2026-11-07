@@ -5,7 +5,7 @@ import { requirePlatformPermissionApi } from '@/lib/auth/access-api';
 import { AGENCY_LOGO_ASSETS } from '@/lib/constants/agency-logo-assets';
 import { createAdminClient } from '@/lib/supabase/server';
 
-const BUCKET = 'cardrive-agency-logos';
+const BUCKET = 'klickdrive-agency-logos';
 
 function failure(message: string, status: number) {
   return NextResponse.json(

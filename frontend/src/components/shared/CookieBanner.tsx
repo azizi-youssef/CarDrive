@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Cookie } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
 
-const STORAGE_KEY = 'cardrive_cookie_consent';
+const STORAGE_KEY = 'klickdrive_cookie_consent';
 
 type ConsentState = 'accepted' | 'declined' | null;
 

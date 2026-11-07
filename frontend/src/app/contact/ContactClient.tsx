@@ -33,9 +33,9 @@ type FormData = {
 
 /**
  * CATEGORIES — chaque type dirige vers le bon canal de traitement.
- * Demande de réservation : transmise à l'agence concernée, pas au support CarDrive.
+ * Demande de réservation : transmise à l'agence concernée, pas au support KlickDrive.
  * Partenariat agence : traité en priorité avec un responsable local.
- * Support technique / facturation : traité par l'équipe CarDrive sous 24 h ouvrables.
+ * Support technique / facturation : traité par l'équipe KlickDrive sous 24 h ouvrables.
  */
 const CATEGORIES = [
   { value: 'reservation', label: '🗓️ Demande d’information sur un véhicule ou une réservation' },
@@ -102,7 +102,7 @@ export function ContactClient() {
             <span className="font-medium text-slate-700">Contact</span>
           </nav>
           <h1 className="text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">
-            Contactez CarDrive
+            Contactez KlickDrive
           </h1>
           <p className="mt-2 max-w-xl text-sm text-slate-500">
             Choisissez la catégorie de votre demande ci-dessous. Les questions sur les
@@ -283,14 +283,14 @@ export function ContactClient() {
                   {
                     icon: Mail,
                     label: 'Email général',
-                    value: 'contact@cardrive.ma',
-                    href: 'mailto:contact@cardrive.ma',
+                    value: 'contact@klickdrive.ma',
+                    href: 'mailto:contact@klickdrive.ma',
                   },
                   {
                     icon: Mail,
                     label: 'Protection des données',
-                    value: 'privacy@cardrive.ma',
-                    href: 'mailto:privacy@cardrive.ma',
+                    value: 'privacy@klickdrive.ma',
+                    href: 'mailto:privacy@klickdrive.ma',
                   },
                   {
                     icon: MessageCircle,
@@ -339,7 +339,7 @@ export function ContactClient() {
                 <p className="text-sm font-bold text-[#0B1220]">Vous êtes une agence ?</p>
               </div>
               <p className="text-xs text-slate-600 mb-4">
-                Rejoignez la plateforme CarDrive pour présenter votre flotte et recevoir des
+                Rejoignez la plateforme KlickDrive pour présenter votre flotte et recevoir des
                 demandes de réservation directement.
               </p>
               <Link

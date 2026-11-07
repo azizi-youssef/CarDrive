@@ -1,5 +1,5 @@
 -- ========================================================================
--- CarDrive: Monetization Model Transition
+-- KlickDrive: Monetization Model Transition
 -- From Percentage Commission (15%) -> Monthly Subscription by Fleet Capacity
 -- Target: Supabase / PostgreSQL 15+
 -- ========================================================================
@@ -86,7 +86,7 @@ INSERT INTO public.subscription_plans (
     '[
         "Jusqu''à 15 véhicules actifs au catalogue",
         "0% de commission sur toutes les réservations",
-        "Mise en avant prioritaire dans les résultats CarDrive",
+        "Mise en avant prioritaire dans les résultats KlickDrive",
         "Statistiques de performance et tableaux de bord financiers",
         "Multi-comptes agents & gestionnaires",
         "Support prioritaire 7j/7"
@@ -107,7 +107,7 @@ INSERT INTO public.subscription_plans (
         "0% de commission sur toutes les réservations",
         "Badge Concessionnaire Officiel Vérifié",
         "Exports comptables et récapitulatifs automatisés",
-        "Gestionnaire de compte CarDrive attitré",
+        "Gestionnaire de compte KlickDrive attitré",
         "Alertes WhatsApp immédiates pour toute nouvelle demande"
     ]'::jsonb
 ),

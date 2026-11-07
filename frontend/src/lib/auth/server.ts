@@ -6,7 +6,7 @@ import {
   type AgencyMemberRole,
   type AccessPermission,
   type UserRole,
-} from '@cardrive/shared';
+} from '@klickdrive/shared';
 import { createClient } from '@/lib/supabase/server';
 
 export type AgencyMembershipContext = {

@@ -8,18 +8,18 @@ INSERT INTO storage.buckets (
     allowed_mime_types
 )
 VALUES (
-    'cardrive-profile-avatars',
-    'cardrive-profile-avatars',
+    'klickdrive-profile-avatars',
+    'klickdrive-profile-avatars',
     true,
     5242880,
     ARRAY['image/jpeg', 'image/png', 'image/webp']
 )
 ON CONFLICT (id) DO NOTHING;
 
-DROP POLICY IF EXISTS "Public can read CarDrive profile avatars" ON storage.objects;
-CREATE POLICY "Public can read CarDrive profile avatars"
+DROP POLICY IF EXISTS "Public can read KlickDrive profile avatars" ON storage.objects;
+CREATE POLICY "Public can read KlickDrive profile avatars"
     ON storage.objects FOR SELECT
     TO public
-    USING (bucket_id = 'cardrive-profile-avatars');
+    USING (bucket_id = 'klickdrive-profile-avatars');
 
 COMMIT;

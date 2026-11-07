@@ -92,7 +92,7 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
-  transpilePackages: ["@cardrive/shared"],
+  transpilePackages: ["@klickdrive/shared"],
   outputFileTracingIncludes: {
     "/api/admin/agencies/sync-logos": [
       "./public/logo_marchicacar.jpeg",

@@ -109,7 +109,7 @@ export function Sidebar({
             <img src={logoUrl} alt={agencyName} className="h-full w-full object-cover" />
           ) : (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src="/logo_12.png" alt="CarDrive" className="h-full w-full object-contain p-1" />
+            <img src="/logo_12.png" alt="KlickDrive" className="h-full w-full object-contain p-1" />
           )}
         </div>
         {!collapsed && (

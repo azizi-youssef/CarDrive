@@ -117,7 +117,7 @@ export async function GET() {
 
     const webhookInfo = {
       endpointUrl: '/api/webhooks/whatsapp',
-      verifyToken: process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN || 'cardrive_whatsapp_secure_webhook_token_2026',
+      verifyToken: process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN || 'klickdrive_whatsapp_secure_webhook_token_2026',
       isConfigured: isWhatsAppConfigured,
       supportedIntents: [
         {

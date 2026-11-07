@@ -79,15 +79,15 @@ const STRINGS: Record<string, FooterStrings> = {
       'Rejoignez le premier réseau de loueurs professionnels de l’Oriental pour digitaliser votre flotte et recevoir des demandes de réservation qualifiées.',
     agencyCta: 'Devenir agence partenaire',
     brandDesc:
-      'CarDrive est la marketplace automobile de référence à Nador. Comparez les disponibilités en temps réel et réservez auprès d’agences locales partenaires rigoureusement sélectionnées.',
+      'KlickDrive est la marketplace automobile de référence à Nador. Comparez les disponibilités en temps réel et réservez auprès d’agences locales partenaires rigoureusement sélectionnées.',
     trust1Title: 'Agences partenaires vérifiées',
     trust1Desc: 'Des loueurs professionnels immatriculés et rigoureusement sélectionnés.',
     trust2Title: 'Tarifs clairs & sans frais cachés',
     trust2Desc: 'Des conditions transparentes et des prix fixés en direct par les agences.',
     trust3Title: 'Prise en charge & support local',
     trust3Desc: 'Aéroport, port et centre-ville. Assistance WhatsApp du lundi au vendredi (9h–18h) et le samedi matin.',
-    whatsappSupport: 'Assistance WhatsApp CarDrive',
-    emailUs: 'contact@cardrive.ma',
+    whatsappSupport: 'Assistance WhatsApp KlickDrive',
+    emailUs: 'contact@klickdrive.ma',
     colExplorer: 'Explorer Nador',
     airport: 'Aéroport Nador-Al Aroui (NDR)',
     port: 'Port de Beni Ansar (Ferry)',
@@ -112,7 +112,7 @@ const STRINGS: Record<string, FooterStrings> = {
     legalPrivacy: 'Confidentialité',
     legalMentions: 'Mentions Légales',
     allRightsReserved: 'Tous droits réservés.',
-    bottomTagline: 'CarDrive · Marketplace de location de véhicules à Nador & dans l’Oriental',
+    bottomTagline: 'KlickDrive · Marketplace de location de véhicules à Nador & dans l’Oriental',
   },
   ar: {
     agencyTitle: 'هل تمتلك وكالة كراء سيارات بالناظور؟',
@@ -129,7 +129,7 @@ const STRINGS: Record<string, FooterStrings> = {
     trust3Title: 'الاستلام والدعم المحلي',
     trust3Desc: 'المطار والميناء ووسط المدينة. دعم عبر واتساب من الاثنين إلى الجمعة (9:00–18:00) وصباح السبت.',
     whatsappSupport: 'دعم واتساب كاردرايف',
-    emailUs: 'contact@cardrive.ma',
+    emailUs: 'contact@klickdrive.ma',
     colExplorer: 'الوجهات ونقاط الاستلام',
     airport: 'مطار الناظور العروي (NDR)',
     port: 'ميناء بني انصار (البواخر)',
@@ -163,15 +163,15 @@ const STRINGS: Record<string, FooterStrings> = {
       'Join the premier rental marketplace in the Oriental region to digitize your fleet and receive verified booking inquiries.',
     agencyCta: 'Become a partner agency',
     brandDesc:
-      'CarDrive is the leading automotive marketplace in Nador, helping travelers compare live availability and book directly from verified local partner agencies.',
+      'KlickDrive is the leading automotive marketplace in Nador, helping travelers compare live availability and book directly from verified local partner agencies.',
     trust1Title: 'Verified Partner Agencies',
     trust1Desc: 'Licensed, trustworthy local car rental businesses in Nador.',
     trust2Title: 'Transparent Pricing',
     trust2Desc: 'Direct pricing without hidden fees or unexpected commissions.',
     trust3Title: 'Pickup & local support',
     trust3Desc: 'Airport, port and city centre. WhatsApp support Monday to Friday (9am–6pm) and Saturday morning.',
-    whatsappSupport: 'CarDrive WhatsApp Support',
-    emailUs: 'contact@cardrive.ma',
+    whatsappSupport: 'KlickDrive WhatsApp Support',
+    emailUs: 'contact@klickdrive.ma',
     colExplorer: 'Explore Nador',
     airport: 'Nador Al-Aroui Airport (NDR)',
     port: 'Beni Ansar Port (Ferry)',
@@ -196,7 +196,7 @@ const STRINGS: Record<string, FooterStrings> = {
     legalPrivacy: 'Privacy Policy',
     legalMentions: 'Legal Notice',
     allRightsReserved: 'All rights reserved.',
-    bottomTagline: 'CarDrive · Car Rental Marketplace in Nador & Eastern Morocco',
+    bottomTagline: 'KlickDrive · Car Rental Marketplace in Nador & Eastern Morocco',
   },
   de: {
     agencyTitle: 'Sie betreiben eine Autovermietung in Nador?',
@@ -205,15 +205,15 @@ const STRINGS: Record<string, FooterStrings> = {
       'Treten Sie dem führenden Netzwerk professioneller Vermieter im Oriental bei, digitalisieren Sie Ihre Flotte und erhalten Sie qualifizierte Buchungsanfragen.',
     agencyCta: 'Partneragentur werden',
     brandDesc:
-      'CarDrive ist der führende Automarktplatz in Nador. Vergleichen Sie die Verfügbarkeit in Echtzeit und buchen Sie bei sorgfältig ausgewählten lokalen Partneragenturen.',
+      'KlickDrive ist der führende Automarktplatz in Nador. Vergleichen Sie die Verfügbarkeit in Echtzeit und buchen Sie bei sorgfältig ausgewählten lokalen Partneragenturen.',
     trust1Title: 'Geprüfte Partneragenturen',
     trust1Desc: 'Registrierte, sorgfältig ausgewählte professionelle Vermieter.',
     trust2Title: 'Klare Preise ohne versteckte Kosten',
     trust2Desc: 'Transparente Bedingungen und Preise direkt von den Agenturen.',
     trust3Title: 'Übergabe & lokaler Support',
     trust3Desc: 'Flughafen, Hafen und Zentrum. WhatsApp-Support Mo–Fr (9–18 Uhr) und Samstagvormittag.',
-    whatsappSupport: 'CarDrive WhatsApp-Support',
-    emailUs: 'contact@cardrive.ma',
+    whatsappSupport: 'KlickDrive WhatsApp-Support',
+    emailUs: 'contact@klickdrive.ma',
     colExplorer: 'Nador entdecken',
     airport: 'Flughafen Nador-Al Aroui (NDR)',
     port: 'Hafen Beni Ansar (Fähre)',
@@ -238,7 +238,7 @@ const STRINGS: Record<string, FooterStrings> = {
     legalPrivacy: 'Datenschutz',
     legalMentions: 'Impressum',
     allRightsReserved: 'Alle Rechte vorbehalten.',
-    bottomTagline: 'CarDrive · Mietwagen-Marktplatz in Nador & im Oriental',
+    bottomTagline: 'KlickDrive · Mietwagen-Marktplatz in Nador & im Oriental',
   },
   es: {
     agencyTitle: '¿Tiene una agencia de alquiler de coches en Nador?',
@@ -247,15 +247,15 @@ const STRINGS: Record<string, FooterStrings> = {
       'Únase a la red líder de alquiladores profesionales del Oriental para digitalizar su flota y recibir solicitudes de reserva cualificadas.',
     agencyCta: 'Ser agencia asociada',
     brandDesc:
-      'CarDrive es el marketplace de referencia en Nador. Compare la disponibilidad en tiempo real y reserve con agencias locales asociadas seleccionadas con rigor.',
+      'KlickDrive es el marketplace de referencia en Nador. Compare la disponibilidad en tiempo real y reserve con agencias locales asociadas seleccionadas con rigor.',
     trust1Title: 'Agencias asociadas verificadas',
     trust1Desc: 'Alquiladores profesionales registrados y seleccionados con rigor.',
     trust2Title: 'Precios claros sin costes ocultos',
     trust2Desc: 'Condiciones transparentes y precios fijados directamente por las agencias.',
     trust3Title: 'Entrega y soporte local',
     trust3Desc: 'Aeropuerto, puerto y centro. Soporte por WhatsApp de lunes a viernes (9–18 h) y sábado por la mañana.',
-    whatsappSupport: 'Asistencia WhatsApp CarDrive',
-    emailUs: 'contact@cardrive.ma',
+    whatsappSupport: 'Asistencia WhatsApp KlickDrive',
+    emailUs: 'contact@klickdrive.ma',
     colExplorer: 'Explorar Nador',
     airport: 'Aeropuerto Nador-Al Aroui (NDR)',
     port: 'Puerto de Beni Ansar (Ferry)',
@@ -280,7 +280,7 @@ const STRINGS: Record<string, FooterStrings> = {
     legalPrivacy: 'Privacidad',
     legalMentions: 'Aviso legal',
     allRightsReserved: 'Todos los derechos reservados.',
-    bottomTagline: 'CarDrive · Marketplace de alquiler de vehículos en Nador y el Oriental',
+    bottomTagline: 'KlickDrive · Marketplace de alquiler de vehículos en Nador y el Oriental',
   },
   nl: {
     agencyTitle: 'Heeft u een autoverhuurbedrijf in Nador?',
@@ -289,15 +289,15 @@ const STRINGS: Record<string, FooterStrings> = {
       'Sluit u aan bij het toonaangevende netwerk van professionele verhuurders in de Oriental, digitaliseer uw vloot en ontvang gekwalificeerde boekingsaanvragen.',
     agencyCta: 'Partnerbureau worden',
     brandDesc:
-      'CarDrive is dé automarktplaats van Nador. Vergelijk de beschikbaarheid in realtime en boek bij zorgvuldig geselecteerde lokale partnerbureaus.',
+      'KlickDrive is dé automarktplaats van Nador. Vergelijk de beschikbaarheid in realtime en boek bij zorgvuldig geselecteerde lokale partnerbureaus.',
     trust1Title: 'Geverifieerde partnerbureaus',
     trust1Desc: 'Geregistreerde, zorgvuldig geselecteerde professionele verhuurders.',
     trust2Title: 'Duidelijke prijzen zonder verborgen kosten',
     trust2Desc: 'Transparante voorwaarden en prijzen rechtstreeks van de bureaus.',
     trust3Title: 'Overdracht & lokale support',
     trust3Desc: 'Luchthaven, haven en centrum. WhatsApp-support ma–vr (9–18 u) en zaterdagochtend.',
-    whatsappSupport: 'CarDrive WhatsApp-support',
-    emailUs: 'contact@cardrive.ma',
+    whatsappSupport: 'KlickDrive WhatsApp-support',
+    emailUs: 'contact@klickdrive.ma',
     colExplorer: 'Ontdek Nador',
     airport: 'Luchthaven Nador-Al Aroui (NDR)',
     port: 'Haven Beni Ansar (Ferry)',
@@ -322,7 +322,7 @@ const STRINGS: Record<string, FooterStrings> = {
     legalPrivacy: 'Privacy',
     legalMentions: 'Juridische informatie',
     allRightsReserved: 'Alle rechten voorbehouden.',
-    bottomTagline: 'CarDrive · Autoverhuurmarktplaats in Nador & de Oriental',
+    bottomTagline: 'KlickDrive · Autoverhuurmarktplaats in Nador & de Oriental',
   },
 };
 
@@ -510,7 +510,7 @@ export function Footer() {
         {/* ============================================================ */}
         {/* 2. ENGAGEMENTS                                               */}
         {/* ============================================================ */}
-        <section aria-label="Engagements CarDrive" className="my-8 border-y border-white/8 py-6 sm:py-8">
+        <section aria-label="Engagements KlickDrive" className="my-8 border-y border-white/8 py-6 sm:py-8">
           <ul className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-6">
             {trustItems.map(({ icon: Icon, title, desc }) => (
               <li key={title} className="flex items-center gap-3.5 sm:items-start">
@@ -537,17 +537,17 @@ export function Footer() {
             {/* Logo sur pastille claire : le « Drive » gris foncé est illisible sur le fond graphite */}
             <Link
               href="/"
-              aria-label="CarDrive — Accueil"
+              aria-label="KlickDrive — Accueil"
               className="inline-flex items-center rounded-xl bg-white px-3.5 py-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#E63946]"
             >
-              <Image src="/logo_12.png" alt="CarDrive" width={134} height={36} className="h-9 w-auto" />
+              <Image src="/logo_12.png" alt="KlickDrive" width={134} height={36} className="h-9 w-auto" />
             </Link>
 
             <p className="max-w-sm text-sm leading-relaxed text-slate-300">{strings.brandDesc}</p>
 
             <div className="grid max-w-sm gap-2 pt-1">
               <a
-                href="https://wa.me/212661987654?text=Bonjour%20CarDrive%2C%20je%20souhaite%20louer%20un%20v%C3%A9hicule%20%C3%A0%20Nador"
+                href="https://wa.me/212767137136?text=Bonjour%20KlickDrive%2C%20je%20souhaite%20louer%20un%20v%C3%A9hicule%20%C3%A0%20Nador"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="group flex min-h-11 items-center justify-between rounded-xl border border-emerald-400/25 bg-emerald-400/8 px-3.5 text-sm font-semibold text-emerald-300 transition-colors hover:border-emerald-400/45 hover:bg-emerald-400/12"
@@ -565,7 +565,7 @@ export function Footer() {
                 />
               </a>
               <a
-                href="mailto:contact@cardrive.ma"
+                href="mailto:contact@klickdrive.ma"
                 className="flex min-h-11 items-center gap-2.5 rounded-xl border border-white/10 bg-white/3 px-3.5 text-sm text-slate-300 transition-colors hover:border-white/20 hover:text-white"
               >
                 <Mail className="h-4 w-4 text-slate-400" aria-hidden="true" />
@@ -661,7 +661,7 @@ export function Footer() {
           <div className="flex flex-col gap-4 text-[13px] text-slate-400 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
               <span>
-                © {currentYear} CarDrive. {strings.allRightsReserved}
+                © {currentYear} KlickDrive. {strings.allRightsReserved}
               </span>
               <span className="text-slate-600" aria-hidden="true">
                 •

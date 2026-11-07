@@ -12,7 +12,7 @@ console.log('🧪 Testing i18n system...');
 
 // 1. Check supported locales count and codes
 assert(DEFAULT_LOCALE === 'fr', 'Default locale must be fr');
-assert(SUPPORTED_LOCALES.length === 5, 'Should have 5 supported locales');
+assert(SUPPORTED_LOCALES.length === 6, 'Should have 6 supported locales (fr, ar, en, de, es, nl)');
 const codes = SUPPORTED_LOCALES.map((l) => l.code);
 assert(codes.includes('fr'), 'Must support fr');
 assert(codes.includes('ar'), 'Must support ar');

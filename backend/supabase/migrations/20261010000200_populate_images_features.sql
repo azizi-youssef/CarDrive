@@ -1,5 +1,5 @@
-﻿-- ========================================================================
--- CarDrive: Migration V2.1 - Populate Missing Vehicle Images & Features
+-- ========================================================================
+-- KlickDrive: Migration V2.1 - Populate Missing Vehicle Images & Features
 -- Apply to Supabase SQL Editor or psql
 -- ========================================================================
 

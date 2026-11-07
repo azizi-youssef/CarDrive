@@ -23,12 +23,12 @@ const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
 const SQL_FILES = [
   { label: 'Schéma principal',            path: join(ROOT, 'backend/supabase/schema.sql') },
   { label: 'Booking system v2',           path: join(ROOT, 'backend/supabase/migrations/20261005_booking_system_v2.sql') },
-  { label: 'API Rate Limits table',       path: join(ROOT, 'backend/supabase/migrations/20261011_api_rate_limits.sql') },
+  { label: 'API Rate Limits table',       path: join(ROOT, 'backend/supabase/migrations/20261011000400_api_rate_limits.sql') },
   { label: 'Rate Limit RPC (corrigé)',    path: join(ROOT, 'backend/supabase/migrations/20261011000100_rate_limit_rpc.sql') },
   { label: 'Booking Idempotency',         path: join(ROOT, 'backend/supabase/migrations/20261011000200_booking_idempotency.sql') },
-  { label: 'Agency Access Control',       path: join(ROOT, 'backend/supabase/migrations/20261010_agency_access_control.sql') },
-  { label: 'Security Remediation',        path: join(ROOT, 'backend/supabase/migrations/20261011_security_remediation.sql') },
-  { label: 'Populate Images & Features',  path: join(ROOT, 'backend/supabase/migrations/20261010_populate_images_features.sql') },
+  { label: 'Agency Access Control',       path: join(ROOT, 'backend/supabase/migrations/20261010000100_agency_access_control.sql') },
+  { label: 'Security Remediation',        path: join(ROOT, 'backend/supabase/migrations/20261011000500_security_remediation.sql') },
+  { label: 'Populate Images & Features',  path: join(ROOT, 'backend/supabase/migrations/20261010000200_populate_images_features.sql') },
   { label: 'Enable Supabase Realtime',    path: join(ROOT, 'backend/supabase/migrations/20261016_enable_supabase_realtime.sql') },
 ];
 
